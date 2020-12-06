@@ -1,4 +1,5 @@
 import './App.css'
+import './utils/disable-context-menu'
 import { Note, Scale } from './music'
 import Piano from './components/Piano'
 
