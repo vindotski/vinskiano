@@ -1,10 +1,16 @@
 import './App.css'
 import './utils/disable-context-menu'
-import { Note, Scale } from './music'
+import { Note, Scale, Frequency } from './music'
+import { Context, Oscillator } from './audio'
 import Mixer from './components/Mixer'
 import Piano from './components/Piano'
 
 function App () {
+  const context = Context.make()
+  context.master.gain.value = 0.7
+  const oscillator = new Oscillator(context, context.master)
+  const sounds = {}
+
   const master = {
     gain: 0.7
   }
@@ -48,22 +54,25 @@ function App () {
       />
     </div>
   )
-}
 
-function trigger (note) {
-  console.log('Trigger', note.toString())
-}
+  function trigger (note) {
+    const hertz = Frequency.fromNote(note).hertz
+    sounds[note] = oscillator.emit(hertz)
+    sounds[note].start()
+  }
 
-function release (note) {
-  console.log('Release', note.toString())
-}
+  function release (note) {
+    sounds[note].stop()
+    delete sounds[note]
+  }
 
-function updateMaster (options) {
-  console.log('Master', options)
-}
+  function updateMaster (options) {
+    console.log('Master', options)
+  }
 
-function updateOscillator (id, options) {
-  console.log(`Oscillator ${id}`, options)
+  function updateOscillator (id, options) {
+    console.log(`Oscillator ${id}`, options)
+  }
 }
 
 export default App
