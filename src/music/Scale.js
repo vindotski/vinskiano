@@ -1,7 +1,7 @@
 import Note from './Note'
 
 const CHROMATIC_SCALE = [
-  'A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'
+  'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'
 ]
 
 class Scale {
@@ -19,7 +19,7 @@ class Scale {
 
     for (let i = start; i < end; i++) {
       const noteIndex = i % CHROMATIC_SCALE.length
-      const octaveOffset = Math.floor((i - start) / 12)
+      const octaveOffset = Math.floor(i / 12)
 
       const noteName = CHROMATIC_SCALE[noteIndex]
       const noteOctave = this.rootNote.octave + octaveOffset
