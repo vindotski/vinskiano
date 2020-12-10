@@ -29,7 +29,7 @@ class PianoKey extends React.Component {
           this.release()
         }}
       >
-        {this.props.note.name}
+        {this.props.note.toString().replace(/\d+/g, '')}
       </button>
     )
   }
@@ -37,7 +37,7 @@ class PianoKey extends React.Component {
   classes = () => {
     const classList = [
       'piano-key',
-      `piano-key--${!this.props.note.accidental ? 'white' : 'black'}`
+      `piano-key--${!this.props.note.name.includes('{') ? 'white' : 'black'}`
     ]
 
     if (this.state.active) {
