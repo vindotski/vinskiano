@@ -1,10 +1,16 @@
 import Note from './Note'
-import ChromaticScale from './ChromaticScale'
+import ScaleBuilder from './ScaleBuilder'
+import { ChromaticScaleStrategy } from './ScaleStrategy'
 
 const ROOT_HERTZ = 440
 const SEMITONE = Math.pow(2, 1/12)
 const ROOT_NOTE = new Note('A', 4)
-const SCALE = new ChromaticScale(ROOT_NOTE)
+
+const scaleOptions = {
+  rootNote: ROOT_NOTE,
+  strategy: new ChromaticScaleStrategy()
+}
+const SCALE = new ScaleBuilder(scaleOptions).build();
 
 const A_NOTE_INDEX = SCALE.indexOf('A')
 const OCTAVE_SHIFT_INDEX = SCALE.indexOf('C')
