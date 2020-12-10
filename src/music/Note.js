@@ -13,7 +13,10 @@ class Note {
   }
 
   toString () {
-    return `${this.name}${this.octave}`
+    let name = this.name
+    name = name.replace('{sharp}', '#')
+    name = name.replace('{flat}',' b')
+    return `${name}${this.octave}`
   }
 }
 

@@ -1,6 +1,6 @@
 import './App.css'
 import './utils/disable-context-menu'
-import { Note, Scale, Frequency } from './music'
+import { Note, Frequency, ScaleBuilder, ChromaticScaleStrategy } from './music'
 import { Context, Oscillator } from './audio'
 import Mixer from './components/Mixer'
 import Piano from './components/Piano'
@@ -35,8 +35,15 @@ function App () {
     }
   ]
 
-  const rootNote = new Note('C', 4)
-  const scale = new Scale(rootNote)
+  const scaleOptions = {
+    rootNote: new Note({ name: 'C', octave: 4 }),
+    strategy: new ChromaticScaleStrategy()
+  }
+  const scale = new ScaleBuilder(scaleOptions).build()
+  scale.push(new Note({
+    name: scaleOptions.rootNote.name,
+    octave: scaleOptions.rootNote.octave + 1
+  }))
 
   return (
     <div className="App">
@@ -48,7 +55,7 @@ function App () {
       />
 
       <Piano
-        notes={scale.notes}
+        notes={scale}
         onTrigger={trigger}
         onRelease={release}
       />
