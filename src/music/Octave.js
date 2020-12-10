@@ -1,18 +1,48 @@
-const OCTAVE = [
-  'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'
-]
+import Note from './Note'
 
-class Octave {
-  static make () {
-    return new Proxy([...OCTAVE], {
+class Octave extends Array {
+  static DEFAULT = [
+    new Note({ name: 'C', octave: -1 }),
+    new Note({ name: 'C{sharp}', octave: -1 }),
+    new Note({ name: 'D', octave: -1 }),
+    new Note({ name: 'D{sharp}', octave: -1 }),
+    new Note({ name: 'E', octave: -1 }),
+    new Note({ name: 'F', octave: -1 }),
+    new Note({ name: 'F{sharp}', octave: -1 }),
+    new Note({ name: 'G', octave: -1 }),
+    new Note({ name: 'G{sharp}', octave: -1 }),
+    new Note({ name: 'A', octave: -1 }),
+    new Note({ name: 'A{sharp}', octave: -1 }),
+    new Note({ name: 'B', octave: -1 })
+  ]
+
+  constructor () {
+    super()
+
+    return new Proxy(this, {
       get: (object, key, receiver) => {
         if (typeof key === 'string' && !isNaN(key)) {
-          return object[+key % object.length]
+          return this.get(+key)
         }
 
         return Reflect.get(object, key, receiver)
       }
     })
+  }
+
+  get (index) {
+    return this[index % this.length]
+  }
+
+  indexOf (noteName) {
+    return this.findIndex(note => noteName === note.name)
+  }
+
+  static make (notes = null) {
+    const octave = new Octave();
+    (notes || this.DEFAULT).forEach(note => (octave.push(note)));
+    Object.freeze(octave);
+    return octave
   }
 }
 
