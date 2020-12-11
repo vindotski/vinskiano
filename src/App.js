@@ -4,11 +4,13 @@ import { Frequency } from './music'
 import { Oscillator } from './audio'
 import Mixer from './components/Mixer'
 import Piano from './components/Piano'
+import Oscilloscope from './audio/Oscilloscope'
 
 class App extends React.Component {
   state = {
     master: {
-      gain: 0.7
+      gain: this.props.context.master.gain.value,
+      oscilloscope: new Oscilloscope(this.props.context, this.props.context.master)
     },
     oscillator: new Oscillator(
       this.props.context,
@@ -77,7 +79,8 @@ class App extends React.Component {
   }
 
   updateMaster = (options) => {
-    console.log('Master', options)
+    this.props.context.master.gain.value = options.gain
+    this.setState({ master: options })
   }
 
   updateOscillator = (id, options) => {
