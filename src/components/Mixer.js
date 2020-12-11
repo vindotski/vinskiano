@@ -9,6 +9,7 @@ class Mixer extends React.Component {
       <div className="mixer">
         <MasterMixerSection
           gain={this.props.master.gain}
+          oscilloscope={this.props.master.oscilloscope}
           onChange={this.props.onMasterChange}
         />
 

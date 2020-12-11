@@ -1,6 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import MixerSection from './MixerSection'
+import Oscilloscope from './Oscilloscope'
 
 class MasterMixerSection extends React.Component {
   render () {
@@ -19,7 +20,7 @@ class MasterMixerSection extends React.Component {
           />
         </div>
 
-        <canvas className="oscilloscope"></canvas>
+        <Oscilloscope oscilloscope={this.props.oscilloscope} />
       </MixerSection>
     )
   }
@@ -32,13 +33,15 @@ class MasterMixerSection extends React.Component {
 
   update = (options) => {
     this.props.onChange({
-      gain: parseFloat(options.gain || this.props.gain)
+      gain: parseFloat(options.gain || this.props.gain),
+      oscilloscope: options.oscilloscope || this.props.oscilloscope
     })
   }
 }
 
 MasterMixerSection.propTypes = {
   gain: PropTypes.number.isRequired,
+  oscilloscope: PropTypes.object.isRequired,
   onChange: PropTypes.func
 }
 
