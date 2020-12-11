@@ -8,7 +8,7 @@ import Piano from './components/Piano'
 class App extends React.Component {
   state = {
     master: {
-      gain: 0.7
+      gain: this.props.context.master.gain.value
     },
     oscillator: new Oscillator(
       this.props.context,
@@ -77,7 +77,8 @@ class App extends React.Component {
   }
 
   updateMaster = (options) => {
-    console.log('Master', options)
+    this.props.context.master.gain.value = options.gain
+    this.setState({ master: options })
   }
 
   updateOscillator = (id, options) => {
