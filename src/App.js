@@ -12,29 +12,22 @@ class App extends React.Component {
       gain: this.props.context.master.gain.value,
       oscilloscope: new Oscilloscope(this.props.context, this.props.context.master)
     },
-    oscillator: new Oscillator(
-      this.props.context,
-      this.props.context.master
-    ),
     oscillators: [
-      {
+      new Oscillator({
         id: 1,
-        waveform: 'sine',
-        pitch: 0,
-        mix: 0.5
-      },
-      {
+        context: this.props.context,
+        destination: this.props.context.master
+      }),
+      new Oscillator({
         id: 2,
-        waveform: 'sine',
-        pitch: -12,
-        mix: 0.5
-      },
-      {
+        context: this.props.context,
+        destination: this.props.context.master
+      }),
+      new Oscillator({
         id: 3,
-        waveform: 'sine',
-        pitch: -24,
-        mix: 0.5
-      }
+        context: this.props.context,
+        destination: this.props.context.master
+      })
     ],
     sounds: []
   }
@@ -59,22 +52,29 @@ class App extends React.Component {
   }
 
   trigger = (note) => {
-    const hertz = Frequency.fromNote(note).hertz
-    const sound = this.state.oscillator.emit(hertz)
+    const newSounds = []
+    this.state.oscillators.forEach(oscillator => {
+      const hertz = Frequency.fromNote(note).hertz
+      const sound = oscillator.emit(hertz)
+      sound.note = note
 
-    const sounds = [...this.state.sounds]
-    sounds[note] = sound
-    this.setState({ sounds })
+      newSounds.push(sound)
+      sound.start()
+    })
 
-    sound.start()
+    this.setState({
+      sounds: [
+        ...this.state.sounds,
+        ...newSounds
+      ]
+    })
   }
 
   release = (note) => {
-    const sound = this.state.sounds[note]
-    sound.stop()
+    const noteSounds = this.state.sounds.filter(s => note === s.note)
+    noteSounds.forEach(sound => (sound.stop()))
 
-    const sounds = this.state.sounds
-      .filter((s) => sounds !== s)
+    const sounds = this.state.sounds.filter(s => (note !== s.note))
     this.setState({ sounds })
   }
 
@@ -84,7 +84,20 @@ class App extends React.Component {
   }
 
   updateOscillator = (id, options) => {
-    console.log(`Oscillator ${id}`, options)
+    const oscillators = this.state.oscillators.slice()
+    const oscillatorIndex = oscillators.findIndex(o => id === o.id)
+    const oscillator = oscillators[oscillatorIndex]
+
+    if (!oscillator) {
+      throw new Error(`Oscillator not found by id: ${id}`)
+    }
+
+    oscillator.waveform = options.waveform
+    oscillator.pitch = options.pitch
+    oscillator.volume = options.volume
+    oscillators[oscillatorIndex] = oscillator
+
+    this.setState({ oscillators })
   }
 }
 

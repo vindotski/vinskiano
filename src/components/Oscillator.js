@@ -33,29 +33,19 @@ class Oscillator extends React.Component {
           />
         </div>
 
-        {this.renderMix()}
-      </div>
-    )
-  }
+        <div className="input-group">
+          <label className="input-group-label">Volume</label>
 
-  renderMix () {
-    if (this.props.hideMix) {
-      return null
-    }
-
-    return (
-      <div className="input-group">
-        <label className="input-group-label">Mix level</label>
-
-        <input
-          value={this.props.mix}
-          onChange={this.updateMix}
-          className="input-group-control"
-          type="range"
-          min="0"
-          max="1"
-          step="0.05"
-        />
+          <input
+            value={this.props.volume}
+            onChange={this.updateVolume}
+            className="input-group-control"
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+          />
+        </div>
       </div>
     )
   }
@@ -72,9 +62,9 @@ class Oscillator extends React.Component {
     })
   }
 
-  updateMix = (e) => {
+  updateVolume = (e) => {
     this.update({
-      mix: e.target.value
+      volume: e.target.value
     })
   }
 
@@ -82,7 +72,7 @@ class Oscillator extends React.Component {
     this.props.onChange(this.props.id, {
       waveform: options.waveform || this.props.waveform,
       pitch: parseInt(options.pitch || this.props.pitch),
-      mix: parseFloat(options.mix || this.props.mix)
+      volume: parseFloat(options.volume || this.props.volume)
     })
   }
 }
@@ -91,13 +81,11 @@ Oscillator.propTypes = {
   id: PropTypes.any.isRequired,
   waveform: PropTypes.string.isRequired,
   pitch: PropTypes.number.isRequired,
-  mix: PropTypes.number.isRequired,
-  hideMix: PropTypes.bool,
+  volume: PropTypes.number.isRequired,
   onChange: PropTypes.func
 }
 
 Oscillator.defaultProps = {
-  hideMix: false,
   onChange: () => {}
 }
 
