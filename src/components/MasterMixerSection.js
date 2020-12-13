@@ -10,30 +10,17 @@ class MasterMixerSection extends React.Component {
     return (
       <MixerSection title="Master" className="mixer-section--master">
         <div className="input-group">
-        <InputLabel>Volume</InputLabel>
+          <InputLabel>Master Volume</InputLabel>
           <Slider
             value={parseInt(this.props.gain * 100)}
             onChange={this.updateGain}
             min={0}
             max={100}
-            marks={[
-              {
-                value: 25,
-                label: '25'
-              },
-              {
-                value: 50,
-                label: '50'
-              },
-              {
-                value: 75,
-                label: '75'
-              }
-            ]}
             valueLabelDisplay="auto"
           />
         </div>
 
+        <InputLabel style={{ marginBottom: '0.7em' }}>Oscilloscope</InputLabel>
         <Oscilloscope oscilloscope={this.props.oscilloscope} />
       </MixerSection>
     )

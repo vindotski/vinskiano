@@ -143,3 +143,11 @@
 .piano-key.piano-key--active {
   background-color: #ffa500;
 }
+
+.MuiSlider-root {
+  padding: 0.5em 0 !important;
+}
+
+.MuiFormControl-root {
+  width: 100% !important;
+}
