@@ -5,10 +5,6 @@ class MixerSection extends React.Component {
   render () {
     return (
       <div className={`mixer-section ${this.props.className}`}>
-        <h2 className="mixer-section-title">
-          {this.props.title}
-        </h2>
-
         <div className="mixer-section-body">
           {this.props.children}
         </div>

@@ -29,8 +29,9 @@
 .input-group {
   flex: 1;
   display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
+  justify-content: center;
+  flex-direction: column;
   margin-bottom: 1em;
 }
 
@@ -141,4 +142,12 @@
 
 .piano-key.piano-key--active {
   background-color: #ffa500;
+}
+
+.MuiSlider-root {
+  padding: 0.5em 0 !important;
+}
+
+.MuiFormControl-root {
+  width: 100% !important;
 }
