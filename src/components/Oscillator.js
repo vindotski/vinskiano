@@ -1,78 +1,134 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import FormControl from '@material-ui/core/FormControl'
+import InputLabel from '@material-ui/core/InputLabel'
+import Select from '@material-ui/core/Select'
+import MenuItem from '@material-ui/core/MenuItem'
+import Slider from '@material-ui/core/Slider'
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 
 class Oscillator extends React.Component {
   render () {
     return (
       <div className="oscillator">
         <div className="input-group">
-          <label className="input-group-label">Waveform</label>
+          <InputLabel style={{ marginBottom: '0.7em' }}>Waveform</InputLabel>
 
-          <select
-            className="input-group-control"
+          <ToggleButtonGroup
             value={this.props.waveform}
             onChange={this.updateWaveform}
+            exclusive
+            size="small"
           >
-            <option value="sine">Sine</option>
-            <option value="square">Square</option>
-            <option value="triangle">Triangle</option>
-            <option value="sawtooth">Sawtooth</option>
-          </select>
+            <ToggleButton value="sine" aria-label="left aligned">
+              Sine
+            </ToggleButton>
+            <ToggleButton value="sqaure" aria-label="centered">
+              Square
+            </ToggleButton>
+            <ToggleButton value="triangle" aria-label="right aligned">
+              Triangle
+            </ToggleButton>
+            <ToggleButton value="sawtooth" aria-label="justified">
+              Sawtooth
+            </ToggleButton>
+          </ToggleButtonGroup>
         </div>
 
         <div className="input-group">
-          <label className="input-group-label">Pitch</label>
+          <InputLabel>Pitch</InputLabel>
 
-          <input
+          <Slider
             value={this.props.pitch}
             onChange={this.updatePitch}
-            className="input-group-control"
-            type="range"
-            min="-24"
-            max="24"
+            min={-24}
+            max={24}
+            marks={[
+              {
+                value: -12,
+                label: '-12'
+              },
+              {
+                value: 0,
+                label: '0'
+              },
+              {
+                value: 12,
+                label: '12'
+              }
+            ]}
+            valueLabelDisplay="auto"
           />
         </div>
 
         <div className="input-group">
-          <label className="input-group-label">Volume</label>
+          <InputLabel>Volume</InputLabel>
 
-          <input
-            value={this.props.volume}
+          <Slider
+            value={parseInt(this.props.volume * 100)}
             onChange={this.updateVolume}
-            className="input-group-control"
-            type="range"
-            min="0"
-            max="1"
-            step="0.05"
+            min={0}
+            max={100}
+            marks={[
+              {
+                value: 25,
+                label: '25'
+              },
+              {
+                value: 50,
+                label: '50'
+              },
+              {
+                value: 75,
+                label: '75'
+              }
+            ]}
+            valueLabelDisplay="auto"
           />
         </div>
       </div>
     )
   }
 
-  updateWaveform = (e) => {
+  updateWaveform = (e, value) => {
+    if (!value) {
+      return
+    }
+
     this.update({
-      waveform: e.target.value,
+      waveform: value
     })
   }
 
-  updatePitch = (e) => {
+  updatePitch = (e, value) => {
     this.update({
-      pitch: e.target.value,
+      pitch: value
     })
   }
 
-  updateVolume = (e) => {
+  updateVolume = (e, value) => {
     this.update({
-      volume: e.target.value
+      volume: parseFloat(value) / 100
     })
   }
 
   update = (options) => {
+    const defaults = {
+      waveform: this.props.waveform,
+      pitch: this.props.pitch,
+      volume: this.props.volume
+    }
+
+    const newValues = {
+      ...defaults,
+      ...options
+    }
+
     this.props.onChange(this.props.id, {
-      waveform: options.waveform || this.props.waveform,
-      pitch: parseInt(options.pitch || this.props.pitch),
-      volume: parseFloat(options.volume || this.props.volume)
+      ...newValues,
+      pitch: parseInt(newValues.pitch),
+      volume: parseFloat(newValues.volume)
     })
   }
 }
