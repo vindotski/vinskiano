@@ -1,10 +1,29 @@
+#root {
+  overflow: hidden;
+}
+
 .App {
   display: flex;
   flex-direction: column;
   width: 100vw;
   height: 100vh;
   font-size: 1.5vw;
-  overflow: hidden;
+}
+
+@media (orientation: portrait) {
+  .App {
+    top: -100vw;
+    left: 0;
+    width: 100vh;
+    height: 100vw;
+    font-size: 1.5vh;
+
+    transform: rotate(90deg);
+    transform-origin: bottom left;
+    position: absolute;
+
+    overflow: auto;
+  }
 }
 
 .input-group {
