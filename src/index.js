@@ -9,6 +9,15 @@ import { Context } from './audio'
 import { Note, ScaleBuilder, ChromaticScaleStrategy } from './music'
 import './utils/disable-context-menu'
 
+const updateViewportVars = () => {
+  const vh = window.innerHeight * 0.01
+  document.documentElement.style.setProperty('--vh', `${vh}px`)
+}
+
+window.addEventListener('resize', () => {
+  updateViewportVars()
+})
+
 const context = Context.make()
 context.master.gain.value = 0.7
 
