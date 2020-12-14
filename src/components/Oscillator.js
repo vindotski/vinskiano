@@ -1,5 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import Slider from './Slider'
 
 class Oscillator extends React.Component {
   render () {
@@ -25,31 +26,19 @@ class Oscillator extends React.Component {
           </select>
         </div>
 
-        <div className="input-group">
-          <label className="input-group-label">Pitch</label>
+        <Slider
+          label="Pitch"
+          value={this.props.pitch}
+          onChange={this.updatePitch}
+          min={-24}
+          max={24}
+        />
 
-          <input
-            className="input-group-control"
-            value={this.props.pitch}
-            onChange={this.updatePitch}
-            type="range"
-            min={-24}
-            max={24}
-          />
-        </div>
-
-        <div className="input-group">
-          <label className="input-group-label">Volume</label>
-
-          <input
-            className="input-group-control"
-            value={this.props.volume * 100}
-            onChange={this.updateVolume}
-            type="range"
-            min="0"
-            max="100"
-          />
-        </div>
+        <Slider
+          label="Volume"
+          value={parseInt(this.props.volume * 100)}
+          onChange={this.updateVolume}
+        />
       </div>
     )
   }
