@@ -36,7 +36,10 @@
 }
 
 .input-group-label {
+  display: flex;
+  justify-content: space-between;
   margin-right: 1em;
+  width: 100%;
 }
 
 .input-group-control {
