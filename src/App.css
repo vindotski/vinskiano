@@ -147,3 +147,7 @@
 .piano-key.piano-key--active {
   background-color: #ffa500;
 }
+
+button {
+  user-select: none;
+}
