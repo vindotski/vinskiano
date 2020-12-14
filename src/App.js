@@ -52,6 +52,8 @@ class App extends React.Component {
   }
 
   trigger = (note) => {
+    this.props.context.resume()
+
     const newSounds = []
     this.state.oscillators.forEach(oscillator => {
       const hertz = Frequency.fromNote(note).hertz
