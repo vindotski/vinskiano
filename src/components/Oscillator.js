@@ -1,53 +1,53 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import FormControl from '@material-ui/core/FormControl'
-import InputLabel from '@material-ui/core/InputLabel'
-import Select from '@material-ui/core/Select'
-import MenuItem from '@material-ui/core/MenuItem'
-import Slider from '@material-ui/core/Slider'
-import ToggleButton from '@material-ui/lab/ToggleButton';
-import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 
 class Oscillator extends React.Component {
   render () {
     return (
       <div className="oscillator">
         <div className="input-group">
-          <FormControl>
-            <InputLabel>Waveform</InputLabel>
-            <Select
-              value={this.props.waveform}
-              onChange={this.updateWaveform}
-            >
-              <MenuItem value="sine">Sine</MenuItem>
-              <MenuItem value="square">Square</MenuItem>
-              <MenuItem value="triangle">Triangle</MenuItem>
-              <MenuItem value="sawtooth">Sawtooth</MenuItem>
-            </Select>
-          </FormControl>
+          <label
+            className="input-group-label"
+            style={{ marginBottom: '0.35em' }}
+          >
+            Waveform
+          </label>
+
+          <select
+            className="input-group-control"
+            value={this.props.waveform}
+            onChange={this.updateWaveform}
+          >
+            <option value="sine">Sine</option>
+            <option value="square">Square</option>
+            <option value="triangle">Triangle</option>
+            <option value="sawtooth">Sawtooth</option>
+          </select>
         </div>
 
         <div className="input-group">
-          <InputLabel>Pitch</InputLabel>
+          <label className="input-group-label">Pitch</label>
 
-          <Slider
+          <input
+            className="input-group-control"
             value={this.props.pitch}
             onChange={this.updatePitch}
+            type="range"
             min={-24}
             max={24}
-            valueLabelDisplay="auto"
           />
         </div>
 
         <div className="input-group">
-          <InputLabel>Volume</InputLabel>
+          <label className="input-group-label">Volume</label>
 
-          <Slider
-            value={parseInt(this.props.volume * 100)}
+          <input
+            className="input-group-control"
+            value={this.props.volume * 100}
             onChange={this.updateVolume}
-            min={0}
-            max={100}
-            valueLabelDisplay="auto"
+            type="range"
+            min="0"
+            max="100"
           />
         </div>
       </div>
@@ -55,26 +55,20 @@ class Oscillator extends React.Component {
   }
 
   updateWaveform = (e) => {
-    const value = e.target.value
-
-    if (!value) {
-      return
-    }
-
     this.update({
-      waveform: value
+      waveform: e.target.value
     })
   }
 
-  updatePitch = (e, value) => {
+  updatePitch = (e) => {
     this.update({
-      pitch: value
+      pitch: e.target.value
     })
   }
 
-  updateVolume = (e, value) => {
+  updateVolume = (e) => {
     this.update({
-      volume: parseFloat(value) / 100
+      volume: parseFloat(e.target.value) / 100
     })
   }
 

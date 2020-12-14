@@ -2,33 +2,40 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import MixerSection from './MixerSection'
 import Oscilloscope from './Oscilloscope'
-import InputLabel from '@material-ui/core/InputLabel'
-import Slider from '@material-ui/core/Slider'
 
 class MasterMixerSection extends React.Component {
   render () {
     return (
       <MixerSection title="Master" className="mixer-section--master">
         <div className="input-group">
-          <InputLabel>Master Volume</InputLabel>
-          <Slider
+          <label className="input-group-label">
+            Master Volume
+          </label>
+
+          <input
+            className="input-group-control"
             value={parseInt(this.props.gain * 100)}
             onChange={this.updateGain}
-            min={0}
-            max={100}
-            valueLabelDisplay="auto"
+            type="range"
+            min="0"
+            max="100"
           />
         </div>
 
-        <InputLabel style={{ marginBottom: '0.7em' }}>Oscilloscope</InputLabel>
+        <label
+          className="input-group-label"
+          style={{ marginBottom: '0.7em' }}
+        >
+          Oscilloscope
+        </label>
         <Oscilloscope oscilloscope={this.props.oscilloscope} />
       </MixerSection>
     )
   }
 
-  updateGain = (e, value) => {
+  updateGain = (e) => {
     this.update({
-      gain: parseFloat(value) / 100
+      gain: parseFloat(e.target.value) / 100
     })
   }
 
