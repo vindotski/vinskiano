@@ -12,7 +12,7 @@ such as ADSR envelopes, modifiers, modulation, et cetera.
 
 ## Features
 
-- Keyboard with 13 keys (C5-C6)
+- Keyboard with 13 keys (C4-C5)
 - Customizable root key (only via code)
 - 3 customizable oscillators
   - Waveform: Sine, Square, Triangle, Sawtooth
