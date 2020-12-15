@@ -1,70 +1,88 @@
-# Getting Started with Create React App
+# Vinskiano
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+> Browser-based subtractive synthesizer
 
-## Available Scripts
+Vinskiano is a browser-based subtractive synthesizer in the making. For now,
+Vinskiano consists of 1 master gain control and 3 customizable oscillators. You can
+change the waveform, pitch and gain of each individual oscillator. What's missing
+right now and will be included in future versions of Vinskiano are functionalities
+such as ADSR envelopes, modifiers, modulation, et cetera.
 
-In the project directory, you can run:
+![Vinskiano screenshot](screenshot.png)
 
-### `yarn start`
+## Features
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- Keyboard with 13 keys (C5-C6)
+- Customizable root key (only via code)
+- 3 customizable oscillators
+  - Waveform: Sine, Square, Triangle, Sawtooth
+  - Pitch: From -24 to 24 semitones
+  - Volume: From 0 to 100 percent
+- Master volume control
+- Oscilloscope that shows output waveform
+- Forced landscape orientation
+- Responsive layout (fills viewport)
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Development setup
 
-### `yarn test`
+### Instructions
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+#### 1. Clone the repository
 
-### `yarn build`
+```
+git clone https://github.com/ivanvinski/vinskiano.git
+cd vinskiano
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+#### 2. Install dependencies
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```
+yarn install
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+#### 3. Start for development
 
-### `yarn eject`
+```
+yarn start
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+#### 4. Open your browser and navigate to [`http://localhost:3000`](http://localhost:3000)
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Production build
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+#### 1. Build project files
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```
+yarn build
+```
 
-## Learn More
+#### 2. Serve content
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Serve files in `build` directory.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Scripts
 
-### Code Splitting
+* `yarn start` - starts project for development
+* `yarn build` - builds project for production
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Release History
 
-### Analyzing the Bundle Size
+- **0.1.0** - December 15, 2020
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+See [CHANGELOG.md](CHANGELOG.md) for more information.
 
-### Making a Progressive Web App
+## Meta
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+[Ivan Vinski](https://ivanvinski.com) – contact@ivanvinski.com
 
-### Advanced Configuration
+Distributed under the GPL-2.0 license. See [LICENSE.txt](LICENSE.txt) for more information.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+https://github.com/ivanvinski/vinskiano
 
-### Deployment
+## Contributing
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `yarn build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+1. Fork it (<https://github.com/ivanvinski/vinskiano/fork>)
+2. Create your feature branch (`git checkout -b feature/fooBar`)
+3. Commit your changes (`git commit -am 'Add some fooBar'`)
+4. Push to the branch (`git push origin feature/fooBar`)
+5. Create a new Pull Request
