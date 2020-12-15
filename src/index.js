@@ -18,6 +18,8 @@ window.addEventListener('resize', () => {
   updateViewportVars()
 })
 
+updateViewportVars()
+
 const context = Context.make()
 context.master.gain.value = 0.7
 
