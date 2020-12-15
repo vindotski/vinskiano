@@ -21,7 +21,7 @@ window.addEventListener('resize', () => {
 updateViewportVars()
 
 const context = Context.make()
-context.master.gain.value = 0.7
+context.master.gain.value = 0.5
 
 const scaleOptions = {
   rootNote: new Note({ name: 'C', octave: 4 }),

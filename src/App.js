@@ -16,17 +16,23 @@ class App extends React.Component {
       new Oscillator({
         id: 1,
         context: this.props.context,
-        destination: this.props.context.master
+        destination: this.props.context.master,
+        pitch: -12,
+        volume: 0.5
       }),
       new Oscillator({
         id: 2,
         context: this.props.context,
-        destination: this.props.context.master
+        destination: this.props.context.master,
+        pitch: 0,
+        volume: 0.25
       }),
       new Oscillator({
         id: 3,
         context: this.props.context,
-        destination: this.props.context.master
+        destination: this.props.context.master,
+        pitch: 12,
+        volume: 0.75
       })
     ],
     sounds: []
