@@ -1,10 +1,17 @@
 import React from 'react'
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+} from 'react-router-dom'
 import PropTypes from 'prop-types'
 import { Frequency } from './music'
 import { Oscillator } from './audio'
-import Mixer from './components/Mixer'
-import Piano from './components/Piano'
 import Oscilloscope from './audio/Oscilloscope'
+import Navbar from './components/Navbar'
+import PianoRoll from './pages/PianoRoll'
+import Oscillators from './pages/Oscillators'
+import NotFound from './pages/NotFound'
 
 class App extends React.Component {
   state = {
@@ -41,18 +48,30 @@ class App extends React.Component {
   render () {
     return (
       <div className="App">
-        <Mixer
-          master={this.state.master}
-          oscillators={this.state.oscillators}
-          onMasterChange={this.updateMaster}
-          onOscillatorChange={this.updateOscillator}
-        />
+        <Router>
+          <Navbar />
 
-        <Piano
-          notes={this.props.scale}
-          onTrigger={this.trigger}
-          onRelease={this.release}
-        />
+          <Switch>
+            <Route path="/" exact>
+              <PianoRoll
+                notes={this.props.scale}
+                onTrigger={this.trigger}
+                onRelease={this.release}
+              />
+            </Route>
+
+            <Route path="/oscillators">
+              <Oscillators
+                master={this.state.master}
+                oscillators={this.state.oscillators}
+                onMasterChange={this.updateMaster}
+                onOscillatorChange={this.updateOscillator}
+              />
+            </Route>
+
+            <Route component={NotFound} />
+          </Switch>
+        </Router>
       </div>
     )
   }

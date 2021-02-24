@@ -85,7 +85,7 @@
 }
 
 .mixer {
-  flex: 0.3;
+  flex: 1;
   display: flex;
   border: 2px solid #000;
   font-size: 1.3em;
@@ -194,4 +194,64 @@ button.toggled {
 .button-toggle .button-toggle-option img {
   width: 2em;
   height: 2em;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  background-color: #1A1A1A;
+  color: #fff;
+  padding: 0.5em 1em;
+  font-size: 1.25em;
+}
+
+.navbar .navbar-brand,
+.navbar .navbar-link {
+  color: inherit;
+  text-transform: uppercase;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.navbar .navbar-link.active {
+  color: #0075FF;
+}
+
+.navbar .navbar-content {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar .navbar-brand,
+.navbar .navbar-link {
+  padding: 0.25em 1em;
+}
+
+.navbar .navbar-brand,
+.navbar .navbar-content .navbar-item:first-child .navbar-link {
+  padding-left: 0;
+}
+
+.navbar .navbar-content .navbar-item:last-child .navbar-link {
+  padding-right: 0;
+}
+
+.not-found {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #1A1A1A;
+  color: #fff;
+  font-size: 2em;
+}
+
+.not-found h2,
+.not-found a {
+  color: inherit;
+  margin: 0;
 }
