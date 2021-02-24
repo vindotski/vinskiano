@@ -1,6 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import Slider from './Slider'
+import PitchKnob from './knobs/PitchKnob'
+import VolumeKnob from './knobs/VolumeKnob'
 
 class Oscillator extends React.Component {
   render () {
@@ -26,19 +27,8 @@ class Oscillator extends React.Component {
           </select>
         </div>
 
-        <Slider
-          label="Pitch"
-          value={this.props.pitch}
-          onChange={this.updatePitch}
-          min={-24}
-          max={24}
-        />
-
-        <Slider
-          label="Volume"
-          value={parseInt(this.props.volume * 100)}
-          onChange={this.updateVolume}
-        />
+        <PitchKnob value={this.props.pitch} onChange={this.updatePitch} />
+        <VolumeKnob value={this.props.volume} onChange={this.updateVolume} />
       </div>
     )
   }
@@ -49,16 +39,12 @@ class Oscillator extends React.Component {
     })
   }
 
-  updatePitch = (e) => {
-    this.update({
-      pitch: e.target.value
-    })
+  updatePitch = (pitch) => {
+    this.update({ pitch })
   }
 
-  updateVolume = (e) => {
-    this.update({
-      volume: parseFloat(e.target.value) / 100
-    })
+  updateVolume = (volume) => {
+    this.update({ volume })
   }
 
   update = (options) => {
