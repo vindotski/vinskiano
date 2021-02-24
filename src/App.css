@@ -196,6 +196,16 @@ button.toggled {
   height: 2em;
 }
 
+.toolbar {
+  display: flex;
+  padding: 0.5em 1em;
+  font-size: 1.25em;
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
 .navbar {
   display: flex;
   justify-content: space-between;

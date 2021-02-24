@@ -1,13 +1,20 @@
 import PropTypes from 'prop-types'
+import Toolbar from '../components/toolbars/Toolbar'
 import Piano from '../components/Piano'
 
 const PianoRoll = ({ notes, onTrigger, onRelease }) => {
   return (
-    <Piano
-      notes={notes}
-      onTrigger={onTrigger}
-      onRelease={onRelease}
-    />
+    <>
+      <Toolbar>
+        Piano Roll toolbar
+      </Toolbar>
+
+      <Piano
+        notes={notes}
+        onTrigger={onTrigger}
+        onRelease={onRelease}
+      />
+    </>
   )
 }
 
