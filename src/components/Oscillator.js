@@ -24,6 +24,30 @@ class Oscillator extends React.Component {
           value={this.props.pitch}
           onChange={(pitch) => this.update({ pitch })}
         />
+
+        {
+          !!this.props.showLabels
+          ? (
+            <>
+              <span className="oscillator-helper-label">
+                Osc #
+              </span>
+
+              <span className="oscillator-helper-label">
+                Volume
+              </span>
+
+              <span className="oscillator-helper-label">
+                Waveform
+              </span>
+
+              <span className="oscillator-helper-label">
+                Pitch
+              </span>
+            </>
+          )
+          : ''
+        }
       </div>
     )
   }
@@ -54,11 +78,13 @@ Oscillator.propTypes = {
   pitch: PropTypes.number.isRequired,
   volume: PropTypes.number.isRequired,
   onChange: PropTypes.func,
-  label: PropTypes.string
+  label: PropTypes.string,
+  showLabels: PropTypes.bool
 }
 
 Oscillator.defaultProps = {
-  onChange: () => {}
+  onChange: () => {},
+  showLabels: true
 }
 
 export default Oscillator
