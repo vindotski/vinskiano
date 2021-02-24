@@ -6,8 +6,6 @@ const ButtonToggle = ({ value, options, onChange, label, render }) => {
       <div className="button-toggle-options">
         { options.map((option) => render({ value, option, onChange })) }
       </div>
-
-      <span className="button-toggle-label">{label}</span>
     </div>
   )
 }
@@ -16,13 +14,11 @@ ButtonToggle.propTypes = {
   value: PropTypes.string.isRequired,
   options: PropTypes.array.isRequired,
   onChange: PropTypes.func,
-  label: PropTypes.string,
   render: PropTypes.func
 }
 
 ButtonToggle.defaultProps = {
   onChange: () => {},
-  label: 'Toggles',
   render: ({ value, option, onChange }) => (
     <button
       key={option.value}

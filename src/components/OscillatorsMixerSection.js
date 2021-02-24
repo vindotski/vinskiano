@@ -11,7 +11,7 @@ class OscillatorsMixerSection extends React.Component {
           <Oscillator
             key={index}
             {...oscillator}
-            hideMix={index < 1}
+            showLabels={index !== this.props.oscillators.length - 1}
             onChange={this.props.onChange}
             label={index + 1}
           />

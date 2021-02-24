@@ -1,15 +1,14 @@
 import PropTypes from 'prop-types'
 import Knob from './Knob'
 
-const VolumeKnob = ({ value, onChange, label }) => {
+const VolumeKnob = ({ value, onChange }) => {
   return (
     <>
       <Knob
-        label={label}
         value={value * 100}
-        onChange={(value) => onChange(value / 100)}
         min={0}
         max={100}
+        onChange={(value) => onChange(value / 100)}
       />
     </>
   )
@@ -17,13 +16,11 @@ const VolumeKnob = ({ value, onChange, label }) => {
 
 VolumeKnob.propTypes = {
   value: PropTypes.number.isRequired,
-  onChange: PropTypes.func,
-  label: PropTypes.string
+  onChange: PropTypes.func
 }
 
 VolumeKnob.defaultProps = {
-  onChange: () => {},
-  label: 'Volume'
+  onChange: () => {}
 }
 
 export default VolumeKnob

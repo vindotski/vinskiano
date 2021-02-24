@@ -1,15 +1,14 @@
 import PropTypes from 'prop-types'
 import Knob from './Knob'
 
-const PitchKnob = ({ value, onChange, label }) => {
+const PitchKnob = ({ value, onChange }) => {
   return (
     <>
       <Knob
-        label={label}
         value={value}
-        onChange={onChange}
         min={-24}
         max={24}
+        onChange={onChange}
       />
     </>
   )
@@ -17,13 +16,11 @@ const PitchKnob = ({ value, onChange, label }) => {
 
 PitchKnob.propTypes = {
   value: PropTypes.number.isRequired,
-  onChange: PropTypes.func,
-  label: PropTypes.string
+  onChange: PropTypes.func
 }
 
 PitchKnob.defaultProps = {
-  onChange: () => {},
-  label: 'Pitch'
+  onChange: () => {}
 }
 
 export default PitchKnob
