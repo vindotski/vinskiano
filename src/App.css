@@ -152,6 +152,12 @@
 
 button {
   user-select: none;
+  font-size: inherit;
+}
+
+button.toggled {
+  background: #0075FF;
+  color: #fff;
 }
 
 .knob {
@@ -159,4 +165,21 @@ button {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+.button-toggle {
+  text-align: center;
+}
+
+.button-toggle .button-toggle-options {
+  display: flex;
+}
+
+.button-toggle .button-toggle-option {
+  flex: 0;
+}
+
+.button-toggle .button-toggle-option img {
+  width: 2em;
+  height: 2em;
 }
