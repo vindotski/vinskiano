@@ -9,7 +9,7 @@ const Knob = ({ value, onChange, label, min, max }) => {
         min={min}
         max={max}
         onChange={onChange}
-        size={75}
+        size={65}
         circleWidth={10}
         progressWidth={5}
         knobRadius={10}

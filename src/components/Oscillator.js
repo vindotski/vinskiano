@@ -8,6 +8,13 @@ class Oscillator extends React.Component {
   render () {
     return (
       <div className="oscillator">
+        <span class="oscillator-label">{this.props.label || ''}</span>
+
+        <VolumeKnob
+          value={this.props.volume}
+          onChange={(volume) => this.update({ volume })}
+        />
+
         <WaveformToggle
           value={this.props.waveform}
           onChange={(waveform) => this.update({ waveform })}
@@ -16,11 +23,6 @@ class Oscillator extends React.Component {
         <PitchKnob
           value={this.props.pitch}
           onChange={(pitch) => this.update({ pitch })}
-        />
-
-        <VolumeKnob
-          value={this.props.volume}
-          onChange={(volume) => this.update({ volume })}
         />
       </div>
     )
@@ -51,7 +53,8 @@ Oscillator.propTypes = {
   waveform: PropTypes.string.isRequired,
   pitch: PropTypes.number.isRequired,
   volume: PropTypes.number.isRequired,
-  onChange: PropTypes.func
+  onChange: PropTypes.func,
+  label: PropTypes.string
 }
 
 Oscillator.defaultProps = {
