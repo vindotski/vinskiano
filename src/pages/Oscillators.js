@@ -1,14 +1,32 @@
 import PropTypes from 'prop-types'
+import Toolbar from '../components/toolbars/Toolbar'
+import ToolbarSpacer from '../components/toolbars/ToolbarSpacer'
 import Mixer from '../components/Mixer'
+import Note from '../music/Note'
 
-const Oscillators = ({ master, oscillators, onMasterChange, onOscillatorChange }) => {
+const Oscillators = ({ master, oscillators, onTrigger, onRelease, onMasterChange, onOscillatorChange }) => {
+  const previewNote = new Note({ name: 'C', octave: 5 })
+
   return (
-    <Mixer
-      master={master}
-      oscillators={oscillators}
-      onMasterChange={onMasterChange}
-      onOscillatorChange={onOscillatorChange}
-    />
+    <>
+      <Toolbar>
+        <ToolbarSpacer />
+
+        <button
+          onTouchStart={() => onTrigger(previewNote)}
+          onTouchEnd={() => onRelease(previewNote)}
+        >
+          Preview
+        </button>
+      </Toolbar>
+
+      <Mixer
+        master={master}
+        oscillators={oscillators}
+        onMasterChange={onMasterChange}
+        onOscillatorChange={onOscillatorChange}
+      />
+    </>
   )
 }
 

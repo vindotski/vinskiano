@@ -64,6 +64,8 @@ class App extends React.Component {
               <Oscillators
                 master={this.state.master}
                 oscillators={this.state.oscillators}
+                onTrigger={this.trigger}
+                onRelease={this.release}
                 onMasterChange={this.updateMaster}
                 onOscillatorChange={this.updateOscillator}
               />
@@ -98,7 +100,7 @@ class App extends React.Component {
   }
 
   release = (note) => {
-    const noteSounds = this.state.sounds.filter(s => note === s.note)
+    const noteSounds = this.state.sounds.filter(s => note.name === s.note.name && note.octave === s.note.octave)
     noteSounds.forEach(sound => (sound.stop()))
 
     const sounds = this.state.sounds.filter(s => (note !== s.note))
