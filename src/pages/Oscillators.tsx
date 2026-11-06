@@ -2,6 +2,7 @@ import type { Oscillator } from '../audio'
 import Mixer from '../components/Mixer'
 import Toolbar from '../components/toolbars/Toolbar'
 import ToolbarSpacer from '../components/toolbars/ToolbarSpacer'
+import { Button } from '../components/ui/button'
 import { Note } from '../music'
 import type { MasterSettings, OscillatorSettings } from '../types/synth'
 
@@ -29,15 +30,15 @@ const Oscillators = ({
       <Toolbar>
         <ToolbarSpacer />
 
-        <button
-          type="button"
-          onPointerDown={() => onTrigger(PREVIEW_NOTE)}
-          onPointerUp={() => onRelease(PREVIEW_NOTE)}
-          onPointerLeave={() => onRelease(PREVIEW_NOTE)}
-          onPointerCancel={() => onRelease(PREVIEW_NOTE)}
+        {/* Hold to play: press start/end cover mouse, touch and keyboard (Space/Enter). */}
+        <Button
+          variant="outline"
+          size="sm"
+          onPressStart={() => onTrigger(PREVIEW_NOTE)}
+          onPressEnd={() => onRelease(PREVIEW_NOTE)}
         >
           Preview
-        </button>
+        </Button>
       </Toolbar>
 
       <Mixer

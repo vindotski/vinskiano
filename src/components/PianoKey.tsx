@@ -1,4 +1,5 @@
 import React from 'react'
+import { cn } from '@/lib/utils'
 import type { Note } from '../music'
 
 interface PianoKeyProps {
@@ -27,6 +28,7 @@ class PianoKey extends React.Component<PianoKeyProps, PianoKeyState> {
     return (
       <button
         type="button"
+        aria-label={this.props.note.toString()}
         className={this.classes()}
         onPointerDown={this.trigger}
         onPointerUp={this.release}
@@ -49,16 +51,16 @@ class PianoKey extends React.Component<PianoKeyProps, PianoKeyState> {
   }
 
   classes = () => {
-    const classList = [
-      'piano-key',
-      `piano-key--${!this.props.note.name.includes('{') ? 'white' : 'black'}`,
-    ]
+    const white = !this.props.note.name.includes('{')
 
-    if (this.state.active) {
-      classList.push('piano-key--active')
-    }
-
-    return classList.join(' ')
+    // piano-key* classes are hooks for tests; the rest is styling.
+    return cn(
+      'piano-key flex h-full flex-1 items-end justify-center pb-4 text-sm font-medium outline-none select-none focus-visible:z-20 focus-visible:ring-3 focus-visible:ring-ring/50',
+      white
+        ? 'piano-key--white min-w-[12.5%] rounded-b-xl border border-t-0 border-r-0 border-key-black/20 bg-key-white text-key-white-foreground last:border-r'
+        : 'piano-key--black relative -right-[4%] z-10 -ml-[8%] h-[65%] min-w-[8%] rounded-b-lg bg-key-black text-key-black-foreground shadow-md',
+      this.state.active && 'piano-key--active bg-primary text-primary-foreground',
+    )
   }
 
   trigger = () => {

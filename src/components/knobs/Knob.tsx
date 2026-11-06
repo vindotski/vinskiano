@@ -8,6 +8,7 @@ import {
   VisuallyHidden,
 } from 'react-aria'
 import { useSliderState } from 'react-stately'
+import { cn } from '@/lib/utils'
 
 /** The knob turns through 270°, from 7:30 to 4:30, with a dead zone at the bottom. */
 const SWEEP = 270
@@ -101,10 +102,17 @@ const Knob = ({
   }
 
   return (
-    <div {...groupProps} className={`knob${isFocusVisible ? ' knob--focus-visible' : ''}`}>
+    <div
+      {...groupProps}
+      // `knob*` classes are hooks for tests; the rest is styling.
+      className={cn(
+        'knob inline-flex rounded-full',
+        isFocusVisible && 'knob--focus-visible ring-3 ring-ring/50 ring-offset-2 ring-offset-card',
+      )}
+    >
       <svg
         ref={trackRef}
-        className="knob-dial"
+        className="knob-dial cursor-grab touch-none active:cursor-grabbing short:size-12"
         width={SIZE}
         height={SIZE}
         viewBox={`0 0 ${SIZE} ${SIZE}`}
@@ -122,13 +130,28 @@ const Knob = ({
         onPointerUp={() => state.setThumbDragging(0, false)}
         onPointerCancel={() => state.setThumbDragging(0, false)}
       >
-        <path className="knob-track" d={arc(START, END)} />
+        <path
+          className="knob-track fill-none stroke-input"
+          strokeWidth={STROKE}
+          strokeLinecap="round"
+          d={arc(START, END)}
+        />
         {current !== (bipolar ? (min + max) / 2 : min) && (
-          <path className="knob-value" d={arc(arcFrom, angle)} />
+          <path
+            className="knob-value fill-none stroke-primary"
+            strokeWidth={STROKE}
+            strokeLinecap="round"
+            d={arc(arcFrom, angle)}
+          />
         )}
-        <circle className="knob-pointer" cx={point(angle).x} cy={point(angle).y} r={STROKE} />
+        <circle
+          className="knob-pointer fill-primary"
+          cx={point(angle).x}
+          cy={point(angle).y}
+          r={STROKE}
+        />
         <text
-          className="knob-text"
+          className="knob-text fill-foreground text-sm font-medium tabular-nums select-none"
           x={CENTER}
           y={CENTER}
           textAnchor="middle"

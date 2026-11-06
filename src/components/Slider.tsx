@@ -1,31 +1,29 @@
-import { type ChangeEvent, useId } from 'react'
+import { Slider as SliderControl } from '@/components/ui/slider'
 
 interface SliderProps {
-  label?: string
+  label: string
   value: number
-  onChange?: (event: ChangeEvent<HTMLInputElement>) => void
+  onChange?: (value: number) => void
   min?: number
   max?: number
 }
 
-const Slider = ({ label = '', value, onChange = () => {}, min = 0, max = 100 }: SliderProps) => {
-  const id = useId()
-
+const Slider = ({ label, value, onChange = () => {}, min = 0, max = 100 }: SliderProps) => {
   return (
-    <div className="input-group">
-      <label className="input-group-label" htmlFor={id}>
-        <span>{label}</span>
-        <strong>{value}</strong>
-      </label>
-
-      <input
-        id={id}
-        className="input-group-control"
+    <div className="flex flex-col gap-3">
+      {/* Visual only: the slider gets its name from aria-label below. React Aria names the
+          thumb's <input> after the slider group, so an outside aria-labelledby would make
+          screen readers announce just the value ("50, slider"). */}
+      <div className="flex items-baseline justify-between text-sm" aria-hidden="true">
+        <span className="font-medium">{label}</span>
+        <output className="font-semibold tabular-nums">{value}</output>
+      </div>
+      <SliderControl
+        aria-label={label}
         value={value}
-        onChange={onChange}
-        type="range"
-        min={min}
-        max={max}
+        minValue={min}
+        maxValue={max}
+        onChange={(next) => onChange(Array.isArray(next) ? (next[0] ?? value) : next)}
       />
     </div>
   )

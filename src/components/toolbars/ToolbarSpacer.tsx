@@ -1,5 +1,5 @@
 const ToolbarSpacer = () => {
-  return <span className="toolbar-spacer" />
+  return <span className="flex-1" />
 }
 
 export default ToolbarSpacer

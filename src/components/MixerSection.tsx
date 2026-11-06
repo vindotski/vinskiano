@@ -1,4 +1,6 @@
-import React, { type ReactNode } from 'react'
+import type { ReactNode } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
 interface MixerSectionProps {
   title: string
@@ -6,18 +8,15 @@ interface MixerSectionProps {
   children?: ReactNode
 }
 
-class MixerSection extends React.Component<MixerSectionProps> {
-  static defaultProps = {
-    className: '',
-  }
-
-  override render() {
-    return (
-      <div className={`mixer-section ${this.props.className}`}>
-        <div className="mixer-section-body">{this.props.children}</div>
-      </div>
-    )
-  }
+const MixerSection = ({ title, className, children }: MixerSectionProps) => {
+  return (
+    <Card className={cn('min-h-0 overflow-auto short:gap-2 short:py-3', className)} size="sm">
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4 short:gap-2">{children}</CardContent>
+    </Card>
+  )
 }
 
 export default MixerSection

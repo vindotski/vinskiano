@@ -12,7 +12,7 @@ The project is being modernized step by step; see [MODERN_TOOLING.md](MODERN_TOO
 - Vitest for unit tests (config in `vite.config.ts`), Playwright for browser tests (`playwright.config.ts`, Chromium)
 - pnpm (pinned via `packageManager`), Node 26 (`.nvmrc`)
 - React Aria hooks (`react-aria`, `react-stately`) for accessible controls; the rotary `Knob` is built on its slider hooks
-- Tailwind CSS v4 (`@tailwindcss/vite`) with a shadcn/ui theme (`components.json`: style aria-luma, preset b51FfLcNG; tokens in `src/index.css`). Dark mode follows `prefers-color-scheme` via the `dark:` variant. Migrating from `src/App.css`.
+- Tailwind CSS v4 (`@tailwindcss/vite`) with a shadcn/ui theme (`components.json`: style aria-luma, preset b51FfLcNG; tokens in `src/index.css`). Dark mode follows `prefers-color-scheme` via the `dark:` variant.
 
 ## Layout
 
@@ -73,6 +73,10 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - Use theme tokens (`bg-background`, `text-primary`, `border-border`…), never raw colors, so light and dark both work.
 - Add shadcn/ui components with `pnpm exec shadcn add <name>` (the pinned CLI, React Aria base). They land in `src/components/ui/`; edit them freely after adding.
 - `@/` is an alias for `src/`. Merge classes with `cn()` from `@/lib/utils`.
+- Piano keys use their own tokens (`bg-key-white`, `bg-key-black`, …) so they stay ivory/ebony in dark mode.
+- `short:` is a custom variant for short viewports (≤ 500px tall, e.g. a phone in landscape): use it to tighten spacing so pages fit without scrolling.
+- Some elements keep plain class names as test hooks (`piano-key`, `piano-key--active`, `oscillator`, `oscilloscope`, `knob`…). Keep them when restyling; prefer roles and names for new tests.
+- Import `buttonVariants` from `@/components/ui/button-variants` when you only need the look (e.g. on a `Link`): importing `button.tsx` pulls React Aria's Button into the bundle.
 
 ## Accessibility
 

@@ -1,42 +1,51 @@
-import type { Waveform } from '../../audio'
-import SawtoothIcon from '../../waveform-sawtooth.svg'
-import SineIcon from '../../waveform-sine.svg'
-import SquareIcon from '../../waveform-square.svg'
-import TriangleIcon from '../../waveform-triangle.svg'
-import ButtonToggle, { type ToggleOption, type ToggleRenderProps } from './ButtonToggle'
+import type { Key } from 'react-aria-components'
+import type { Waveform } from '@/audio'
+import WaveformIcon from '@/components/icons/WaveformIcon'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
-const ICONS: Record<Waveform, string> = {
-  sine: SineIcon,
-  square: SquareIcon,
-  triangle: TriangleIcon,
-  sawtooth: SawtoothIcon,
-}
-
-const OPTIONS: ToggleOption<Waveform>[] = [
+const OPTIONS: { value: Waveform; label: string }[] = [
   { value: 'sine', label: 'Sine' },
   { value: 'square', label: 'Square' },
   { value: 'triangle', label: 'Triangle' },
   { value: 'sawtooth', label: 'Sawtooth' },
 ]
 
+const isWaveform = (key: Key | undefined): key is Waveform =>
+  OPTIONS.some((option) => option.value === key)
+
 interface WaveformToggleProps {
+  /** Accessible name of the group, e.g. "Oscillator 1 waveform". */
+  label: string
   value: Waveform
   onChange?: (waveform: Waveform) => void
 }
 
-const WaveformToggle = ({ value, onChange = () => {} }: WaveformToggleProps) => {
-  const render = ({ value, option, onChange }: ToggleRenderProps<Waveform>) => (
-    <button
-      type="button"
-      key={option.value}
-      className={`button-toggle-option ${value === option.value ? 'toggled' : ''}`}
-      onClick={() => onChange(option.value)}
+const WaveformToggle = ({ label, value, onChange = () => {} }: WaveformToggleProps) => {
+  return (
+    <ToggleGroup
+      aria-label={label}
+      variant="outline"
+      spacing={0}
+      selectionMode="single"
+      disallowEmptySelection
+      selectedKeys={[value]}
+      onSelectionChange={(keys) => {
+        const [key] = keys
+        if (isWaveform(key)) onChange(key)
+      }}
     >
-      <img src={ICONS[option.value]} alt={`${option.label} icon`} />
-    </button>
+      {OPTIONS.map((option) => (
+        <ToggleGroupItem
+          key={option.value}
+          id={option.value}
+          aria-label={option.label}
+          className="data-selected:border-primary data-selected:bg-primary data-selected:text-primary-foreground"
+        >
+          <WaveformIcon waveform={option.value} className="size-5" />
+        </ToggleGroupItem>
+      ))}
+    </ToggleGroup>
   )
-
-  return <ButtonToggle value={value} onChange={onChange} options={OPTIONS} render={render} />
 }
 
 export default WaveformToggle

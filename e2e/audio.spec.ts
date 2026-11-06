@@ -50,7 +50,10 @@ test('dragging off a held key releases the note', async ({ page }) => {
 test('waveform and pitch changes reach the audio graph', async ({ page }) => {
   await page.goto('/oscillators')
 
-  await page.getByRole('button', { name: 'Square icon' }).first().click()
+  await page
+    .getByRole('radiogroup', { name: 'Oscillator 1 waveform' })
+    .getByRole('radio', { name: 'Square' })
+    .click()
   const pitch2 = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
   await pitch2.focus()
   await page.keyboard.press('End')
@@ -68,7 +71,7 @@ test('waveform and pitch changes reach the audio graph', async ({ page }) => {
 
 test('master volume can be set to any value (no float truncation)', async ({ page }) => {
   await page.goto('/oscillators')
-  const volume = page.getByLabel('Master Volume')
+  const volume = page.getByRole('slider', { name: 'Master Volume' })
   // 29, 57 and 58 used to snap down: 29 / 100 * 100 === 28.999999999999996
   for (const value of ['28', '29', '57', '58', '100', '0']) {
     await volume.fill(value)
@@ -83,25 +86,41 @@ test('the oscilloscope draws while playing and stops when you leave the page', a
   await page.mouse.down()
   await page.waitForTimeout(300)
 
-  // Count the canvas rows that contain dark pixels: a flat line is ~2, a waveform many more.
-  const darkRows = await page
+  // Count the canvas rows the line covers: pixels that differ from the background (read from
+  // the top-left corner). As a fraction of the height, so it holds at any size or pixel ratio.
+  const lineRows = await page
     .locator('canvas.oscilloscope')
     .evaluate((canvas: HTMLCanvasElement) => {
       const context = canvas.getContext('2d')
       if (!context) return 0
       const { data } = context.getImageData(0, 0, canvas.width, canvas.height)
+      const background = [data[0] ?? 0, data[1] ?? 0, data[2] ?? 0]
       const rows = new Set<number>()
       for (let i = 0; i < data.length; i += 4) {
-        if ((data[i] ?? 255) < 128) rows.add(Math.floor(i / 4 / canvas.width))
+        const distance = background.reduce(
+          (sum, value, c) => sum + Math.abs((data[i + c] ?? 0) - value),
+          0,
+        )
+        if (distance > 60) rows.add(Math.floor(i / 4 / canvas.width))
       }
-      return rows.size
+      return rows.size / canvas.height
     })
   await page.mouse.up()
-  expect(darkRows).toBeGreaterThan(20)
+  // A flat line covers a few percent of the rows; three stacked sines cover most of them.
+  expect(lineRows).toBeGreaterThan(0.3)
 
   await page.getByRole('link', { name: 'Piano Roll' }).click()
   await page.waitForTimeout(100)
   await resetAudioLog(page)
   await page.waitForTimeout(500)
   expect((await audioLog(page)).analyserReads).toBe(0)
+})
+
+test('Preview plays while Space is held', async ({ page }) => {
+  await page.goto('/oscillators')
+  await page.getByRole('button', { name: 'Preview' }).focus()
+  await page.keyboard.down(' ')
+  expect((await audioLog(page)).started).toHaveLength(3)
+  await page.keyboard.up(' ')
+  expect((await audioLog(page)).stopped).toBe(3)
 })

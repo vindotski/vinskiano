@@ -16,7 +16,7 @@ class Piano extends React.Component<PianoProps> {
 
   override render() {
     return (
-      <div className="piano">
+      <div className="flex min-h-0 flex-1 px-4 pb-4">
         {this.props.notes.map((note) => (
           <PianoKey
             key={note.toString()}

@@ -64,7 +64,8 @@ class App extends React.Component<AppProps, AppState> {
     }
 
     return (
-      <div className="App">
+      // Fills the real viewport. Held upright, a phone gets the app rotated to landscape.
+      <div className="flex h-[calc(var(--vh)*100)] w-screen flex-col portrait:absolute portrait:top-[-100vw] portrait:left-0 portrait:h-[100vw] portrait:w-[calc(var(--vh)*100)] portrait:origin-bottom-left portrait:rotate-90 portrait:overflow-auto">
         <SynthProvider value={synth}>
           <RouterProvider router={router} />
         </SynthProvider>

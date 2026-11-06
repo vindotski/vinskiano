@@ -1,37 +1,39 @@
-import React from 'react'
-import type { Oscillator as AudioOscillator } from '../audio'
-import type { OscillatorSettings } from '../types/synth'
+import type { Oscillator as AudioOscillator } from '@/audio'
+import type { OscillatorSettings } from '@/types/synth'
 import MixerSection from './MixerSection'
-import Oscillator from './Oscillator'
+import Oscillator, { OSCILLATOR_GRID } from './Oscillator'
 
 interface OscillatorsMixerSectionProps {
   oscillators: AudioOscillator[]
   onChange: (id: number, settings: OscillatorSettings) => void
 }
 
-class OscillatorsMixerSection extends React.Component<OscillatorsMixerSectionProps> {
-  static defaultProps = {
-    onChange: () => {},
-  }
+const OscillatorsMixerSection = ({ oscillators, onChange }: OscillatorsMixerSectionProps) => {
+  return (
+    <MixerSection title="Oscillators" className="flex-7">
+      <div
+        className={`${OSCILLATOR_GRID} text-xs font-medium tracking-wide text-muted-foreground uppercase`}
+        aria-hidden="true"
+      >
+        <span>Osc</span>
+        <span>Volume</span>
+        <span>Waveform</span>
+        <span>Pitch</span>
+      </div>
 
-  override render() {
-    return (
-      <MixerSection title="Oscillators" className="mixer-section--oscillators">
-        {this.props.oscillators.map((oscillator, index) => (
-          <Oscillator
-            key={oscillator.id}
-            id={oscillator.id}
-            waveform={oscillator.waveform}
-            pitch={oscillator.pitch}
-            volume={oscillator.volume}
-            showLabels={index !== this.props.oscillators.length - 1}
-            onChange={this.props.onChange}
-            label={String(index + 1)}
-          />
-        ))}
-      </MixerSection>
-    )
-  }
+      {oscillators.map((oscillator, index) => (
+        <Oscillator
+          key={oscillator.id}
+          id={oscillator.id}
+          waveform={oscillator.waveform}
+          pitch={oscillator.pitch}
+          volume={oscillator.volume}
+          onChange={onChange}
+          label={String(index + 1)}
+        />
+      ))}
+    </MixerSection>
+  )
 }
 
 export default OscillatorsMixerSection

@@ -1,6 +1,5 @@
-import React, { type ChangeEvent } from 'react'
-import type { Oscilloscope as AudioOscilloscope } from '../audio'
-import type { MasterSettings } from '../types/synth'
+import type { Oscilloscope as AudioOscilloscope } from '@/audio'
+import type { MasterSettings } from '@/types/synth'
 import MixerSection from './MixerSection'
 import Oscilloscope from './Oscilloscope'
 import Slider from './Slider'
@@ -11,41 +10,21 @@ interface MasterMixerSectionProps {
   onChange: (settings: MasterSettings) => void
 }
 
-class MasterMixerSection extends React.Component<MasterMixerSectionProps> {
-  static defaultProps = {
-    onChange: () => {},
-  }
+const MasterMixerSection = ({ gain, oscilloscope, onChange }: MasterMixerSectionProps) => {
+  return (
+    <MixerSection title="Master" className="flex-3">
+      <Slider
+        label="Master Volume"
+        value={Math.round(gain * 100)}
+        onChange={(percent) => onChange({ gain: percent / 100, oscilloscope })}
+      />
 
-  override render() {
-    return (
-      <MixerSection title="Master" className="mixer-section--master">
-        <Slider
-          label="Master Volume"
-          value={Math.round(this.props.gain * 100)}
-          onChange={this.updateGain}
-        />
-
-        <span className="input-group-label" style={{ marginBottom: '0.7em' }}>
-          Oscilloscope
-        </span>
-        <Oscilloscope oscilloscope={this.props.oscilloscope} />
-      </MixerSection>
-    )
-  }
-
-  updateGain = (e: ChangeEvent<HTMLInputElement>) => {
-    this.update({
-      gain: Number.parseFloat(e.target.value) / 100,
-    })
-  }
-
-  update = (options: Partial<MasterSettings>) => {
-    this.props.onChange({
-      gain: this.props.gain,
-      oscilloscope: this.props.oscilloscope,
-      ...options,
-    })
-  }
+      <div className="flex flex-col gap-2">
+        <span className="text-sm font-medium">Oscilloscope</span>
+        <Oscilloscope oscilloscope={oscilloscope} />
+      </div>
+    </MixerSection>
+  )
 }
 
 export default MasterMixerSection

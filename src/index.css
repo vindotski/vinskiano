@@ -1,12 +1,13 @@
-/* Tailwind v4. Preflight (the CSS reset) is left out until the restyle replaces App.css. */
-@layer theme, base, components, utilities;
-@import "tailwindcss/theme.css" layer(theme);
-@import "tailwindcss/utilities.css" layer(utilities);
+@import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "@fontsource-variable/inter";
 
 /* Dark mode follows the OS setting: no script, no flash. */
 @custom-variant dark (@media (prefers-color-scheme: dark));
+
+/* Short viewports, e.g. a phone in landscape: tighten spacing so everything fits. */
+@custom-variant short (@media (max-height: 500px));
 
 /* shadcn/ui theme: preset b51FfLcNG (style aria-luma, base color mauve). */
 @theme inline {
@@ -123,26 +124,53 @@
   }
 }
 
+/* Piano keys stay ivory and ebony in both themes (dimmed a little in dark mode). */
+@theme inline {
+  --color-key-white: var(--key-white);
+  --color-key-white-foreground: var(--key-white-foreground);
+  --color-key-black: var(--key-black);
+  --color-key-black-foreground: var(--key-black-foreground);
+}
+
 :root {
+  --key-white: oklch(0.995 0 0);
+  --key-white-foreground: oklch(0.45 0.02 323);
+  --key-black: oklch(0.2 0.01 326);
+  --key-black-foreground: oklch(0.85 0.01 326);
+  /* 1% of the real viewport height, kept current by index.tsx (mobile browser bars). */
   --vh: 1vh;
 }
 
-*,
-*:before,
-*:after {
-  box-sizing: border-box;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --key-white: oklch(0.88 0.005 326);
+    --key-white-foreground: oklch(0.4 0.02 323);
+    --key-black: oklch(0.1 0.005 326);
+    --key-black-foreground: oklch(0.75 0.01 326);
+  }
 }
 
-body {
-  margin: 0;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
-    "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overscroll-behavior: contain;
-}
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+  html {
+    @apply font-sans;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    overscroll-behavior: contain;
+  }
+
+  #root {
+    overflow: hidden;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+    user-select: none;
+  }
 }

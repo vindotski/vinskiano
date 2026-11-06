@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 
 import App from './App'
-import './App.css'
 import { Context } from './audio'
 import { ChromaticScaleStrategy, Note, ScaleBuilder } from './music'
 import './utils/disable-context-menu'

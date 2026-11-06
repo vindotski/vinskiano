@@ -11,7 +11,7 @@ interface PianoRollProps {
 const PianoRoll = ({ notes, onTrigger, onRelease }: PianoRollProps) => {
   return (
     <>
-      <Toolbar>Piano Roll toolbar</Toolbar>
+      <Toolbar>Click or tap a key to play, or Tab to a key and hold Space.</Toolbar>
       <Piano notes={notes} onTrigger={onTrigger} onRelease={onRelease} />
     </>
   )
