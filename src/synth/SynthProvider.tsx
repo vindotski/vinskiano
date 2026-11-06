@@ -11,7 +11,6 @@ import { Engine, type Oscilloscope, type Sound } from '../audio'
 import { Frequency, KEYBOARD_NOTES, type Note } from '../music'
 import type { MasterSettings, OscillatorSettings, OscillatorState } from '../types/synth'
 import { disableContextMenu } from '../utils/disable-context-menu'
-import { trackViewportHeight } from '../utils/viewport-height'
 
 /** Everything the pages need from the synth: its state and how to play and change it. */
 export interface Synth {
@@ -55,9 +54,9 @@ export function SynthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const created = new Engine(master.gain, oscillators)
     setEngine(created)
-    const cleanups = [disableContextMenu(), trackViewportHeight()]
+    const enableContextMenu = disableContextMenu()
     return () => {
-      for (const cleanup of cleanups) cleanup()
+      enableContextMenu()
       created.close()
       sounds.current = []
     }

@@ -54,8 +54,8 @@ function RootDocument({ children }: { children: ReactNode }) {
 function RootLayout() {
   return (
     <SynthProvider>
-      {/* Fills the real viewport. Held upright, a phone gets the app rotated to landscape. */}
-      <div className="flex h-[calc(var(--vh)*100)] w-screen flex-col portrait:absolute portrait:top-[-100vw] portrait:left-0 portrait:h-[100vw] portrait:w-[calc(var(--vh)*100)] portrait:origin-bottom-left portrait:rotate-90 portrait:overflow-auto">
+      {/* Fills the real viewport (dvh tracks mobile browser bars). Held upright, a phone gets the app rotated to landscape. */}
+      <div className="flex h-dvh w-screen flex-col portrait:absolute portrait:top-[-100vw] portrait:left-0 portrait:h-[100vw] portrait:w-[100dvh] portrait:origin-bottom-left portrait:rotate-90 portrait:overflow-auto">
         <Navbar />
         <Outlet />
       </div>
