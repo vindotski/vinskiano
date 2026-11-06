@@ -3,11 +3,9 @@ import { expect, test } from './fixtures'
 test('every control is on one screen: oscillators, master and keyboard', async ({ page }) => {
   await page.goto('/app')
   for (const n of [1, 2, 3]) {
-    const oscillator = page.getByRole('group', { name: `Oscillator ${n}` })
+    const oscillator = page.getByRole('group', { name: `Oscillator ${n}`, exact: true })
     await expect(oscillator.getByRole('slider', { name: `Oscillator ${n} volume` })).toBeVisible()
-    await expect(
-      oscillator.getByRole('radiogroup', { name: `Oscillator ${n} waveform` }),
-    ).toBeVisible()
+    await expect(oscillator.getByRole('button', { name: `Oscillator ${n} waveform` })).toBeVisible()
     await expect(oscillator.getByRole('slider', { name: `Oscillator ${n} pitch` })).toBeVisible()
   }
   await expect(
@@ -70,3 +68,28 @@ test.describe('dark mode', () => {
     expect(lightness).toBeLessThan(0.2)
   })
 })
+
+for (const viewport of [
+  { width: 1280, height: 720 },
+  { width: 1024, height: 700 },
+  { width: 844, height: 390 }, // phone in landscape
+  { width: 667, height: 375 }, // small phone in landscape
+]) {
+  test.describe(`at ${viewport.width}×${viewport.height}`, () => {
+    test.use({ viewport })
+
+    test('the app bar fits on one row', async ({ page }) => {
+      await page.goto('/app')
+      const rows = await page.evaluate(() => {
+        const bar = document.querySelector('header')
+        const parts = bar?.querySelectorAll('fieldset, section[aria-label="Master"], header > a')
+        const centers = [...(parts ?? [])].map((part) => {
+          const box = part.getBoundingClientRect()
+          return Math.round((box.top + box.height / 2) / 10)
+        })
+        return new Set(centers).size
+      })
+      expect(rows).toBe(1)
+    })
+  })
+}

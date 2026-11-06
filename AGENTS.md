@@ -35,7 +35,7 @@ Before editing files for a substantial task:
 src/
   music/       Pure music theory: Note, Octave, Frequency, Scale, ScaleBuilder, ScaleStrategy, KEYBOARD_NOTES
   audio/       Web Audio: Engine (context + oscillators + oscilloscope), Context, Oscillator, Oscilloscope
-  components/  React UI: AppBar (oscillator strips + master knob + oscilloscope), Oscillator, Piano, PianoKey, knobs/, toggles/, toolbars/, site/ (header, footer)
+  components/  React UI: AppBar (oscillator strips + master knob + oscilloscope), Oscillator, WaveformSelect, Piano, PianoKey, knobs/, toolbars/, site/ (header, footer)
   routes/      File-based routes, two sections:
                  __root      HTML document (shellComponent + head()), 404 (NotFound brings the site chrome)
                  _site.tsx   pathless site layout (header, scrolling page, footer); _site/index.tsx = /
@@ -121,12 +121,13 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - Tailwind only scans `src/` for class names (`source(".")` in `styles.css`). Classes written anywhere else (docs, skills, tests) are not generated; keep class names in `src/` as complete literal strings.
 - Piano keys use their own tokens (`bg-key-white`, `bg-key-black`, …) so they stay ivory/ebony in dark mode.
 - `short:` is a custom variant for short viewports (≤ 500px tall, e.g. a phone in landscape): use it to tighten spacing so pages fit without scrolling.
+- **The app bar must stay on one row** down to 667 px wide (a small phone in landscape); `e2e/app.spec.ts` checks four sizes. Compact sizing is the default, `md:` and `xl:` add room. Prefer single compact controls (like the waveform dropdown) over rows of buttons.
 - Some elements keep plain class names as test hooks (`piano-key`, `piano-key--active`, `oscillator`, `oscilloscope`, `knob`…). Keep them when restyling; prefer roles and names for new tests.
 - Import `buttonVariants` from `@/components/ui/button-variants` when you only need the look (e.g. on a `Link`): importing `button.tsx` pulls React Aria's Button into the bundle.
 
 ## Animation
 
-- Motion (`motion`) through `LazyMotion` in the app layout (`routes/app.tsx`; the site doesn't load it): use the small `m.*` components (`import * as m from 'motion/react-m'`); `strict` makes the full `motion.*` components throw. The features (`domMax`, needed for `layoutId`) load lazily from `src/lib/motion-features.ts`, after the page.
+- Motion (`motion`) through `LazyMotion` in the app layout (`routes/app.tsx`; the site doesn't load it): use the small `m.*` components (`import * as m from 'motion/react-m'`); `strict` makes the full `motion.*` components throw. The features (`domAnimation`; `domMax` only if layout animations are ever needed) load lazily from `src/lib/motion-features.ts`, after the page.
 - **Never delay sound or state.** Audio starts on pointer-down; animations are purely visual and follow state, never gate it.
 - **Respect reduced motion:** `MotionConfig reducedMotion="user"` is set in the app layout; don't override it per component.
 - **SSR-safe:** nothing animates on first paint (`initial={false}` for server-rendered content), so server HTML and hydration stay identical.

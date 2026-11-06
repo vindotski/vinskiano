@@ -64,4 +64,10 @@ export const test = base.extend<{ consoleErrors: string[] }>({
   ],
 })
 
+/** Pick a waveform from an oscillator's waveform dropdown. */
+export async function chooseWaveform(page: Page, oscillator: number, waveform: string) {
+  await page.getByRole('button', { name: `Oscillator ${oscillator} waveform` }).click()
+  await page.getByRole('option', { name: waveform }).click()
+}
+
 export { expect }

@@ -27,12 +27,12 @@ const AppBar = ({
   onMasterChange,
   oscilloscope,
 }: AppBarProps) => (
-  <header className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-b bg-card px-3 py-2 short:py-1 xl:gap-x-4">
+  <header className="flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1 border-b bg-card px-2 py-2 short:py-1 md:gap-x-3 md:px-3 xl:gap-x-4">
     {start}
 
     <section
       aria-label="Oscillators"
-      className="flex flex-wrap items-center gap-x-2 gap-y-1 divide-x divide-border/60 xl:gap-x-4 [&>*]:pr-2 xl:[&>*]:pr-4 [&>*:last-child]:pr-0"
+      className="flex flex-wrap items-center gap-x-1.5 gap-y-1 divide-x divide-border/60 md:gap-x-2 xl:gap-x-4 [&>*]:pr-1.5 md:[&>*]:pr-2 xl:[&>*]:pr-4 [&>*:last-child]:pr-0"
     >
       {oscillators.map((oscillator, index) => (
         <Oscillator
@@ -53,7 +53,7 @@ const AppBar = ({
           label="Master volume"
           value={master.gain}
           onChange={(gain) => onMasterChange({ gain })}
-          className="size-9 xl:size-12"
+          className="size-8 md:size-9 xl:size-12"
         />
         <span
           aria-hidden="true"
@@ -62,7 +62,10 @@ const AppBar = ({
           Master
         </span>
       </div>
-      <Oscilloscope oscilloscope={oscilloscope} className="h-9 w-24 xl:h-12 xl:w-32" />
+      <Oscilloscope
+        oscilloscope={oscilloscope}
+        className="h-8 w-14 md:h-9 md:w-24 xl:h-12 xl:w-32"
+      />
     </section>
   </header>
 )

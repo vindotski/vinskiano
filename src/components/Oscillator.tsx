@@ -1,7 +1,7 @@
 import type { OscillatorSettings } from '@/types/synth'
 import PitchKnob from './knobs/PitchKnob'
 import VolumeKnob from './knobs/VolumeKnob'
-import WaveformToggle from './toggles/WaveformToggle'
+import WaveformSelect from './WaveformSelect'
 
 interface OscillatorProps extends OscillatorSettings {
   id: number
@@ -29,7 +29,7 @@ const Oscillator = ({ id, label, waveform, pitch, volume, onChange }: Oscillator
 
   return (
     // `oscillator` is a hook for tests.
-    <fieldset aria-label={name} className="oscillator flex items-center gap-1.5 xl:gap-2">
+    <fieldset aria-label={name} className="oscillator flex items-center gap-1 md:gap-1.5 xl:gap-2">
       <span
         aria-hidden="true"
         className="grid size-5 place-items-center rounded-full bg-foreground text-[11px] font-semibold text-background xl:size-6 xl:text-xs"
@@ -41,11 +41,11 @@ const Oscillator = ({ id, label, waveform, pitch, volume, onChange }: Oscillator
           label={`${name} volume`}
           value={volume}
           onChange={(v) => update({ volume: v })}
-          className="size-9 xl:size-12"
+          className="size-8 md:size-9 xl:size-12"
         />
         <Caption>Vol</Caption>
       </div>
-      <WaveformToggle
+      <WaveformSelect
         label={`${name} waveform`}
         value={waveform}
         onChange={(w) => update({ waveform: w })}
@@ -55,7 +55,7 @@ const Oscillator = ({ id, label, waveform, pitch, volume, onChange }: Oscillator
           label={`${name} pitch`}
           value={pitch}
           onChange={(p) => update({ pitch: p })}
-          className="size-9 xl:size-12"
+          className="size-8 md:size-9 xl:size-12"
         />
         <Caption>Pitch</Caption>
       </div>

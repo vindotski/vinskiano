@@ -1,6 +1,6 @@
-import { domMax } from 'motion/react'
+import { domAnimation } from 'motion/react'
 
-// Motion's animation features, loaded lazily by <LazyMotion> in the root layout so they stay
-// out of the initial bundle. domMax (not the smaller domAnimation) because shared layout
-// animations (layoutId) need it.
-export default domMax
+// Motion's animation features, loaded lazily by <LazyMotion> in the app layout so they stay
+// out of the initial bundle. domAnimation covers `animate`/transitions; switch to domMax only
+// if shared layout animations (layout, layoutId) are needed.
+export default domAnimation

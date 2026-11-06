@@ -1,4 +1,4 @@
-import { audioLog, expect, resetAudioLog, test } from './fixtures'
+import { audioLog, chooseWaveform, expect, resetAudioLog, test } from './fixtures'
 
 test('a key plays all three oscillators at its pitch and stops on release', async ({ page }) => {
   await page.goto('/app')
@@ -50,10 +50,10 @@ test('dragging off a held key releases the note', async ({ page }) => {
 test('waveform and pitch changes reach the audio graph', async ({ page }) => {
   await page.goto('/app')
 
-  await page
-    .getByRole('radiogroup', { name: 'Oscillator 1 waveform' })
-    .getByRole('radio', { name: 'Square' })
-    .click()
+  await chooseWaveform(page, 1, 'Square')
+  await expect(page.getByRole('button', { name: 'Oscillator 1 waveform' })).toHaveAccessibleName(
+    /^Square/,
+  )
   const pitch2 = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
   await pitch2.focus()
   await page.keyboard.press('End')
@@ -135,4 +135,24 @@ test('pressing at the very edge of a key keeps the note playing while held', asy
 
   await page.mouse.up()
   expect((await audioLog(page)).stopped).toBe(3)
+})
+
+test('the waveform dropdown works with the keyboard', async ({ page }) => {
+  await page.goto('/app')
+  const trigger = page.getByRole('button', { name: 'Oscillator 3 waveform' })
+  await trigger.focus()
+  await page.keyboard.press('Enter') // open
+  await expect(page.getByRole('listbox')).toBeVisible()
+  await page.keyboard.press('ArrowDown')
+  await page.keyboard.press('ArrowDown')
+  await page.keyboard.press('Enter') // Sine → Square → Triangle
+  await expect(page.getByRole('listbox')).toBeHidden()
+  await expect(trigger).toHaveAccessibleName(/^Triangle/)
+  await expect(trigger).toBeFocused()
+
+  await resetAudioLog(page)
+  await page.locator('.piano-key').first().hover()
+  await page.mouse.down()
+  expect((await audioLog(page)).started.map((s) => s.type)).toEqual(['sine', 'sine', 'triangle'])
+  await page.mouse.up()
 })
