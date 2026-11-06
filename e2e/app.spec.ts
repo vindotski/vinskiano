@@ -44,7 +44,7 @@ test('moves between the site and the app, and shows a 404 for unknown routes', a
   await expect(page.getByRole('slider', { name: 'Master volume' })).toBeVisible()
   await page.getByRole('link', { name: 'Vinskiano home' }).click()
   await expect(page).toHaveURL('/')
-  await page.getByRole('main').getByRole('link', { name: 'Open the synth' }).click()
+  await page.getByRole('main').getByRole('link', { name: 'Open the synth' }).first().click()
   await expect(page.locator('.piano-key')).toHaveCount(13)
 
   await page.goto('/does-not-exist')

@@ -1,8 +1,9 @@
 import { cva } from 'class-variance-authority'
+import { cn } from '@/lib/utils'
 
 // Split out of button.tsx so plain links (e.g. the 404 page) can look like buttons without
 // pulling React Aria's Button into the main bundle.
-export const buttonVariants = cva(
+const buttonStyles = cva(
   "group/button inline-flex shrink-0 items-center justify-center rounded-4xl border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
@@ -36,3 +37,11 @@ export const buttonVariants = cva(
     },
   },
 )
+
+/**
+ * The button classes, with conflicts resolved (e.g. the base `border-transparent` vs the outline
+ * variant's `border-border`). Without the merge, whichever rule comes later in the CSS wins,
+ * and outline buttons rendered on links lost their border.
+ */
+export const buttonVariants = (props?: Parameters<typeof buttonStyles>[0]) =>
+  cn(buttonStyles(props))

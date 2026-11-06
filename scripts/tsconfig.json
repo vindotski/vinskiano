@@ -1,0 +1,10 @@
+{
+  // Node scripts: same strict settings as the app, but with Node's types instead of the
+  // browser's (kept separate so app code can't use Node globals by accident).
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["es2023"],
+    "types": ["node"]
+  },
+  "include": ["."]
+}

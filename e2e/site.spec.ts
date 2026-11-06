@@ -3,7 +3,7 @@ import { expect, test } from './fixtures'
 test('the home page links to the synth', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-  await page.getByRole('main').getByRole('link', { name: 'Open the synth' }).click()
+  await page.getByRole('main').getByRole('link', { name: 'Open the synth' }).first().click()
   await expect(page).toHaveURL('/app')
   await expect(page.locator('.piano-key')).toHaveCount(13)
 })
@@ -25,7 +25,7 @@ test('the site never creates an audio engine', async ({ page }) => {
     0,
   )
   // The synth creates one as soon as it mounts.
-  await page.getByRole('main').getByRole('link', { name: 'Open the synth' }).click()
+  await page.getByRole('main').getByRole('link', { name: 'Open the synth' }).first().click()
   await expect
     .poll(() => page.evaluate(() => (window as unknown as { __contexts: number }).__contexts))
     .toBeGreaterThan(0)
@@ -42,4 +42,39 @@ test('old /oscillators links redirect into the app', async ({ page, request }) =
   expect(response.status()).toBe(301)
   await page.goto('/oscillators')
   await expect(page).toHaveURL('/app')
+})
+
+test('the home page has a hero, a screenshot and three steps', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1)
+  await expect(page.getByRole('img', { name: /The Vinskiano synth/ })).toBeVisible()
+  const steps = page.getByRole('region', { name: /how it works/i }).getByRole('listitem')
+  await expect(steps).toHaveCount(3)
+})
+
+test('outline buttons keep their border', async ({ page }) => {
+  // Regression: base `border-transparent` used to beat the outline variant's border color.
+  await page.goto('/')
+  const border = await page
+    .getByRole('main')
+    .getByRole('link', { name: 'Source on GitHub' })
+    .evaluate((link) => getComputedStyle(link).borderTopColor)
+  expect(border).not.toMatch(/rgba\(0, 0, 0, 0\)|transparent/)
+})
+
+test('the first Tab stop skips to the content', async ({ page }) => {
+  await page.goto('/')
+  await page.keyboard.press('Tab')
+  const skip = page.getByRole('link', { name: 'Skip to content' })
+  await expect(skip).toBeFocused()
+  await expect(skip).toBeVisible()
+  await page.keyboard.press('Enter')
+  await expect(page).toHaveURL('/#content')
+})
+
+// COPY: the home page still shows placeholders in [brackets]. Once the real copy is in,
+// this starts passing; then turn `test.fail` into `test`.
+test.fail('the home page has no placeholder copy left', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByRole('main')).not.toContainText('[', { timeout: 1000 })
 })

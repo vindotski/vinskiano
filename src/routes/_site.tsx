@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router'
 import SiteFooter from '../components/site/SiteFooter'
 import SiteHeader from '../components/site/SiteHeader'
+import SkipLink from '../components/site/SkipLink'
 
 /** The website around the synth (a pathless layout: it adds no URL segment). Scrolls normally. */
 export const Route = createFileRoute('/_site')({
@@ -10,8 +11,9 @@ export const Route = createFileRoute('/_site')({
 function SiteLayout() {
   return (
     <div className="flex min-h-dvh flex-col">
+      <SkipLink />
       <SiteHeader />
-      <main className="flex flex-1 flex-col [view-transition-name:page]">
+      <main id="content" className="flex flex-1 flex-col [view-transition-name:page]">
         <Outlet />
       </main>
       <SiteFooter />

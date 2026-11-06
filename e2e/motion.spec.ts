@@ -31,7 +31,7 @@ test('going from the site to the app crossfades the page area, not the header', 
   page,
 }) => {
   await page.goto('/')
-  await page.getByRole('main').getByRole('link', { name: 'Open the synth' }).click()
+  await page.getByRole('main').getByRole('link', { name: 'Open the synth' }).first().click()
   await expect
     .poll(() => viewTransitionAnimations(page))
     .toEqual(expect.arrayContaining(['::view-transition-old(page)', '::view-transition-new(page)']))
@@ -43,7 +43,7 @@ test.describe('with reduced motion', () => {
 
   test('pages switch without a transition animation', async ({ page }) => {
     await page.goto('/')
-    await page.getByRole('main').getByRole('link', { name: 'Open the synth' }).click()
+    await page.getByRole('main').getByRole('link', { name: 'Open the synth' }).first().click()
     for (let frame = 0; frame < 5; frame++) {
       expect(await viewTransitionAnimations(page)).toEqual([])
       await page.waitForTimeout(30)
