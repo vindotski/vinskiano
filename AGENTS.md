@@ -11,7 +11,7 @@ The project is being modernized step by step; see [MODERN_TOOLING.md](MODERN_TOO
 - Biome for linting and formatting (`biome.json`)
 - Vitest for unit tests (config in `vite.config.ts`), Playwright for browser tests (`playwright.config.ts`, Chromium)
 - pnpm (pinned via `packageManager`), Node 26 (`.nvmrc`)
-- `react-circle-slider` for knobs (no published types; declared in `src/types/react-circle-slider.d.ts`)
+- React Aria hooks (`react-aria`, `react-stately`) for accessible controls; the rotary `Knob` is built on its slider hooks
 
 ## Layout
 
@@ -21,7 +21,7 @@ src/
   audio/       Web Audio wrappers: Context (with master gain), Oscillator, Oscilloscope
   components/  React UI: Piano, PianoKey, Mixer sections, knobs/, toggles/, toolbars/
   pages/       Route pages: PianoRoll (/), Oscillators (/oscillators), NotFound
-  types/       Shared app types (synth.ts) and declarations for untyped packages
+  types/       Shared app types (synth.ts)
   utils/       Small browser helpers
   App.tsx      Holds audio state; triggers and releases notes
   index.tsx    Entry: builds the AudioContext and the scale, renders App
@@ -55,6 +55,12 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - **pnpm supply-chain settings** live in `pnpm-workspace.yaml` (never `.npmrc`). Don't loosen them to make an install pass: find out why a package fails `trustPolicy` or `minimumReleaseAge` first. Every package with an install script must be listed in `allowBuilds` with a reason.
 - Keep `music/` free of browser and React code so it stays easy to unit test.
 - Keep Web Audio code in `audio/`; components never create audio nodes directly.
+
+## Accessibility
+
+- Every control needs an accessible name: knobs take a `label` ("Oscillator 2 pitch"), sliders a `<label>`.
+- Controls work by keyboard and show a visible focus ring. Knobs are native range inputs underneath (arrows, Page Up/Down, Home/End).
+- Browser tests find controls by role and name (`getByRole('slider', { name })`), never by DOM position.
 
 ## Tests
 

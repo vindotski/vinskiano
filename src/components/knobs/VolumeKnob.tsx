@@ -1,12 +1,22 @@
 import Knob from './Knob'
 
 interface VolumeKnobProps {
+  label: string
+  /** Gain, 0 to 1. */
   value: number
   onChange?: (volume: number) => void
 }
 
-const VolumeKnob = ({ value, onChange = () => {} }: VolumeKnobProps) => {
-  return <Knob value={value * 100} min={0} max={100} onChange={(value) => onChange(value / 100)} />
+/** Shown and announced as 0–100%. */
+const VolumeKnob = ({ label, value, onChange = () => {} }: VolumeKnobProps) => {
+  return (
+    <Knob
+      label={label}
+      value={Math.round(value * 100)}
+      formatOptions={{ style: 'unit', unit: 'percent' }}
+      onChange={(percent) => onChange(percent / 100)}
+    />
+  )
 }
 
 export default VolumeKnob

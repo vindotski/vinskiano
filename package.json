@@ -26,9 +26,10 @@
   },
   "dependencies": {
     "react": "^17.0.1",
-    "react-circle-slider": "^1.6.2",
+    "react-aria": "^3.53.1",
     "react-dom": "^17.0.1",
-    "react-router-dom": "^5.2.0"
+    "react-router-dom": "^5.2.0",
+    "react-stately": "^3.51.0"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.5",

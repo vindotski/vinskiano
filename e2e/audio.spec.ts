@@ -50,28 +50,20 @@ test('dragging off a held key releases the note', async ({ page }) => {
 test('waveform and pitch changes reach the audio graph', async ({ page }) => {
   await page.goto('/oscillators')
 
-  // Oscillator 1 → square.
   await page.getByRole('button', { name: 'Square icon' }).first().click()
-
-  // Oscillator 2's pitch knob: drag from 12 o'clock to 3 o'clock (+12 semitones).
-  const pitch2 = page.locator('.oscillator').nth(1).locator('svg').nth(1)
-  const box = await pitch2.boundingBox()
-  if (!box) throw new Error('knob not visible')
-  await page.mouse.move(box.x + box.width / 2, box.y + 4)
-  await page.mouse.down()
-  await page.mouse.move(box.x + box.width - 4, box.y + box.height / 2, { steps: 8 })
-  await page.mouse.up()
-  await expect(page.locator('.oscillator').nth(1)).toContainText('12')
+  const pitch2 = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
+  await pitch2.focus()
+  await page.keyboard.press('End')
+  await expect(pitch2).toHaveValue('24')
 
   await resetAudioLog(page)
-  const preview = page.getByRole('button', { name: 'Preview' })
-  await preview.hover()
+  await page.getByRole('button', { name: 'Preview' }).hover()
   await page.mouse.down()
   const { started } = await audioLog(page)
   await page.mouse.up()
 
   expect(started.map((s) => s.type)).toEqual(['square', 'sine', 'sine'])
-  expect(started.map((s) => s.detune)).toEqual([-1200, 1200, 1200])
+  expect(started.map((s) => s.detune)).toEqual([-1200, 2400, 1200])
 })
 
 test('master volume can be set to any value (no float truncation)', async ({ page }) => {

@@ -18,18 +18,28 @@ class Oscillator extends React.Component<OscillatorProps> {
   }
 
   override render() {
+    const name = `Oscillator ${this.props.label ?? ''}`.trim()
+
     return (
       <div className="oscillator">
         <span className="oscillator-label">{this.props.label || ''}</span>
 
-        <VolumeKnob value={this.props.volume} onChange={(volume) => this.update({ volume })} />
+        <VolumeKnob
+          label={`${name} volume`}
+          value={this.props.volume}
+          onChange={(volume) => this.update({ volume })}
+        />
 
         <WaveformToggle
           value={this.props.waveform}
           onChange={(waveform) => this.update({ waveform })}
         />
 
-        <PitchKnob value={this.props.pitch} onChange={(pitch) => this.update({ pitch })} />
+        <PitchKnob
+          label={`${name} pitch`}
+          value={this.props.pitch}
+          onChange={(pitch) => this.update({ pitch })}
+        />
 
         {this.props.showLabels ? (
           <>

@@ -272,3 +272,47 @@ button.toggled {
   color: inherit;
   margin: 0;
 }
+
+.knob {
+  display: inline-flex;
+  border-radius: 50%;
+}
+
+.knob--focus-visible {
+  outline: 2px solid #0075ff;
+  outline-offset: 2px;
+}
+
+.knob-dial {
+  touch-action: none;
+  cursor: grab;
+}
+
+.knob-dial:active {
+  cursor: grabbing;
+}
+
+.knob-track,
+.knob-value {
+  fill: none;
+  stroke-width: 5px;
+  stroke-linecap: round;
+}
+
+.knob-track {
+  stroke: #e6e6e6;
+}
+
+.knob-value {
+  stroke: #0075ff;
+}
+
+.knob-pointer {
+  fill: #0075ff;
+}
+
+.knob-text {
+  font-size: 14px;
+  fill: #333;
+  user-select: none;
+}
