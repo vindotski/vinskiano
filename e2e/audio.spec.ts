@@ -155,3 +155,19 @@ test('the waveform dropdown works with the keyboard', async ({ page }) => {
   expect((await audioLog(page)).started.map((s) => s.type)).toEqual(['sine', 'sine', 'triangle'])
   await page.mouse.up()
 })
+
+test('asks for media playback, so an iPhone on silent still plays (where supported)', async ({
+  page,
+  browserName,
+}) => {
+  await openApp(page)
+  const sessionType = await page.evaluate(() => {
+    if (!('audioSession' in navigator)) return null
+    const session = navigator.audioSession
+    return typeof session === 'object' && session !== null && 'type' in session
+      ? String(session.type)
+      : null
+  })
+  // Safari's Audio Session API (WebKit here); the others don't have it.
+  expect(sessionType).toBe(browserName === 'webkit' ? 'playback' : null)
+})

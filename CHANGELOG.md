@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- On iPhones, the synth stays audible with the ring/silent switch set to silent (it now asks Safari for media playback; needs iOS Safari 16.4 or newer)
 - Screen readers announced each knob's name twice
 - On a phone held upright (where the synth turns itself sideways), the waveform dropdown opened sideways and away from its button, and tapping a knob turned it to the wrong point of the dial
 

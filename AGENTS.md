@@ -93,7 +93,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - Fix lint findings instead of silencing them. If a rule really doesn't apply, use a `biome-ignore` comment with a reason.
 - **pnpm supply-chain settings** live in `pnpm-workspace.yaml` (never `.npmrc`). Don't loosen them to make an install pass: find out why a package fails `trustPolicy` or `minimumReleaseAge` first. Every package with an install script must be listed in `allowBuilds` with a reason.
 - Keep `music/` free of browser and React code so it stays easy to unit test.
-- Keep Web Audio code in `audio/`; components never create audio nodes directly.
+- Keep Web Audio code in `audio/`; components never create audio nodes directly. `Context.make()` calls `preferPlayback()` (`audio/session.ts`) before creating the `AudioContext`, so iPhones don't mute the synth on silent.
 - **Server-safe code (everything renders on the server first):** nothing touches `window`, `document` or Web Audio at module scope or during render. Do browser work in effects (the audio `Engine` is created in `SynthProvider`'s mount effect), or wrap it in `ClientOnly`. Server and first client render must match, or hydration fails (the e2e console-error fixture catches that). UI state is plain data (`types/synth.ts`); the engine follows it. `src/ssr.test.tsx` and `e2e/ssr.spec.ts` enforce this.
 
 ## Supported browsers and performance
