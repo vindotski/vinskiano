@@ -24,6 +24,43 @@
       "path": "skills/typescript-magician",
       "commit": "c75d70dbfbe991d8cec42aeda0b64ff14fbb9ac7",
       "license": "MIT"
+    },
+    "nitro": {
+      "source": "https://github.com/antfu/skills",
+      "path": "skills/nitro",
+      "commit": "f63e9ec7bc85f67364b6596c2d29da87e83ce445",
+      "license": "MIT"
+    },
+    "antfu-simplify": {
+      "source": "https://github.com/antfu/skills",
+      "path": "skills/antfu-simplify",
+      "commit": "f63e9ec7bc85f67364b6596c2d29da87e83ce445",
+      "license": "MIT"
+    },
+    "shadcn": {
+      "source": "https://github.com/shadcn-ui/ui",
+      "path": "skills/shadcn",
+      "commit": "42f3bb63b46a69e52a24bd005cdc9ec15ba7a7b9",
+      "license": "MIT",
+      "patches": [
+        "allowed-tools narrowed from `npx|pnpm dlx|bunx shadcn@latest *` to `pnpm exec shadcn *`: never pre-approve running an unpinned CLI; this project pins shadcn as a dev dependency"
+      ]
+    },
+    "web-design-guidelines": {
+      "source": "https://github.com/vercel-labs/agent-skills",
+      "path": "skills/web-design-guidelines",
+      "commit": "1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62",
+      "license": "MIT (stated in the repo README; no LICENSE file upstream)",
+      "includes": {
+        "source": "https://github.com/vercel-labs/web-interface-guidelines",
+        "path": "command.md",
+        "commit": "434b7f91364665f2f733b310ec54809bf8f37937",
+        "license": "MIT",
+        "vendoredAs": "references/guidelines.md"
+      },
+      "patches": [
+        "reads the pinned references/guidelines.md instead of fetching the guidelines from `main` at review time (unpinned remote text would become instructions)"
+      ]
     }
   }
 }
