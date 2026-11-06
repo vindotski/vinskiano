@@ -1,24 +1,24 @@
-import React from 'react'
+import { useEffect, useRef } from 'react'
 import type { Oscilloscope as AudioOscilloscope } from '@/audio'
 
 interface OscilloscopeProps {
-  oscilloscope: AudioOscilloscope
+  /** The output analyser; null until the audio engine exists (then the canvas stays empty). */
+  oscilloscope: AudioOscilloscope | null
 }
 
 /** Draws the master output. Colors come from the canvas's CSS (theme tokens), so dark mode just works. */
-class Oscilloscope extends React.Component<OscilloscopeProps> {
-  canvas = React.createRef<HTMLCanvasElement>()
-  frame = 0
+const Oscilloscope = ({ oscilloscope }: OscilloscopeProps) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  override componentDidMount() {
-    const { oscilloscope } = this.props
-    const canvas = this.canvas.current
+  useEffect(() => {
+    const canvas = canvasRef.current
     const context = canvas?.getContext('2d')
-    if (!canvas || !context) {
+    if (!oscilloscope || !canvas || !context) {
       return
     }
 
-    const update = () => {
+    let frame = 0
+    const draw = () => {
       // Match the drawing buffer to the displayed size for a crisp line.
       const ratio = window.devicePixelRatio || 1
       const width = Math.round(canvas.clientWidth * ratio)
@@ -53,27 +53,22 @@ class Oscilloscope extends React.Component<OscilloscopeProps> {
       context.lineTo(width, height / 2)
       context.stroke()
 
-      this.frame = requestAnimationFrame(update)
+      frame = requestAnimationFrame(draw)
     }
 
-    this.frame = requestAnimationFrame(update)
-  }
+    frame = requestAnimationFrame(draw)
+    return () => cancelAnimationFrame(frame)
+  }, [oscilloscope])
 
-  override componentWillUnmount() {
-    cancelAnimationFrame(this.frame)
-  }
-
-  override render() {
-    // `oscilloscope` is a hook for tests.
-    return (
-      <canvas
-        ref={this.canvas}
-        className="oscilloscope h-28 w-full short:h-20 rounded-2xl bg-muted text-primary"
-        aria-label="Oscilloscope showing the master output"
-        role="img"
-      />
-    )
-  }
+  // `oscilloscope` is a hook for tests.
+  return (
+    <canvas
+      ref={canvasRef}
+      className="oscilloscope h-28 w-full rounded-2xl bg-muted text-primary short:h-20"
+      aria-label="Oscilloscope showing the master output"
+      role="img"
+    />
+  )
 }
 
 export default Oscilloscope

@@ -1,9 +1,9 @@
-import type { Oscilloscope, Waveform } from '../audio'
+import type { Waveform } from '../audio'
 
-/** State of the master section: output gain (0..1) and its oscilloscope. */
+/** State of the master section. */
 export interface MasterSettings {
+  /** Output gain, 0..1. */
   gain: number
-  oscilloscope: Oscilloscope
 }
 
 /** The user-editable settings of one oscillator. */
@@ -13,4 +13,9 @@ export interface OscillatorSettings {
   pitch: number
   /** Gain, 0..1. */
   volume: number
+}
+
+/** One oscillator as the UI sees it: plain data, no audio nodes. */
+export interface OscillatorState extends OscillatorSettings {
+  id: number
 }

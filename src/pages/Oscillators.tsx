@@ -1,16 +1,17 @@
-import type { Oscillator } from '../audio'
+import type { Oscilloscope } from '../audio'
 import Mixer from '../components/Mixer'
 import Toolbar from '../components/toolbars/Toolbar'
 import ToolbarSpacer from '../components/toolbars/ToolbarSpacer'
 import { Button } from '../components/ui/button'
 import { Note } from '../music'
-import type { MasterSettings, OscillatorSettings } from '../types/synth'
+import type { MasterSettings, OscillatorSettings, OscillatorState } from '../types/synth'
 
 const PREVIEW_NOTE = new Note({ name: 'C', octave: 5 })
 
 interface OscillatorsProps {
   master: MasterSettings
-  oscillators: Oscillator[]
+  oscilloscope: Oscilloscope | null
+  oscillators: OscillatorState[]
   onTrigger: (note: Note) => void
   onRelease: (note: Note) => void
   onMasterChange: (settings: MasterSettings) => void
@@ -19,6 +20,7 @@ interface OscillatorsProps {
 
 const Oscillators = ({
   master,
+  oscilloscope,
   oscillators,
   onTrigger,
   onRelease,
@@ -43,6 +45,7 @@ const Oscillators = ({
 
       <Mixer
         master={master}
+        oscilloscope={oscilloscope}
         oscillators={oscillators}
         onMasterChange={onMasterChange}
         onOscillatorChange={onOscillatorChange}

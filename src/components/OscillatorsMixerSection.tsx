@@ -1,10 +1,9 @@
-import type { Oscillator as AudioOscillator } from '@/audio'
-import type { OscillatorSettings } from '@/types/synth'
+import type { OscillatorSettings, OscillatorState } from '@/types/synth'
 import MixerSection from './MixerSection'
 import Oscillator, { OSCILLATOR_GRID } from './Oscillator'
 
 interface OscillatorsMixerSectionProps {
-  oscillators: AudioOscillator[]
+  oscillators: OscillatorState[]
   onChange: (id: number, settings: OscillatorSettings) => void
 }
 

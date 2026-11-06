@@ -1,13 +1,15 @@
 import { createContext, useContext } from 'react'
-import type { Oscillator } from '../audio'
+import type { Oscilloscope } from '../audio'
 import type { Note } from '../music'
-import type { MasterSettings, OscillatorSettings } from '../types/synth'
+import type { MasterSettings, OscillatorSettings, OscillatorState } from '../types/synth'
 
 /** Everything the pages need from the synth: its state and how to play and change it. */
 export interface Synth {
   scale: readonly Note[]
   master: MasterSettings
-  oscillators: Oscillator[]
+  /** The output analyser; null until the audio engine exists (it's browser-only). */
+  oscilloscope: Oscilloscope | null
+  oscillators: OscillatorState[]
   trigger: (note: Note) => void
   release: (note: Note) => void
   updateMaster: (settings: MasterSettings) => void

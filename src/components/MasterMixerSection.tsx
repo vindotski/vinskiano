@@ -6,7 +6,7 @@ import Slider from './Slider'
 
 interface MasterMixerSectionProps {
   gain: number
-  oscilloscope: AudioOscilloscope
+  oscilloscope: AudioOscilloscope | null
   onChange: (settings: MasterSettings) => void
 }
 
@@ -16,7 +16,7 @@ const MasterMixerSection = ({ gain, oscilloscope, onChange }: MasterMixerSection
       <Slider
         label="Master Volume"
         value={Math.round(gain * 100)}
-        onChange={(percent) => onChange({ gain: percent / 100, oscilloscope })}
+        onChange={(percent) => onChange({ gain: percent / 100 })}
       />
 
       <div className="flex flex-col gap-2">

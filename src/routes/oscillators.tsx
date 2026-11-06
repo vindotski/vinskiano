@@ -11,6 +11,7 @@ function OscillatorsRoute() {
   return (
     <Oscillators
       master={synth.master}
+      oscilloscope={synth.oscilloscope}
       oscillators={synth.oscillators}
       onTrigger={synth.trigger}
       onRelease={synth.release}
