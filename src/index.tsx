@@ -1,5 +1,5 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
+import { createRoot } from 'react-dom/client'
 import './index.css'
 
 import App from './App'
@@ -39,9 +39,8 @@ if (!root) {
   throw new Error('Missing #root element in index.html')
 }
 
-ReactDOM.render(
+createRoot(root).render(
   <React.StrictMode>
     <App context={context} scale={scale} />
   </React.StrictMode>,
-  root,
 )

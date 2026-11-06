@@ -6,7 +6,7 @@ The project is being modernized step by step; see [MODERN_TOOLING.md](MODERN_TOO
 
 ## Stack (current)
 
-- Vite 8 (`@vitejs/plugin-react`), React 17, react-router-dom 5
+- Vite 8 (`@vitejs/plugin-react`), React 19 (`createRoot`, StrictMode), react-router-dom 5
 - TypeScript 7, strict (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`). No JavaScript left in `src/`.
 - Biome for linting and formatting (`biome.json`)
 - Vitest for unit tests (config in `vite.config.ts`), Playwright for browser tests (`playwright.config.ts`, Chromium)

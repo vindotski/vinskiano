@@ -1,46 +1,34 @@
-import React, { type ChangeEvent } from 'react'
-
-let nextId = 0
+import { type ChangeEvent, useId } from 'react'
 
 interface SliderProps {
-  label: string
+  label?: string
   value: number
-  onChange: (event: ChangeEvent<HTMLInputElement>) => void
-  min: number
-  max: number
+  onChange?: (event: ChangeEvent<HTMLInputElement>) => void
+  min?: number
+  max?: number
 }
 
-class Slider extends React.Component<SliderProps> {
-  static defaultProps = {
-    label: '',
-    onChange: () => {},
-    min: 0,
-    max: 100,
-  }
+const Slider = ({ label = '', value, onChange = () => {}, min = 0, max = 100 }: SliderProps) => {
+  const id = useId()
 
-  // React 17 has no useId, so each instance gets its own id for the label.
-  id = `slider-${++nextId}`
+  return (
+    <div className="input-group">
+      <label className="input-group-label" htmlFor={id}>
+        <span>{label}</span>
+        <strong>{value}</strong>
+      </label>
 
-  override render() {
-    return (
-      <div className="input-group">
-        <label className="input-group-label" htmlFor={this.id}>
-          <span>{this.props.label}</span>
-          <strong>{this.props.value}</strong>
-        </label>
-
-        <input
-          id={this.id}
-          className="input-group-control"
-          value={this.props.value}
-          onChange={this.props.onChange}
-          type="range"
-          min={this.props.min}
-          max={this.props.max}
-        />
-      </div>
-    )
-  }
+      <input
+        id={id}
+        className="input-group-control"
+        value={value}
+        onChange={onChange}
+        type="range"
+        min={min}
+        max={max}
+      />
+    </div>
+  )
 }
 
 export default Slider
