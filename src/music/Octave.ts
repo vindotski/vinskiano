@@ -1,7 +1,7 @@
 import Note from './Note'
 
-class Octave extends Array {
-  static DEFAULT = [
+class Octave extends Array<Note> {
+  static readonly DEFAULT: readonly Note[] = [
     new Note({ name: 'C', octave: -1 }),
     new Note({ name: 'C{sharp}', octave: -1 }),
     new Note({ name: 'D', octave: -1 }),
@@ -16,32 +16,21 @@ class Octave extends Array {
     new Note({ name: 'B', octave: -1 }),
   ]
 
-  constructor() {
-    super()
-
-    // Index access wraps around the octave (octave[12] === octave[0]), so the
-    // constructor deliberately returns a Proxy instead of `this`.
-    // biome-ignore lint/correctness/noConstructorReturn: returning a Proxy is the point
-    return new Proxy(this, {
-      get: (object, key, receiver) => {
-        if (typeof key === 'string' && !Number.isNaN(Number(key))) {
-          return this.get(+key)
-        }
-
-        return Reflect.get(object, key, receiver)
-      },
-    })
+  /** Note at `index`, wrapping around the octave: get(12) === get(0). */
+  get(index: number): Note {
+    const note = this[index % this.length]
+    if (!note) {
+      throw new RangeError(`No note at index ${index} in an octave of ${this.length}`)
+    }
+    return note
   }
 
-  get(index) {
-    return this[index % this.length]
-  }
-
-  indexOf(noteName) {
+  /** Index of the note with this name (e.g. 'C{sharp}'), or -1. */
+  indexOfName(noteName: string): number {
     return this.findIndex((note) => noteName === note.name)
   }
 
-  static make(notes = null) {
+  static make(notes: readonly Note[] | null = null): Octave {
     const octave = new Octave()
     for (const note of notes || Octave.DEFAULT) {
       octave.push(note)

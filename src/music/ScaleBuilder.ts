@@ -2,13 +2,21 @@ import Note from './Note'
 import Scale from './Scale'
 import { ScaleStrategy } from './ScaleStrategy'
 
+export interface ScaleBuilderOptions {
+  rootNote?: Note
+  strategy?: ScaleStrategy
+}
+
 class ScaleBuilder {
-  constructor(options = {}) {
+  rootNote: Note
+  strategy: ScaleStrategy
+
+  constructor(options: ScaleBuilderOptions = {}) {
     this.rootNote = options.rootNote || new Note()
     this.strategy = options.strategy || new ScaleStrategy()
   }
 
-  build() {
+  build(): Scale {
     if (!(this.rootNote instanceof Note)) {
       throw new Error('ScaleBuilder.rootNote must be an instance of Note class')
     } else if (!(this.strategy instanceof ScaleStrategy)) {
@@ -17,9 +25,9 @@ class ScaleBuilder {
 
     const notes = this.strategy.generate(this.rootNote)
     const scale = new Scale({ rootNote: this.rootNote })
-    notes.forEach((note) => {
+    for (const note of notes) {
       scale.push(note)
-    })
+    }
     return scale
   }
 }

@@ -1,7 +1,15 @@
 const NAME_PATTERN = /^[a-gA-G]({sharp}|{flat})?$/
 
+export interface NoteOptions {
+  name?: string
+  octave?: number
+}
+
 class Note {
-  constructor(options = {}) {
+  name: string
+  octave: number
+
+  constructor(options: NoteOptions = {}) {
     const name = options.name || 'A'
 
     if (!NAME_PATTERN.test(name)) {
@@ -12,7 +20,7 @@ class Note {
     this.octave = options.octave || 4
   }
 
-  toString() {
+  toString(): string {
     let name = this.name
     name = name.replace('{sharp}', '#')
     name = name.replace('{flat}', ' b')
