@@ -1,8 +1,8 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 import Navbar from '../components/Navbar'
-import appCss from '../index.css?url'
 import NotFound from '../pages/NotFound'
+import appCss from '../styles.css?url'
 import { SynthProvider } from '../synth/SynthProvider'
 
 export const Route = createRootRoute({
