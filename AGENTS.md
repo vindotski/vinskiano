@@ -26,6 +26,7 @@ Before editing files for a substantial task:
 - Vitest for unit tests (config in `vite.config.ts`), Playwright for browser tests (`playwright.config.ts`, Chromium)
 - pnpm (pinned via `packageManager`), Node 26 (`.nvmrc`)
 - React Aria hooks (`react-aria`, `react-stately`) for accessible controls; the rotary `Knob` is built on its slider hooks
+- Motion (motion.dev) for animations, loaded lazily (see Animation)
 - Tailwind CSS v4 (`@tailwindcss/vite`) with a shadcn/ui theme (`components.json`: style aria-luma, preset b51FfLcNG; tokens in `src/styles.css`). Dark mode follows `prefers-color-scheme` via the `dark:` variant.
 
 ## Layout
@@ -112,6 +113,14 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - `short:` is a custom variant for short viewports (≤ 500px tall, e.g. a phone in landscape): use it to tighten spacing so pages fit without scrolling.
 - Some elements keep plain class names as test hooks (`piano-key`, `piano-key--active`, `oscillator`, `oscilloscope`, `knob`…). Keep them when restyling; prefer roles and names for new tests.
 - Import `buttonVariants` from `@/components/ui/button-variants` when you only need the look (e.g. on a `Link`): importing `button.tsx` pulls React Aria's Button into the bundle.
+
+## Animation
+
+- Motion (`motion`) through `LazyMotion` in the root layout: use the small `m.*` components (`import * as m from 'motion/react-m'`); `strict` makes the full `motion.*` components throw. The features (`domMax`, needed for `layoutId`) load lazily from `src/lib/motion-features.ts`, after the page.
+- **Never delay sound or state.** Audio starts on pointer-down; animations are purely visual and follow state, never gate it.
+- **Respect reduced motion:** `MotionConfig reducedMotion="user"` is set at the root; don't override it per component.
+- **SSR-safe:** nothing animates on first paint (`initial={false}` for server-rendered content), so server HTML and hydration stay identical.
+- Values, accessible names and focus never depend on an animation's progress.
 
 ## Accessibility
 

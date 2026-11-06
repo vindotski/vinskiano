@@ -1,6 +1,7 @@
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
+import { LazyMotion, MotionConfig } from 'motion/react'
 import type { ReactNode } from 'react'
 import Navbar from '../components/Navbar'
 import NotFound from '../pages/NotFound'
@@ -57,15 +58,23 @@ function RootDocument({ children }: { children: ReactNode }) {
   )
 }
 
+const loadMotionFeatures = () => import('../lib/motion-features').then((module) => module.default)
+
 /** The app frame around every page: synth state, navbar, then the page. */
 function RootLayout() {
   return (
-    <SynthProvider>
-      {/* Fills the real viewport (dvh tracks mobile browser bars). Held upright, a phone gets the app rotated to landscape. */}
-      <div className="flex h-dvh w-screen flex-col portrait:absolute portrait:top-[-100vw] portrait:left-0 portrait:h-[100vw] portrait:w-[100dvh] portrait:origin-bottom-left portrait:rotate-90 portrait:overflow-auto">
-        <Navbar />
-        <Outlet />
-      </div>
-    </SynthProvider>
+    // Animations use the small `m` components; `strict` rejects the full `motion` ones.
+    // reducedMotion="user" skips transforms and layout animations when the OS asks for less motion.
+    <LazyMotion features={loadMotionFeatures} strict>
+      <MotionConfig reducedMotion="user">
+        <SynthProvider>
+          {/* Fills the real viewport (dvh tracks mobile browser bars). Held upright, a phone gets the app rotated to landscape. */}
+          <div className="flex h-dvh w-screen flex-col portrait:absolute portrait:top-[-100vw] portrait:left-0 portrait:h-[100vw] portrait:w-[100dvh] portrait:origin-bottom-left portrait:rotate-90 portrait:overflow-auto">
+            <Navbar />
+            <Outlet />
+          </div>
+        </SynthProvider>
+      </MotionConfig>
+    </LazyMotion>
   )
 }
