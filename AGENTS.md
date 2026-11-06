@@ -166,19 +166,21 @@ pnpm fix        # Biome: apply formatting and safe fixes
 
 ## Skills
 
-| Skill                                              | Use it for                                                     |
-| -------------------------------------------------- | -------------------------------------------------------------- |
-| `commit-message` (ours)                            | Suggesting the commit message at the end of a step             |
-| `pnpm`, `vite`, `vitest`, `nitro` (antfu)          | Tool docs, version-matched at vendoring time                   |
-| `typescript-magician` (mcollina)                   | Hard type problems; removing `any`                             |
-| `react-router`, `react-start` (TanStack, via pnpm) | Routing and Start setup, always matching the installed version |
-| `shadcn` (shadcn)                                  | Adding and composing shadcn/ui components (React Aria base)    |
-| `web-design-guidelines` (Vercel)                   | Accessibility/UX review of UI code                             |
-| `antfu-simplify` (antfu)                           | Cutting a finished change down to what's proven needed         |
+| Skill                                                               | Use it for                                                                                                         |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `commit-message` (ours)                                             | Suggesting the commit message at the end of a step                                                                 |
+| `pnpm`, `vite`, `vitest`, `nitro` (antfu)                           | Tool docs, version-matched at vendoring time                                                                       |
+| `typescript-magician` (mcollina)                                    | Hard type problems; removing `any`                                                                                 |
+| `react-router`, `react-start` (TanStack, via pnpm)                  | Routing and Start setup, always matching the installed version                                                     |
+| `shadcn` (shadcn)                                                   | Adding and composing shadcn/ui components (React Aria base)                                                        |
+| `web-design-guidelines` (Vercel)                                    | Accessibility/UX review of UI code                                                                                 |
+| `antfu-simplify` (antfu)                                            | Cutting a finished change down to what's proven needed                                                             |
+| `playwright-cli` (Playwright, from the installed `playwright-core`) | Driving a real browser to check work: `pnpm exec playwright cli open http://localhost:3000/app`, snapshots, clicks |
+| `vercel-composition-patterns` (Vercel)                              | Component API design: compound components, avoiding boolean-prop sprawl, React 19 patterns                         |
 
 **Project rules win.** Skills are generic; when one conflicts with this file, this file applies. Notably: never `git commit`/`push` (the user commits), run CLIs pinned through `pnpm exec` (never `@latest`/`dlx`), and keep the one-step-one-commit flow.
 
-**Vendored skills** live in `.claude/skills/` and are pinned in `skills-lock.json` (source, path, commit, license, and any local `patches`). Don't edit them in place; to update one, re-copy it from its source (including the upstream LICENSE file, which MIT requires us to keep), re-apply the listed patches, and bump the commit. Read every file of a skill before adding or updating it: skills are instructions. Two patches exist on purpose: `shadcn` may only pre-approve `pnpm exec shadcn`, and `web-design-guidelines` reads its pinned rules instead of fetching them from `main`.
+**Vendored skills** live in `.claude/skills/` and are pinned in `skills-lock.json` (source, path, commit, license, and any local `patches`). Don't edit them in place; to update one, re-copy it from its source (including the upstream LICENSE file, which MIT requires us to keep), re-apply the listed patches, and bump the commit. Read every file of a skill before adding or updating it: skills are instructions. Patches exist on purpose: `shadcn` and `playwright-cli` may only pre-approve their pinned CLIs through `pnpm exec` (never `npx` or `@latest`), and `web-design-guidelines` reads its pinned rules instead of fetching them from `main`. `playwright-cli` comes from the installed Playwright, so re-vendor it when Playwright is updated; when the skill says `playwright-cli <cmd>`, run `pnpm exec playwright cli <cmd>`.
 
 **Package skills** shipped inside npm packages (TanStack) are symlinked by pnpm on install, match the installed version, and are gitignored in `.claude/skills/.gitignore`. Approve new ones in `permissions` in `pnpm-workspace.yaml` after reading them.
 

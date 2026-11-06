@@ -61,6 +61,22 @@
       "patches": [
         "reads the pinned references/guidelines.md instead of fetching the guidelines from `main` at review time (unpinned remote text would become instructions)"
       ]
+    },
+    "playwright-cli": {
+      "source": "npm:playwright-core@1.65.0",
+      "path": "lib/tools/skills/playwright-cli",
+      "version": "1.65.0",
+      "license": "Apache-2.0",
+      "patches": [
+        "allowed-tools narrowed from `playwright-cli` / `npx playwright` to `pnpm exec playwright cli` / `pnpm exec playwright`: never pre-approve npx, which may download an unpinned version; this project runs the pinned Playwright through pnpm"
+      ],
+      "note": "Shipped inside the installed Playwright (same skill as @playwright/cli); re-vendor when Playwright is updated."
+    },
+    "vercel-composition-patterns": {
+      "source": "https://github.com/vercel-labs/agent-skills",
+      "path": "skills/composition-patterns",
+      "commit": "1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62",
+      "license": "MIT (stated in SKILL.md and the repo README; no LICENSE file upstream)"
     }
   }
 }
