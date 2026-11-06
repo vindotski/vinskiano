@@ -1,8 +1,9 @@
 import { Link } from '@tanstack/react-router'
 import Logo from './icons/Logo'
+import SelectionPill from './SelectionPill'
 
 const linkClass =
-  'rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/30 [&.active]:bg-muted [&.active]:text-foreground'
+  'relative isolate rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/30 [&.active]:text-foreground'
 
 const Navbar = () => {
   return (
@@ -19,13 +20,27 @@ const Navbar = () => {
         <li>
           {/* Link adds the `active` class itself; "/" must match exactly. */}
           <Link to="/" className={linkClass} activeOptions={{ exact: true }}>
-            Piano Roll
+            {({ isActive }) => (
+              <>
+                {isActive && (
+                  <SelectionPill layoutId="nav-active" className="rounded-full bg-muted" />
+                )}
+                Piano Roll
+              </>
+            )}
           </Link>
         </li>
 
         <li>
           <Link to="/oscillators" className={linkClass}>
-            Oscillators
+            {({ isActive }) => (
+              <>
+                {isActive && (
+                  <SelectionPill layoutId="nav-active" className="rounded-full bg-muted" />
+                )}
+                Oscillators
+              </>
+            )}
           </Link>
         </li>
       </ul>

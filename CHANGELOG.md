@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- The selection highlight slides to the new item in the navbar and the waveform toggles (instant when the system asks for reduced motion)
+
 ### Changed
 
 - Relicensed from GPL-2.0 to Apache-2.0
