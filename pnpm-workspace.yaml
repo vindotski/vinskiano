@@ -1,0 +1,16 @@
+# pnpm settings (pnpm reads these here, not from .npmrc or package.json).
+
+# Supply-chain safety
+minimumReleaseAge: 1440 # never install a release younger than one day
+trustPolicy: no-downgrade # fail if a package's publishing trust level drops
+blockExoticSubdeps: true # transitive deps must come from the registry
+strictDepBuilds: true # fail on unreviewed install scripts
+
+# Packages allowed (true) or denied (false) to run install scripts
+allowBuilds:
+  # All from react-scripts 4; they go away with the move to Vite.
+  core-js: false # postinstall only prints a funding message
+  core-js-pure: false # same
+  ejs: false # postinstall only prints a message
+  es5-ext: false # postinstall only prints a message
+  fsevents: false # optional native file watcher for webpack 4; chokidar falls back

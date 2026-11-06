@@ -8,7 +8,7 @@ The project is being modernized step by step; see [MODERN_TOOLING.md](MODERN_TOO
 
 - Create React App 4 (`react-scripts`), React 17, react-router-dom 5
 - Plain JavaScript, prop-types
-- yarn v1
+- pnpm (pinned via `packageManager`), Node 26 (`.nvmrc`)
 - `react-circle-slider` for knobs
 
 ## Layout
@@ -28,13 +28,14 @@ public/        Static assets and index.html
 ## Commands
 
 ```bash
-yarn install
-yarn start   # dev server on http://localhost:3000
-yarn build   # production build into build/
+pnpm install
+pnpm start   # dev server on http://localhost:3000
+pnpm build   # production build into build/
 ```
 
 ## Conventions
 
+- **pnpm supply-chain settings** live in `pnpm-workspace.yaml` (never `.npmrc`). Don't loosen them to make an install pass: find out why a package fails `trustPolicy` or `minimumReleaseAge` first. Every package with an install script must be listed in `allowBuilds` with a reason.
 - Keep `music/` free of browser and React code so it stays easy to unit test.
 - Keep Web Audio code in `audio/`; components never create audio nodes directly.
 
