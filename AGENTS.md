@@ -7,7 +7,7 @@ The project is being modernized step by step; see [MODERN_TOOLING.md](MODERN_TOO
 ## Stack (current)
 
 - Vite 8 (`@vitejs/plugin-react`), React 17, react-router-dom 5
-- Plain JavaScript (`.jsx` for files with JSX, `.js` otherwise), prop-types
+- TypeScript 7 (strict), migrating from JavaScript file by file: `allowJs` is on and unconverted `.js`/`.jsx` files aren't type-checked yet. prop-types stays until a component is converted.
 - Biome for linting and formatting (`biome.json`)
 - pnpm (pinned via `packageManager`), Node 26 (`.nvmrc`)
 - `react-circle-slider` for knobs
@@ -25,22 +25,26 @@ src/
   index.jsx    Entry: builds the AudioContext and the scale, renders App
 public/        Static assets copied as-is (favicon, manifest, icons)
 index.html     Vite entry HTML
-vite.config.js
+vite.config.ts
+tsconfig.json
 ```
 
 ## Commands
 
 ```bash
 pnpm install
-pnpm dev      # dev server on http://localhost:3000
-pnpm build    # production build into dist/
-pnpm preview  # serve dist/ on http://localhost:3000
-pnpm check    # Biome: lint + format check (CI-safe, writes nothing)
-pnpm fix      # Biome: apply formatting and safe fixes
+pnpm dev        # dev server on http://localhost:3000
+pnpm build      # production build into dist/
+pnpm preview    # serve dist/ on http://localhost:3000
+pnpm typecheck  # tsc, strict, no emit
+pnpm check      # Biome: lint + format check (CI-safe, writes nothing)
+pnpm fix        # Biome: apply formatting and safe fixes
 ```
 
 ## Conventions
 
+- New files are TypeScript (`.ts`, or `.tsx` with JSX). When converting a file, replace its propTypes with TypeScript types; don't keep both.
+- Avoid `any` and non-null `!`. Narrow instead (see the `typescript-magician` skill). The config has `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes` on purpose.
 - Code style is whatever Biome says: 2 spaces, single quotes, no semicolons. Don't hand-format; run `pnpm fix`.
 - Fix lint findings instead of silencing them. If a rule really doesn't apply, use a `biome-ignore` comment with a reason.
 - **pnpm supply-chain settings** live in `pnpm-workspace.yaml` (never `.npmrc`). Don't loosen them to make an install pass: find out why a package fails `trustPolicy` or `minimumReleaseAge` first. Every package with an install script must be listed in `allowBuilds` with a reason.
