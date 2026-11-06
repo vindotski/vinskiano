@@ -1,13 +1,19 @@
-import PropTypes from 'prop-types'
 import { CircleSlider } from 'react-circle-slider'
 
-const Knob = ({ value, min, max, onChange }) => {
+interface KnobProps {
+  value: number
+  min?: number
+  max?: number
+  onChange?: (value: number) => void
+}
+
+const Knob = ({ value, min = 0, max = 100, onChange = () => {} }: KnobProps) => {
   return (
     <CircleSlider
       value={value}
       min={min}
       max={max}
-      onChange={onChange}
+      onChange={(next) => onChange(next ?? value)}
       size={65}
       circleWidth={10}
       progressWidth={5}
@@ -17,19 +23,6 @@ const Knob = ({ value, min, max, onChange }) => {
       tooltipSize={20}
     />
   )
-}
-
-Knob.propTypes = {
-  value: PropTypes.number.isRequired,
-  min: PropTypes.number,
-  max: PropTypes.number,
-  onChange: PropTypes.func,
-}
-
-Knob.defaultProps = {
-  min: 0,
-  max: 100,
-  onChange: () => {},
 }
 
 export default Knob

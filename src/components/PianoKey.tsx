@@ -1,12 +1,29 @@
-import PropTypes from 'prop-types'
 import React from 'react'
+import type { Note } from '../music'
 
-class PianoKey extends React.Component {
-  state = {
+interface PianoKeyProps {
+  note: Note
+  onTrigger: (note: Note) => void
+  onRelease: (note: Note) => void
+}
+
+interface PianoKeyState {
+  active: boolean
+}
+
+const PLAY_KEYS = [' ', 'Enter']
+
+class PianoKey extends React.Component<PianoKeyProps, PianoKeyState> {
+  static defaultProps = {
+    onTrigger: () => {},
+    onRelease: () => {},
+  }
+
+  override state: PianoKeyState = {
     active: false,
   }
 
-  render() {
+  override render() {
     return (
       <button
         type="button"
@@ -16,18 +33,14 @@ class PianoKey extends React.Component {
         onTouchStart={this.trigger}
         onTouchEnd={this.release}
         onKeyDown={(e) => {
-          if ([' ', 'Enter'].indexOf(e.key) === -1) {
-            return
+          if (PLAY_KEYS.includes(e.key)) {
+            this.trigger()
           }
-
-          this.trigger()
         }}
         onKeyUp={(e) => {
-          if ([' ', 'Enter'].indexOf(e.key) === -1) {
-            return
+          if (PLAY_KEYS.includes(e.key)) {
+            this.release()
           }
-
-          this.release()
         }}
       >
         {this.props.note.toString().replace(/\d+/g, '')}
@@ -65,17 +78,6 @@ class PianoKey extends React.Component {
     this.setState({ active: false })
     this.props.onRelease(this.props.note)
   }
-}
-
-PianoKey.propTypes = {
-  note: PropTypes.object.isRequired,
-  onTrigger: PropTypes.func,
-  onRelease: PropTypes.func,
-}
-
-PianoKey.defaultProps = {
-  onTrigger: () => {},
-  onRelease: () => {},
 }
 
 export default PianoKey

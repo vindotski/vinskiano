@@ -1,10 +1,23 @@
-import PropTypes from 'prop-types'
 import React from 'react'
+import type { Oscillator } from '../audio'
+import type { MasterSettings, OscillatorSettings } from '../types/synth'
 import MasterMixerSection from './MasterMixerSection'
 import OscillatorsMixerSection from './OscillatorsMixerSection'
 
-class Mixer extends React.Component {
-  render() {
+interface MixerProps {
+  master: MasterSettings
+  oscillators: Oscillator[]
+  onMasterChange: (settings: MasterSettings) => void
+  onOscillatorChange: (id: number, settings: OscillatorSettings) => void
+}
+
+class Mixer extends React.Component<MixerProps> {
+  static defaultProps = {
+    onMasterChange: () => {},
+    onOscillatorChange: () => {},
+  }
+
+  override render() {
     return (
       <div className="mixer">
         <MasterMixerSection
@@ -20,18 +33,6 @@ class Mixer extends React.Component {
       </div>
     )
   }
-}
-
-Mixer.propTypes = {
-  master: PropTypes.object.isRequired,
-  oscillators: PropTypes.array.isRequired,
-  onMasterChange: PropTypes.func,
-  onOscillatorChange: PropTypes.func,
-}
-
-Mixer.defaultProps = {
-  onMasterChange: () => {},
-  onOscillatorChange: () => {},
 }
 
 export default Mixer

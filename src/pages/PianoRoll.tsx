@@ -1,21 +1,20 @@
-import PropTypes from 'prop-types'
 import Piano from '../components/Piano'
 import Toolbar from '../components/toolbars/Toolbar'
+import type { Note } from '../music'
 
-const PianoRoll = ({ notes, onTrigger, onRelease }) => {
+interface PianoRollProps {
+  notes: readonly Note[]
+  onTrigger: (note: Note) => void
+  onRelease: (note: Note) => void
+}
+
+const PianoRoll = ({ notes, onTrigger, onRelease }: PianoRollProps) => {
   return (
     <>
       <Toolbar>Piano Roll toolbar</Toolbar>
-
       <Piano notes={notes} onTrigger={onTrigger} onRelease={onRelease} />
     </>
   )
-}
-
-PianoRoll.propTypes = {
-  notes: PropTypes.array.isRequired,
-  onTrigger: PropTypes.func.isRequired,
-  onRelease: PropTypes.func.isRequired,
 }
 
 export default PianoRoll

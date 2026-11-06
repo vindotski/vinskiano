@@ -1,8 +1,18 @@
-import PropTypes from 'prop-types'
+import type { Oscillator } from '../audio'
 import Mixer from '../components/Mixer'
 import Toolbar from '../components/toolbars/Toolbar'
 import ToolbarSpacer from '../components/toolbars/ToolbarSpacer'
-import Note from '../music/Note'
+import { Note } from '../music'
+import type { MasterSettings, OscillatorSettings } from '../types/synth'
+
+interface OscillatorsProps {
+  master: MasterSettings
+  oscillators: Oscillator[]
+  onTrigger: (note: Note) => void
+  onRelease: (note: Note) => void
+  onMasterChange: (settings: MasterSettings) => void
+  onOscillatorChange: (id: number, settings: OscillatorSettings) => void
+}
 
 const Oscillators = ({
   master,
@@ -11,7 +21,7 @@ const Oscillators = ({
   onRelease,
   onMasterChange,
   onOscillatorChange,
-}) => {
+}: OscillatorsProps) => {
   const previewNote = new Note({ name: 'C', octave: 5 })
 
   return (
@@ -36,13 +46,6 @@ const Oscillators = ({
       />
     </>
   )
-}
-
-Oscillators.propTypes = {
-  master: PropTypes.object.isRequired,
-  oscillators: PropTypes.array.isRequired,
-  onMasterChange: PropTypes.func.isRequired,
-  onOscillatorChange: PropTypes.func.isRequired,
 }
 
 export default Oscillators

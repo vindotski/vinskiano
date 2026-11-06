@@ -1,16 +1,29 @@
-import PropTypes from 'prop-types'
 import React from 'react'
 import { Route, BrowserRouter as Router, Switch } from 'react-router-dom'
-import { Oscillator } from './audio'
-import Oscilloscope from './audio/Oscilloscope'
+import { Oscillator, Oscilloscope, type Sound, type SynthContext } from './audio'
 import Navbar from './components/Navbar'
-import { Frequency } from './music'
+import { Frequency, type Note } from './music'
 import NotFound from './pages/NotFound'
 import Oscillators from './pages/Oscillators'
 import PianoRoll from './pages/PianoRoll'
+import type { MasterSettings, OscillatorSettings } from './types/synth'
 
-class App extends React.Component {
-  state = {
+/** A sound that is currently playing, tagged with the note that started it. */
+type PlayingSound = Sound & { note: Note }
+
+interface AppProps {
+  context: SynthContext
+  scale: readonly Note[]
+}
+
+interface AppState {
+  master: MasterSettings
+  oscillators: Oscillator[]
+  sounds: PlayingSound[]
+}
+
+class App extends React.Component<AppProps, AppState> {
+  override state: AppState = {
     master: {
       gain: this.props.context.master.gain.value,
       oscilloscope: new Oscilloscope(this.props.context, this.props.context.master),
@@ -41,7 +54,7 @@ class App extends React.Component {
     sounds: [],
   }
 
-  render() {
+  override render() {
     return (
       <div className="App">
         <Router>
@@ -74,25 +87,24 @@ class App extends React.Component {
     )
   }
 
-  trigger = (note) => {
+  trigger = (note: Note) => {
     this.props.context.resume()
 
-    const newSounds = []
-    this.state.oscillators.forEach((oscillator) => {
+    const newSounds: PlayingSound[] = []
+    for (const oscillator of this.state.oscillators) {
       const hertz = Frequency.fromNote(note).hertz
-      const sound = oscillator.emit(hertz)
-      sound.note = note
+      const sound = Object.assign(oscillator.emit(hertz), { note })
 
       newSounds.push(sound)
       sound.start()
-    })
+    }
 
     this.setState({
       sounds: [...this.state.sounds, ...newSounds],
     })
   }
 
-  release = (note) => {
+  release = (note: Note) => {
     const noteSounds = this.state.sounds.filter(
       (s) => note.name === s.note.name && note.octave === s.note.octave,
     )
@@ -104,12 +116,12 @@ class App extends React.Component {
     this.setState({ sounds })
   }
 
-  updateMaster = (options) => {
+  updateMaster = (options: MasterSettings) => {
     this.props.context.master.gain.value = options.gain
     this.setState({ master: options })
   }
 
-  updateOscillator = (id, options) => {
+  updateOscillator = (id: number, options: OscillatorSettings) => {
     const oscillators = this.state.oscillators.slice()
     const oscillatorIndex = oscillators.findIndex((o) => id === o.id)
     const oscillator = oscillators[oscillatorIndex]
@@ -125,11 +137,6 @@ class App extends React.Component {
 
     this.setState({ oscillators })
   }
-}
-
-App.propTypes = {
-  context: PropTypes.object.isRequired,
-  scale: PropTypes.array.isRequired,
 }
 
 export default App

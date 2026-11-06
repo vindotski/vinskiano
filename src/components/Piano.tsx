@@ -1,14 +1,25 @@
-import PropTypes from 'prop-types'
 import React from 'react'
+import type { Note } from '../music'
 import PianoKey from './PianoKey'
 
-class Piano extends React.Component {
-  render() {
+interface PianoProps {
+  notes: readonly Note[]
+  onTrigger: (note: Note) => void
+  onRelease: (note: Note) => void
+}
+
+class Piano extends React.Component<PianoProps> {
+  static defaultProps = {
+    onTrigger: () => {},
+    onRelease: () => {},
+  }
+
+  override render() {
     return (
       <div className="piano">
         {this.props.notes.map((note) => (
           <PianoKey
-            key={note}
+            key={note.toString()}
             note={note}
             onTrigger={this.props.onTrigger}
             onRelease={this.props.onRelease}
@@ -17,17 +28,6 @@ class Piano extends React.Component {
       </div>
     )
   }
-}
-
-Piano.propTypes = {
-  notes: PropTypes.array.isRequired,
-  onTrigger: PropTypes.func,
-  onRelease: PropTypes.func,
-}
-
-Piano.defaultProps = {
-  onTrigger: () => {},
-  onRelease: () => {},
 }
 
 export default Piano

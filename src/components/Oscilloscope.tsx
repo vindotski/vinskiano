@@ -1,19 +1,23 @@
-import PropTypes from 'prop-types'
 import React from 'react'
+import type { Oscilloscope as AudioOscilloscope } from '../audio'
 
-class Oscilloscope extends React.Component {
-  state = {
-    canvas: React.createRef(),
-  }
+interface OscilloscopeProps {
+  oscilloscope: AudioOscilloscope
+}
 
-  componentDidMount() {
+class Oscilloscope extends React.Component<OscilloscopeProps> {
+  canvas = React.createRef<HTMLCanvasElement>()
+
+  override componentDidMount() {
     const { oscilloscope } = this.props
-    const canvas = this.state.canvas.current
+    const context = this.canvas.current?.getContext('2d')
+    if (!context) {
+      return
+    }
 
     const update = () => {
       const nodes = oscilloscope.update()
       const bufferLength = oscilloscope.bufferLength
-      const context = canvas.getContext('2d')
 
       context.fillStyle = 'rgb(255, 255, 255)'
       context.fillRect(0, 0, context.canvas.width, context.canvas.height)
@@ -25,8 +29,8 @@ class Oscilloscope extends React.Component {
       const sliceWidth = (context.canvas.width * 1.0) / bufferLength
       let x = 0
 
-      for (let i = 0; i < bufferLength; i++) {
-        const y = (nodes[i] * context.canvas.height) / 2
+      for (const [i, node] of nodes.entries()) {
+        const y = (node * context.canvas.height) / 2
 
         if (i === 0) {
           context.moveTo(x, y)
@@ -46,13 +50,9 @@ class Oscilloscope extends React.Component {
     requestAnimationFrame(update)
   }
 
-  render() {
-    return <canvas ref={this.state.canvas} className="oscilloscope" />
+  override render() {
+    return <canvas ref={this.canvas} className="oscilloscope" />
   }
-}
-
-Oscilloscope.propTypes = {
-  oscilloscope: PropTypes.object.isRequired,
 }
 
 export default Oscilloscope

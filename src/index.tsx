@@ -34,9 +34,14 @@ scale.push(
   }),
 )
 
+const root = document.getElementById('root')
+if (!root) {
+  throw new Error('Missing #root element in index.html')
+}
+
 ReactDOM.render(
   <React.StrictMode>
     <App context={context} scale={scale} />
   </React.StrictMode>,
-  document.getElementById('root'),
+  root,
 )

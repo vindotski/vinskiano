@@ -1,14 +1,26 @@
-import PropTypes from 'prop-types'
 import React from 'react'
+import type { OscillatorSettings } from '../types/synth'
 import PitchKnob from './knobs/PitchKnob'
 import VolumeKnob from './knobs/VolumeKnob'
 import WaveformToggle from './toggles/WaveformToggle'
 
-class Oscillator extends React.Component {
-  render() {
+interface OscillatorProps extends OscillatorSettings {
+  id: number
+  onChange: (id: number, settings: OscillatorSettings) => void
+  label?: string
+  showLabels: boolean
+}
+
+class Oscillator extends React.Component<OscillatorProps> {
+  static defaultProps = {
+    onChange: () => {},
+    showLabels: true,
+  }
+
+  override render() {
     return (
       <div className="oscillator">
-        <span class="oscillator-label">{this.props.label || ''}</span>
+        <span className="oscillator-label">{this.props.label || ''}</span>
 
         <VolumeKnob value={this.props.volume} onChange={(volume) => this.update({ volume })} />
 
@@ -36,39 +48,19 @@ class Oscillator extends React.Component {
     )
   }
 
-  update = (options) => {
-    const defaults = {
+  update = (options: Partial<OscillatorSettings>) => {
+    const newValues: OscillatorSettings = {
       waveform: this.props.waveform,
       pitch: this.props.pitch,
       volume: this.props.volume,
-    }
-
-    const newValues = {
-      ...defaults,
       ...options,
     }
 
     this.props.onChange(this.props.id, {
       ...newValues,
-      pitch: Number.parseInt(newValues.pitch, 10),
-      volume: parseFloat(newValues.volume),
+      pitch: Math.trunc(newValues.pitch),
     })
   }
-}
-
-Oscillator.propTypes = {
-  id: PropTypes.any.isRequired,
-  waveform: PropTypes.string.isRequired,
-  pitch: PropTypes.number.isRequired,
-  volume: PropTypes.number.isRequired,
-  onChange: PropTypes.func,
-  label: PropTypes.string,
-  showLabels: PropTypes.bool,
-}
-
-Oscillator.defaultProps = {
-  onChange: () => {},
-  showLabels: true,
 }
 
 export default Oscillator

@@ -7,10 +7,10 @@ The project is being modernized step by step; see [MODERN_TOOLING.md](MODERN_TOO
 ## Stack (current)
 
 - Vite 8 (`@vitejs/plugin-react`), React 17, react-router-dom 5
-- TypeScript 7 (strict), migrating from JavaScript file by file: `allowJs` is on and unconverted `.js`/`.jsx` files aren't type-checked yet. prop-types stays until a component is converted.
+- TypeScript 7, strict (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`). No JavaScript left in `src/`.
 - Biome for linting and formatting (`biome.json`)
 - pnpm (pinned via `packageManager`), Node 26 (`.nvmrc`)
-- `react-circle-slider` for knobs
+- `react-circle-slider` for knobs (no published types; declared in `src/types/react-circle-slider.d.ts`)
 
 ## Layout
 
@@ -20,9 +20,10 @@ src/
   audio/       Web Audio wrappers: Context (with master gain), Oscillator, Oscilloscope
   components/  React UI: Piano, PianoKey, Mixer sections, knobs/, toggles/, toolbars/
   pages/       Route pages: PianoRoll (/), Oscillators (/oscillators), NotFound
+  types/       Shared app types (synth.ts) and declarations for untyped packages
   utils/       Small browser helpers
-  App.jsx      Holds audio state; triggers and releases notes
-  index.jsx    Entry: builds the AudioContext and the scale, renders App
+  App.tsx      Holds audio state; triggers and releases notes
+  index.tsx    Entry: builds the AudioContext and the scale, renders App
 public/        Static assets copied as-is (favicon, manifest, icons)
 index.html     Vite entry HTML
 vite.config.ts
@@ -43,7 +44,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 
 ## Conventions
 
-- New files are TypeScript (`.ts`, or `.tsx` with JSX). When converting a file, replace its propTypes with TypeScript types; don't keep both.
+- All code is TypeScript (`.ts`, or `.tsx` with JSX). Component props are typed interfaces; no prop-types.
 - Avoid `any` and non-null `!`. Narrow instead (see the `typescript-magician` skill). The config has `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes` on purpose.
 - Code style is whatever Biome says: 2 spaces, single quotes, no semicolons. Don't hand-format; run `pnpm fix`.
 - Fix lint findings instead of silencing them. If a rule really doesn't apply, use a `biome-ignore` comment with a reason.

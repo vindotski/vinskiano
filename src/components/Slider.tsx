@@ -1,13 +1,27 @@
-import PropTypes from 'prop-types'
-import React from 'react'
+import React, { type ChangeEvent } from 'react'
 
 let nextId = 0
 
-class Slider extends React.Component {
+interface SliderProps {
+  label: string
+  value: number
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void
+  min: number
+  max: number
+}
+
+class Slider extends React.Component<SliderProps> {
+  static defaultProps = {
+    label: '',
+    onChange: () => {},
+    min: 0,
+    max: 100,
+  }
+
   // React 17 has no useId, so each instance gets its own id for the label.
   id = `slider-${++nextId}`
 
-  render() {
+  override render() {
     return (
       <div className="input-group">
         <label className="input-group-label" htmlFor={this.id}>
@@ -27,21 +41,6 @@ class Slider extends React.Component {
       </div>
     )
   }
-}
-
-Slider.propTypes = {
-  label: PropTypes.string,
-  value: PropTypes.any.isRequired,
-  onChange: PropTypes.func,
-  min: PropTypes.any,
-  max: PropTypes.any,
-}
-
-Slider.defaultProps = {
-  label: '',
-  onChange: () => {},
-  min: 0,
-  max: 100,
 }
 
 export default Slider
