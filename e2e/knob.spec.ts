@@ -77,3 +77,39 @@ test('dragging through the bottom dead zone does not jump to the other end', asy
   await turnKnob(page, 'Oscillator 1 volume', [90, 135, 170, 190])
   await expect(volume).toHaveValue('100')
 })
+
+/** Where the knob's pointer dot is drawn, as a clock angle in degrees (0 = 12 o'clock). */
+const pointerAngle = (page: import('@playwright/test').Page, name: string) =>
+  page
+    .locator('.knob')
+    .filter({ has: page.getByRole('slider', { name }) })
+    .locator('.knob-pointer')
+    .evaluate((dot: SVGCircleElement) => {
+      const size = dot.ownerSVGElement?.viewBox.baseVal.width ?? 0
+      const x = Number(dot.getAttribute('cx')) - size / 2
+      const y = Number(dot.getAttribute('cy')) - size / 2
+      return Math.round((Math.atan2(x, -y) * 180) / Math.PI)
+    })
+
+test('the drawing eases to a new value while the value itself changes at once', async ({
+  page,
+}) => {
+  const pitch = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
+  await pitch.focus()
+  await page.keyboard.press('End')
+  await expect(pitch).toHaveValue('24') // immediately, not after the animation
+  await expect.poll(() => pointerAngle(page, 'Oscillator 2 pitch')).toBe(135) // 4:30
+  await page.keyboard.press('Home')
+  await expect.poll(() => pointerAngle(page, 'Oscillator 2 pitch')).toBe(-135) // 7:30
+})
+
+test('knobs still draw their value if Motion’s lazy features never load', async ({ browser }) => {
+  const page = await browser.newPage()
+  await page.route('**/motion-features-*.js', (route) => route.abort())
+  await page.goto('/oscillators')
+  const pitch = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
+  await pitch.focus()
+  await page.keyboard.press('End')
+  await expect.poll(() => pointerAngle(page, 'Oscillator 2 pitch')).toBe(135)
+  await page.close()
+})

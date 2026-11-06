@@ -121,6 +121,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - **Respect reduced motion:** `MotionConfig reducedMotion="user"` is set at the root; don't override it per component.
 - **SSR-safe:** nothing animates on first paint (`initial={false}` for server-rendered content), so server HTML and hydration stay identical.
 - Values, accessible names and focus never depend on an animation's progress.
+- **Must work without the lazy features.** `m.*` components only animate once `motion-features` has loaded, and motion values bound to them don't render before that. Anything that must always show the right state (like the knob's drawing) uses plain elements updated from a motion value (`useMotionValueEvent`), not `m.*` props. `e2e/knob.spec.ts` blocks the features chunk to check this.
 
 ## Accessibility
 

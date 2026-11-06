@@ -1,4 +1,5 @@
-import { type PointerEvent, useRef } from 'react'
+import { useMotionValueEvent, useReducedMotionConfig, useSpring } from 'motion/react'
+import { type PointerEvent, useEffect, useRef } from 'react'
 import {
   mergeProps,
   useFocusRing,
@@ -83,9 +84,44 @@ const Knob = ({
   const { focusProps, isFocusVisible } = useFocusRing()
 
   const current = state.getThumbValue(0)
-  const percent = (current - min) / (max - min)
-  const angle = START + percent * SWEEP
+  const neutral = bipolar ? (min + max) / 2 : min
   const arcFrom = bipolar ? START + SWEEP / 2 : START
+
+  // The value changes instantly (input, screen readers, audio, the number in the middle);
+  // only the drawing eases toward it. While dragging, the drawing follows the pointer 1:1.
+  const shown = useSpring(current, { stiffness: 500, damping: 40 })
+  const reduceMotion = useReducedMotionConfig()
+  const isDragging = state.isThumbDragging(0)
+  useEffect(() => {
+    if (isDragging || reduceMotion) {
+      shown.jump(current)
+    } else {
+      shown.set(current)
+    }
+  }, [current, isDragging, reduceMotion, shown])
+
+  // Drawn with plain SVG elements updated from the spring, not with m.* components: those
+  // only render motion values once Motion's lazily loaded features arrive, and the knob must
+  // show its value even if they never do.
+  const drawing = (v: number) => {
+    const angle = START + ((v - min) / (max - min)) * SWEEP
+    return {
+      arc: arc(arcFrom, angle),
+      // A zero-length arc would still draw a dot (round caps), so hide it at the neutral value.
+      arcOpacity: Math.abs(v - neutral) < 1e-6 ? 0 : 1,
+      pointer: point(angle),
+    }
+  }
+  const arcRef = useRef<SVGPathElement>(null)
+  const pointerRef = useRef<SVGCircleElement>(null)
+  useMotionValueEvent(shown, 'change', (v) => {
+    const next = drawing(v)
+    arcRef.current?.setAttribute('d', next.arc)
+    arcRef.current?.setAttribute('opacity', String(next.arcOpacity))
+    pointerRef.current?.setAttribute('cx', String(next.pointer.x))
+    pointerRef.current?.setAttribute('cy', String(next.pointer.y))
+  })
+  const drawn = drawing(shown.get())
 
   const turnTo = (event: PointerEvent<SVGSVGElement>) => {
     const box = event.currentTarget.getBoundingClientRect()
@@ -136,18 +172,19 @@ const Knob = ({
           strokeLinecap="round"
           d={arc(START, END)}
         />
-        {current !== (bipolar ? (min + max) / 2 : min) && (
-          <path
-            className="knob-value fill-none stroke-primary"
-            strokeWidth={STROKE}
-            strokeLinecap="round"
-            d={arc(arcFrom, angle)}
-          />
-        )}
+        <path
+          ref={arcRef}
+          className="knob-value fill-none stroke-primary"
+          strokeWidth={STROKE}
+          strokeLinecap="round"
+          d={drawn.arc}
+          opacity={drawn.arcOpacity}
+        />
         <circle
+          ref={pointerRef}
           className="knob-pointer fill-primary"
-          cx={point(angle).x}
-          cy={point(angle).y}
+          cx={drawn.pointer.x}
+          cy={drawn.pointer.y}
           r={STROKE}
         />
         <text
