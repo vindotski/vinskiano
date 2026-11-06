@@ -9,7 +9,7 @@ The project is being modernized step by step; see [MODERN_TOOLING.md](MODERN_TOO
 - Vite 8 (`@vitejs/plugin-react`), React 17, react-router-dom 5
 - TypeScript 7, strict (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`). No JavaScript left in `src/`.
 - Biome for linting and formatting (`biome.json`)
-- Vitest for unit tests (config in `vite.config.ts`)
+- Vitest for unit tests (config in `vite.config.ts`), Playwright for browser tests (`playwright.config.ts`, Chromium)
 - pnpm (pinned via `packageManager`), Node 26 (`.nvmrc`)
 - `react-circle-slider` for knobs (no published types; declared in `src/types/react-circle-slider.d.ts`)
 
@@ -40,6 +40,8 @@ pnpm build      # production build into dist/
 pnpm preview    # serve dist/ on http://localhost:3000
 pnpm typecheck  # tsc, strict, no emit
 pnpm test       # Vitest, once (pnpm test:watch to watch)
+pnpm test:e2e   # Playwright against the production build (builds + serves on :4173)
+pnpm verify     # everything: check, typecheck, unit and browser tests
 pnpm check      # Biome: lint + format check (CI-safe, writes nothing)
 pnpm fix        # Biome: apply formatting and safe fixes
 ```
@@ -58,7 +60,10 @@ pnpm fix        # Biome: apply formatting and safe fixes
 
 - Unit tests sit next to the code as `*.test.ts`. They suit pure logic best (`music/`).
 - A known bug gets a `test.fails` with a `// BUG:` comment explaining it. The fix flips it to a plain `test`.
-- Before calling a step done, run `pnpm check && pnpm typecheck && pnpm test`.
+- Browser tests live in `e2e/`. The fixture in `e2e/fixtures.ts` wraps the Web Audio prototypes, so tests can assert what reaches the audio graph (`audioLog(page)`: started oscillators with frequency, detune and type; stops; analyser reads). It also fails any test that logs a console error.
+- Specs named `*mobile*` run on a touch device (Pixel 7); the rest run on desktop Chrome.
+- When fixing a bug, first write a test that fails without the fix.
+- Before calling a step done, run `pnpm verify`.
 
 ## Git rules
 
