@@ -6,8 +6,8 @@ The project is being modernized step by step; see [MODERN_TOOLING.md](MODERN_TOO
 
 ## Stack (current)
 
-- Create React App 4 (`react-scripts`), React 17, react-router-dom 5
-- Plain JavaScript, prop-types
+- Vite 8 (`@vitejs/plugin-react`), React 17, react-router-dom 5
+- Plain JavaScript (`.jsx` for files with JSX, `.js` otherwise), prop-types
 - pnpm (pinned via `packageManager`), Node 26 (`.nvmrc`)
 - `react-circle-slider` for knobs
 
@@ -20,17 +20,20 @@ src/
   components/  React UI: Piano, PianoKey, Mixer sections, knobs/, toggles/, toolbars/
   pages/       Route pages: PianoRoll (/), Oscillators (/oscillators), NotFound
   utils/       Small browser helpers
-  App.js       Holds audio state; triggers and releases notes
-  index.js     Builds the AudioContext and the scale, renders App
-public/        Static assets and index.html
+  App.jsx      Holds audio state; triggers and releases notes
+  index.jsx    Entry: builds the AudioContext and the scale, renders App
+public/        Static assets copied as-is (favicon, manifest, icons)
+index.html     Vite entry HTML
+vite.config.js
 ```
 
 ## Commands
 
 ```bash
 pnpm install
-pnpm start   # dev server on http://localhost:3000
-pnpm build   # production build into build/
+pnpm dev      # dev server on http://localhost:3000
+pnpm build    # production build into dist/
+pnpm preview  # serve dist/ on http://localhost:3000
 ```
 
 ## Conventions
