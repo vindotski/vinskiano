@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "skills": {
+    "pnpm": {
+      "source": "https://github.com/antfu/skills",
+      "path": "skills/pnpm",
+      "commit": "f63e9ec7bc85f67364b6596c2d29da87e83ce445"
+    },
+    "vite": {
+      "source": "https://github.com/antfu/skills",
+      "path": "skills/vite",
+      "commit": "f63e9ec7bc85f67364b6596c2d29da87e83ce445"
+    },
+    "vitest": {
+      "source": "https://github.com/antfu/skills",
+      "path": "skills/vitest",
+      "commit": "f63e9ec7bc85f67364b6596c2d29da87e83ce445"
+    },
+    "typescript-magician": {
+      "source": "https://github.com/mcollina/skills",
+      "path": "skills/typescript-magician",
+      "commit": "c75d70dbfbe991d8cec42aeda0b64ff14fbb9ac7"
+    }
+  }
+}

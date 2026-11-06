@@ -1,0 +1,56 @@
+# Vinskiano
+
+A browser-based subtractive synthesizer built on the Web Audio API. Today it has a 13-key keyboard (C4–C5), three oscillators (waveform, pitch, volume), a master gain and an oscilloscope. Static single-page app, no server.
+
+The project is being modernized step by step; see [MODERN_TOOLING.md](MODERN_TOOLING.md) for the playbook. This file describes the **current** state. Update it whenever the stack or a convention changes.
+
+## Stack (current)
+
+- Create React App 4 (`react-scripts`), React 17, react-router-dom 5
+- Plain JavaScript, prop-types
+- yarn v1
+- `react-circle-slider` for knobs
+
+## Layout
+
+```
+src/
+  music/       Pure music theory: Note, Octave, Frequency, Scale, ScaleBuilder, ScaleStrategy
+  audio/       Web Audio wrappers: Context (with master gain), Oscillator, Oscilloscope
+  components/  React UI: Piano, PianoKey, Mixer sections, knobs/, toggles/, toolbars/
+  pages/       Route pages: PianoRoll (/), Oscillators (/oscillators), NotFound
+  utils/       Small browser helpers
+  App.js       Holds audio state; triggers and releases notes
+  index.js     Builds the AudioContext and the scale, renders App
+public/        Static assets and index.html
+```
+
+## Commands
+
+```bash
+yarn install
+yarn start   # dev server on http://localhost:3000
+yarn build   # production build into build/
+```
+
+## Conventions
+
+- Keep `music/` free of browser and React code so it stays easy to unit test.
+- Keep Web Audio code in `audio/`; components never create audio nodes directly.
+
+## Git rules
+
+- **The user makes every commit and push.** The agent never runs `git commit`, `git push`, `git tag` or anything that rewrites history.
+- **One step = one commit.** The agent finishes a step, verifies it, then stops and suggests a commit message (see the `commit-message` skill). The next step starts only when the user says so.
+- Messages follow [Conventional Commits](https://www.conventionalcommits.org/).
+- Branches: work happens on `dev`; `main` is what's released.
+
+## Verifying work
+
+- Verify for real, not only with unit tests: build, run the app, and drive it in a browser (Playwright) with screenshots.
+- Audio can't be judged by ear in automation. Check that the `AudioContext` and nodes are created and wired; the user does the listening.
+- Report honestly what was verified and what wasn't.
+
+## Skills
+
+Third-party skills live in `.claude/skills/` and are pinned in `skills-lock.json` (source repo, path and commit). Don't edit them in place; to update one, re-copy it from its source and bump the commit.
