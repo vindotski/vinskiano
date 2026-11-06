@@ -5,6 +5,8 @@ import ToolbarSpacer from '../components/toolbars/ToolbarSpacer'
 import { Note } from '../music'
 import type { MasterSettings, OscillatorSettings } from '../types/synth'
 
+const PREVIEW_NOTE = new Note({ name: 'C', octave: 5 })
+
 interface OscillatorsProps {
   master: MasterSettings
   oscillators: Oscillator[]
@@ -22,8 +24,6 @@ const Oscillators = ({
   onMasterChange,
   onOscillatorChange,
 }: OscillatorsProps) => {
-  const previewNote = new Note({ name: 'C', octave: 5 })
-
   return (
     <>
       <Toolbar>
@@ -31,8 +31,10 @@ const Oscillators = ({
 
         <button
           type="button"
-          onTouchStart={() => onTrigger(previewNote)}
-          onTouchEnd={() => onRelease(previewNote)}
+          onPointerDown={() => onTrigger(PREVIEW_NOTE)}
+          onPointerUp={() => onRelease(PREVIEW_NOTE)}
+          onPointerLeave={() => onRelease(PREVIEW_NOTE)}
+          onPointerCancel={() => onRelease(PREVIEW_NOTE)}
         >
           Preview
         </button>

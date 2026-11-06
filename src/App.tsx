@@ -105,14 +105,12 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   release = (note: Note) => {
-    const noteSounds = this.state.sounds.filter(
-      (s) => note.name === s.note.name && note.octave === s.note.octave,
-    )
+    const noteSounds = this.state.sounds.filter((s) => note.equals(s.note))
     for (const sound of noteSounds) {
       sound.stop()
     }
 
-    const sounds = this.state.sounds.filter((s) => note !== s.note)
+    const sounds = this.state.sounds.filter((s) => !note.equals(s.note))
     this.setState({ sounds })
   }
 

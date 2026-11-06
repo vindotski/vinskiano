@@ -28,10 +28,10 @@ class PianoKey extends React.Component<PianoKeyProps, PianoKeyState> {
       <button
         type="button"
         className={this.classes()}
-        onMouseDown={this.trigger}
-        onMouseUp={this.release}
-        onTouchStart={this.trigger}
-        onTouchEnd={this.release}
+        onPointerDown={this.trigger}
+        onPointerUp={this.release}
+        onPointerLeave={this.release}
+        onPointerCancel={this.release}
         onKeyDown={(e) => {
           if (PLAY_KEYS.includes(e.key)) {
             this.trigger()

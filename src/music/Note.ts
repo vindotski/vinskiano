@@ -20,6 +20,11 @@ class Note {
     this.octave = options.octave || 4
   }
 
+  /** Same pitch: equal name and octave (notes are compared by value, not identity). */
+  equals(other: Note): boolean {
+    return this.name === other.name && this.octave === other.octave
+  }
+
   toString(): string {
     let name = this.name
     name = name.replace('{sharp}', '#')

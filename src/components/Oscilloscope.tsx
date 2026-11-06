@@ -7,6 +7,7 @@ interface OscilloscopeProps {
 
 class Oscilloscope extends React.Component<OscilloscopeProps> {
   canvas = React.createRef<HTMLCanvasElement>()
+  frame = 0
 
   override componentDidMount() {
     const { oscilloscope } = this.props
@@ -44,10 +45,14 @@ class Oscilloscope extends React.Component<OscilloscopeProps> {
       context.lineTo(context.canvas.width, context.canvas.height / 2)
       context.stroke()
 
-      requestAnimationFrame(update)
+      this.frame = requestAnimationFrame(update)
     }
 
-    requestAnimationFrame(update)
+    this.frame = requestAnimationFrame(update)
+  }
+
+  override componentWillUnmount() {
+    cancelAnimationFrame(this.frame)
   }
 
   override render() {
