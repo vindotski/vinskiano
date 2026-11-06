@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - The selection highlight slides to the new item in the navbar and the waveform toggles (instant when the system asks for reduced motion)
+- Piano keys dip slightly when pressed, like a real key; sound and color still respond instantly
 
 ### Changed
 

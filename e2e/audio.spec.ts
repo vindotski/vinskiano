@@ -124,3 +124,24 @@ test('Preview plays while Space is held', async ({ page }) => {
   await page.keyboard.up(' ')
   expect((await audioLog(page)).stopped).toBe(3)
 })
+
+test('pressing at the very edge of a key keeps the note playing while held', async ({ page }) => {
+  // The press animation moves the key's face, never its hit area. If the hit area shrank,
+  // a press near the bottom edge would end up outside it and release the note at once.
+  await page.goto('/')
+  await page.waitForTimeout(500) // let Motion's lazily loaded features arrive
+  const key = page.locator('.piano-key--white').nth(1)
+  const box = await key.boundingBox()
+  if (!box) throw new Error('key not visible')
+
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height - 2)
+  await page.mouse.down()
+  await page.waitForTimeout(300) // longer than the press animation
+  // Real pointers are never perfectly still; boundary events only fire when they move.
+  await page.mouse.move(box.x + box.width / 2 + 1, box.y + box.height - 2)
+  expect(await audioLog(page)).toMatchObject({ stopped: 0 })
+  await expect(key).toHaveClass(/piano-key--active/)
+
+  await page.mouse.up()
+  expect((await audioLog(page)).stopped).toBe(3)
+})
