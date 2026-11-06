@@ -1,4 +1,4 @@
-# pnpm docker       production image (Caddy) on http://localhost:${PORT:-3000}
+# pnpm docker       production image (Node + Nitro) on http://localhost:${PORT:-3000}
 # pnpm docker:dev   Vite dev server with hot reload, source bind-mounted
 # pnpm docker:test  lint + typecheck + unit tests in the dev container
 services:
@@ -7,7 +7,7 @@ services:
       context: .
       target: production
     ports:
-      - "${PORT:-3000}:80"
+      - "${PORT:-3000}:3000"
 
   dev:
     build:

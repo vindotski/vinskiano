@@ -1,18 +1,14 @@
 import tailwindcss from '@tailwindcss/vite'
-import { tanstackRouter } from '@tanstack/router-plugin/vite'
+import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vitest/config'
+import { nitro } from 'nitro/vite'
+import { defineConfig } from 'vite'
 
 export default defineConfig({
-  // The router plugin generates src/routeTree.gen.ts from src/routes and must come before react().
-  plugins: [tanstackRouter({ target: 'react', autoCodeSplitting: true }), react(), tailwindcss()],
-  resolve: {
-    // `@/` is the src folder (shadcn/ui components import from '@/lib/utils' etc.).
-    alias: { '@': '/src' },
-  },
   server: { port: 3000 },
-  preview: { port: 3000 },
-  test: {
-    include: ['src/**/*.test.{ts,tsx}'],
-  },
+  // Path aliases come from tsconfig.json (`@/` is src/).
+  resolve: { tsconfigPaths: true },
+  // Start generates src/routeTree.gen.ts and the client/server entries; it must come before react().
+  // Nitro turns the server build into a standalone Node server in .output/.
+  plugins: [nitro(), tailwindcss(), tanstackStart(), react()],
 })

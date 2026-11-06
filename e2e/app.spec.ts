@@ -19,7 +19,10 @@ test('renders the 13-key piano from C4 to C5', async ({ page }) => {
   ])
 })
 
-test('navigates between pages and shows a 404 for unknown routes', async ({ page }) => {
+test('navigates between pages and shows a 404 for unknown routes', async ({
+  page,
+  consoleErrors,
+}) => {
   await page.goto('/')
   const pianoLink = page.getByRole('link', { name: 'Piano Roll' })
   const oscillatorsLink = page.getByRole('link', { name: 'Oscillators' })
@@ -37,6 +40,9 @@ test('navigates between pages and shows a 404 for unknown routes', async ({ page
 
   await page.goto('/does-not-exist')
   await expect(page.getByRole('heading', { name: '404 - Not Found' })).toBeVisible()
+  // The server answers with a real 404 status, which Chrome logs as a console error.
+  expect(consoleErrors).toEqual([expect.stringContaining('status of 404')])
+  consoleErrors.length = 0
 })
 
 test.describe('dark mode', () => {

@@ -15,8 +15,8 @@ describe('server rendering', () => {
   })
 
   test('no module touches the browser when it is imported', async () => {
-    // Every app module except tests and the browser entry (src/index.tsx).
-    const modules = import.meta.glob(['./**/*.{ts,tsx}', '!./**/*.test.{ts,tsx}', '!./index.tsx'])
+    // Every app module except tests.
+    const modules = import.meta.glob(['./**/*.{ts,tsx}', '!./**/*.test.{ts,tsx}'])
     expect(Object.keys(modules).length).toBeGreaterThan(40)
     for (const [path, load] of Object.entries(modules)) {
       await expect(load(), path).resolves.toBeDefined()

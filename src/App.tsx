@@ -1,8 +1,6 @@
-import { RouterProvider } from '@tanstack/react-router'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { Engine, type Sound } from './audio'
 import { Frequency, KEYBOARD_NOTES, type Note } from './music'
-import { router } from './router'
 import { type Synth, SynthProvider } from './synth/SynthProvider'
 import type { MasterSettings, OscillatorSettings, OscillatorState } from './types/synth'
 import { disableContextMenu } from './utils/disable-context-menu'
@@ -20,11 +18,11 @@ const INITIAL_OSCILLATORS: OscillatorState[] = [
 ]
 
 /**
- * Holds the synth's settings as plain state and drives the audio engine from them. The
- * engine (Web Audio) only exists in the browser: it's created after mount, so this
- * component can also render on a server.
+ * Holds the synth's settings as plain state and drives the audio engine from them, and
+ * frames the page. The engine (Web Audio) only exists in the browser: it's created after
+ * mount, so this component also renders on the server.
  */
-const App = () => {
+const App = ({ children }: { children: ReactNode }) => {
   const [master, setMaster] = useState(INITIAL_MASTER)
   const [oscillators, setOscillators] = useState(INITIAL_OSCILLATORS)
   const [engine, setEngine] = useState<Engine | null>(null)
@@ -85,9 +83,7 @@ const App = () => {
   return (
     // Fills the real viewport. Held upright, a phone gets the app rotated to landscape.
     <div className="flex h-[calc(var(--vh)*100)] w-screen flex-col portrait:absolute portrait:top-[-100vw] portrait:left-0 portrait:h-[100vw] portrait:w-[calc(var(--vh)*100)] portrait:origin-bottom-left portrait:rotate-90 portrait:overflow-auto">
-      <SynthProvider value={synth}>
-        <RouterProvider router={router} />
-      </SynthProvider>
+      <SynthProvider value={synth}>{children}</SynthProvider>
     </div>
   )
 }

@@ -14,9 +14,10 @@ export default defineConfig({
     { name: 'desktop', use: { ...devices['Desktop Chrome'] }, testIgnore: /mobile/ },
     { name: 'mobile', use: { ...devices['Pixel 7'] }, testMatch: /mobile/ },
   ],
-  // Tests run against the production build, not the dev server.
+  // Tests run against the production server (the Nitro build), not the dev server.
   webServer: {
-    command: `pnpm build && pnpm preview --port ${PORT} --strictPort`,
+    command: 'pnpm build && pnpm start',
+    env: { PORT: String(PORT) },
     port: PORT,
     reuseExistingServer: false,
   },

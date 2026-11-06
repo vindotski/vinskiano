@@ -14,8 +14,8 @@ allowBuilds: {}
 permissions:
   "@tanstack/react-router":
     skills: [react-router]
-  "@tanstack/router-plugin":
-    skills: [router-plugin]
+  "@tanstack/react-start":
+    skills: [react-start]
 
 skills:
   dirs: [.claude/skills]

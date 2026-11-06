@@ -22,12 +22,14 @@ COPY . .
 EXPOSE 3000
 CMD ["pnpm", "dev", "--host", "0.0.0.0"]
 
-# ---- build: the static site --------------------------------------------------
+# ---- build: the Start app (client assets + a standalone Node server in .output/) ----
 FROM dev AS build
 RUN pnpm build
 
-# ---- production: Caddy serving dist/ ----------------------------------------
-FROM caddy:2.11.9-alpine@sha256:0bbb055bda6793c999bde78b1b5ce3e89f829fb031af2cf50056ea1246559fee AS production
-COPY Caddyfile /etc/caddy/Caddyfile
-COPY --from=build /app/dist /srv
-EXPOSE 80
+# ---- production: Node running the Nitro server -------------------------------
+FROM node:26.13.0-slim@sha256:5adad64f9a1fca2d51972caa65983634c8a774eb300d72b20f7f2a0f60368072 AS production
+WORKDIR /app
+COPY --from=build /app/.output ./.output
+ENV PORT=3000
+EXPOSE 3000
+CMD ["node", ".output/server/index.mjs"]
