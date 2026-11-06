@@ -21,9 +21,16 @@ test('renders the 13-key piano from C4 to C5', async ({ page }) => {
 
 test('navigates between pages and shows a 404 for unknown routes', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('link', { name: 'Oscillators' }).click()
+  const pianoLink = page.getByRole('link', { name: 'Piano Roll' })
+  const oscillatorsLink = page.getByRole('link', { name: 'Oscillators' })
+  await expect(pianoLink).toHaveClass(/active/)
+  await expect(oscillatorsLink).not.toHaveClass(/active/)
+
+  await oscillatorsLink.click()
   await expect(page).toHaveURL('/oscillators')
   await expect(page.getByLabel('Master Volume')).toBeVisible()
+  await expect(oscillatorsLink).toHaveClass(/active/)
+  await expect(pianoLink).not.toHaveClass(/active/)
 
   await page.getByRole('link', { name: 'Piano Roll' }).click()
   await expect(page.locator('.piano-key')).toHaveCount(13)

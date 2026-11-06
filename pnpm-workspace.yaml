@@ -8,3 +8,14 @@ strictDepBuilds: true # fail on unreviewed install scripts
 
 # Packages allowed (true) or denied (false) to run install scripts
 allowBuilds: {}
+
+# What dependencies may do beyond installing files. `skills`: agent skills a
+# package ships, linked into .claude/skills (version-matched, gitignored there).
+permissions:
+  "@tanstack/react-router":
+    skills: [react-router]
+  "@tanstack/router-plugin":
+    skills: [router-plugin]
+
+skills:
+  dirs: [.claude/skills]

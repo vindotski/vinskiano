@@ -1,11 +1,9 @@
+import { RouterProvider } from '@tanstack/react-router'
 import React from 'react'
-import { Route, BrowserRouter as Router, Switch } from 'react-router-dom'
 import { Oscillator, Oscilloscope, type Sound, type SynthContext } from './audio'
-import Navbar from './components/Navbar'
 import { Frequency, type Note } from './music'
-import NotFound from './pages/NotFound'
-import Oscillators from './pages/Oscillators'
-import PianoRoll from './pages/PianoRoll'
+import { router } from './router'
+import { SynthProvider } from './synth/SynthProvider'
 import type { MasterSettings, OscillatorSettings } from './types/synth'
 
 /** A sound that is currently playing, tagged with the note that started it. */
@@ -55,34 +53,21 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   override render() {
+    const synth = {
+      scale: this.props.scale,
+      master: this.state.master,
+      oscillators: this.state.oscillators,
+      trigger: this.trigger,
+      release: this.release,
+      updateMaster: this.updateMaster,
+      updateOscillator: this.updateOscillator,
+    }
+
     return (
       <div className="App">
-        <Router>
-          <Navbar />
-
-          <Switch>
-            <Route path="/" exact>
-              <PianoRoll
-                notes={this.props.scale}
-                onTrigger={this.trigger}
-                onRelease={this.release}
-              />
-            </Route>
-
-            <Route path="/oscillators">
-              <Oscillators
-                master={this.state.master}
-                oscillators={this.state.oscillators}
-                onTrigger={this.trigger}
-                onRelease={this.release}
-                onMasterChange={this.updateMaster}
-                onOscillatorChange={this.updateOscillator}
-              />
-            </Route>
-
-            <Route component={NotFound} />
-          </Switch>
-        </Router>
+        <SynthProvider value={synth}>
+          <RouterProvider router={router} />
+        </SynthProvider>
       </div>
     )
   }

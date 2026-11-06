@@ -1,0 +1,12 @@
+import { createFileRoute } from '@tanstack/react-router'
+import PianoRoll from '../pages/PianoRoll'
+import { useSynth } from '../synth/SynthProvider'
+
+export const Route = createFileRoute('/')({
+  component: PianoRollRoute,
+})
+
+function PianoRollRoute() {
+  const { scale, trigger, release } = useSynth()
+  return <PianoRoll notes={scale} onTrigger={trigger} onRelease={release} />
+}

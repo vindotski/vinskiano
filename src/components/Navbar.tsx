@@ -1,23 +1,24 @@
-import { NavLink } from 'react-router-dom'
+import { Link } from '@tanstack/react-router'
 
 const Navbar = () => {
   return (
     <nav className="navbar">
-      <NavLink to="/" className="navbar-brand">
+      <Link to="/" className="navbar-brand">
         Vinskiano
-      </NavLink>
+      </Link>
 
       <ul className="navbar-content">
         <li className="navbar-item">
-          <NavLink to="/" className="navbar-link" activeClassName="active" exact>
+          {/* Link adds the `active` class itself; "/" must match exactly. */}
+          <Link to="/" className="navbar-link" activeOptions={{ exact: true }}>
             Piano Roll
-          </NavLink>
+          </Link>
         </li>
 
         <li className="navbar-item">
-          <NavLink to="/oscillators" className="navbar-link" activeClassName="active">
+          <Link to="/oscillators" className="navbar-link">
             Oscillators
-          </NavLink>
+          </Link>
         </li>
       </ul>
     </nav>

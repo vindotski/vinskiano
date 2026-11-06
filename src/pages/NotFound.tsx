@@ -1,11 +1,10 @@
-import { NavLink } from 'react-router-dom'
+import { Link } from '@tanstack/react-router'
 
 const NotFound = () => {
   return (
     <div className="not-found">
       <h2>404 - Not Found</h2>
-
-      <NavLink to="/">Return to homepage</NavLink>
+      <Link to="/">Return to homepage</Link>
     </div>
   )
 }
