@@ -1,7 +1,20 @@
 import { Link } from '@tanstack/react-router'
 import { ArrowRight, AudioWaveform, KeyboardMusic, SlidersHorizontal } from 'lucide-react'
 import type { ComponentType } from 'react'
+import dark640 from '@/assets/screenshots/app-dark-640.webp'
+import dark1280 from '@/assets/screenshots/app-dark-1280.webp'
+import dark2560 from '@/assets/screenshots/app-dark-2560.webp'
+import light640 from '@/assets/screenshots/app-light-640.webp'
+import light1280 from '@/assets/screenshots/app-light-1280.webp'
+import light2560 from '@/assets/screenshots/app-light-2560.webp'
 import { buttonVariants } from '@/components/ui/button-variants'
+
+// Screenshots of the app (`pnpm screenshots`), imported so the build gives them hashed names
+// that can be cached for good. Each in three widths; the browser picks by screen size.
+const LIGHT = `${light640} 640w, ${light1280} 1280w, ${light2560} 2560w`
+const DARK = `${dark640} 640w, ${dark1280} 1280w, ${dark2560} 2560w`
+// The image spans the content column: max-w-5xl (64rem) minus px-4 on each side.
+const SIZES = '(min-width: 64rem) 62rem, calc(100vw - 2rem)'
 
 interface Step {
   icon: ComponentType<{ className?: string }>
@@ -59,9 +72,13 @@ const Home = () => (
 
     <section aria-label="Screenshot" className="mx-auto w-full max-w-5xl px-4 pb-20">
       <picture>
-        <source srcSet="/screenshots/app-dark.jpg" media="(prefers-color-scheme: dark)" />
+        <source srcSet={DARK} sizes={SIZES} media="(prefers-color-scheme: dark)" />
         <img
-          src="/screenshots/app-light.jpg"
+          src={light1280}
+          srcSet={LIGHT}
+          sizes={SIZES}
+          // The largest thing on the page: fetch it first.
+          fetchPriority="high"
           alt="The Vinskiano synth: three oscillators with volume, waveform and pitch controls, a master volume knob and an oscilloscope above a one-octave keyboard, with the E key pressed"
           width={2560}
           height={1440}

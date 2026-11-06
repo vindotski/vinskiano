@@ -115,3 +115,23 @@ test('static files are sent compressed, in the best encoding the browser accepts
     expect(await encoding('identity'), url).toBeUndefined()
   }
 })
+
+for (const { width, deviceScaleFactor, expected } of [
+  { width: 390, deviceScaleFactor: 1, expected: '-640-' }, // a phone gets the small one
+  { width: 1280, deviceScaleFactor: 2, expected: '-2560-' }, // a sharp laptop screen the big one
+]) {
+  test.describe(`at ${width} px wide, ${deviceScaleFactor}x`, () => {
+    test.use({ viewport: { width, height: 800 }, deviceScaleFactor })
+
+    test('the app screenshot loads in a fitting size', async ({ page }) => {
+      await page.goto('/')
+      const image = page.getByRole('img', { name: /The Vinskiano synth/ })
+      await expect
+        .poll(() => image.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth))
+        .toBeGreaterThan(0)
+      const source = await image.evaluate((img: HTMLImageElement) => img.currentSrc)
+      expect(source).toMatch(/\.webp$/)
+      expect(source).toContain(expected)
+    })
+  })
+}

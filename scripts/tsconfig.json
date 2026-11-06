@@ -1,9 +1,10 @@
 {
   // Node scripts: same strict settings as the app, but with Node's types instead of the
-  // browser's (kept separate so app code can't use Node globals by accident).
+  // browser's (kept separate so app code can't use Node globals by accident). DOM types are
+  // for code that Playwright runs inside the page (page.evaluate).
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "lib": ["es2023"],
+    "lib": ["es2023", "dom"],
     "types": ["node"]
   },
   "include": ["."]
