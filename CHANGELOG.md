@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Knobs glide to new values set with the keyboard or a click; the value itself (and the sound) changes instantly, and dragging stays direct
 - Pages crossfade when moving between the site and the synth (native View Transitions; instant with reduced motion or in browsers without support)
 - The page area is a `main` landmark for screen readers
-- A home page at `/` with a hero, screenshots of the app (light and dark) and a short how-it-works section; the copy is still placeholder
+- A home page at `/` with a hero, screenshots of the app (light and dark) and a short how-it-works section
 - A "Skip to content" link for keyboard users on the site
 - The home page is prerendered at build time and served as a static file
 

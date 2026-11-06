@@ -3,8 +3,6 @@ import { ArrowRight, AudioWaveform, KeyboardMusic, SlidersHorizontal } from 'luc
 import type { ComponentType } from 'react'
 import { buttonVariants } from '@/components/ui/button-variants'
 
-// Every user-facing text below marked `COPY:` is a placeholder to be replaced with real copy.
-
 interface Step {
   icon: ComponentType<{ className?: string }>
   title: string
@@ -14,36 +12,36 @@ interface Step {
 const STEPS: Step[] = [
   {
     icon: SlidersHorizontal,
-    // COPY: step 1, shaping the sound with the three oscillators
-    title: '[Step 1 title]',
-    description: '[Step 1: one or two sentences about the oscillators: waveform, pitch, volume.]',
+    title: 'Shape the sound',
+    description:
+      'Each of the three oscillators has its own waveform (sine, square, triangle or sawtooth), pitch (up to two octaves up or down) and volume. Layer them to build your tone.',
   },
   {
     icon: KeyboardMusic,
-    // COPY: step 2, playing the keyboard
-    title: '[Step 2 title]',
-    description: '[Step 2: one or two sentences about playing: mouse, touch or keyboard.]',
+    title: 'Play the keyboard',
+    description:
+      'Thirteen keys, from C4 to the C above. Click, tap, or use your keyboard: Tab to a key and hold Space.',
   },
   {
     icon: AudioWaveform,
-    // COPY: step 3, the master volume and the oscilloscope
-    title: '[Step 3 title]',
-    description: '[Step 3: one or two sentences about the master volume and the oscilloscope.]',
+    title: 'Watch what you hear',
+    description:
+      'Set the overall level with the master knob, and see the combined waveform live on the oscilloscope.',
   },
 ]
 
 const Home = () => (
   <>
     <section className="mx-auto flex w-full max-w-5xl flex-col items-center gap-6 px-4 pt-20 pb-12 text-center sm:pt-28">
-      {/* COPY: eyebrow, a short label above the headline */}
-      <p className="rounded-full border px-3 py-1 text-sm text-muted-foreground">[Eyebrow]</p>
-      {/* COPY: headline */}
+      <p className="rounded-full border px-3 py-1 text-sm text-muted-foreground">
+        Free and open source · Runs in your browser
+      </p>
       <h1 className="max-w-3xl font-heading text-4xl font-semibold tracking-tight text-balance sm:text-6xl">
-        [Headline: what Vinskiano is, in one line]
+        A three-oscillator synth that lives in your browser
       </h1>
-      {/* COPY: subline */}
       <p className="max-w-2xl text-lg text-pretty text-muted-foreground">
-        [Subline: one or two sentences on what you can do with it, in the browser, with no install.]
+        Stack three oscillators, pick their waveforms, tune them up to two octaves apart, and play.
+        No install, no account, no plug-ins: open it and press a key.
       </p>
       <div className="flex flex-col items-center gap-3 sm:flex-row">
         <Link to="/app" className={buttonVariants({ size: 'lg' })}>
@@ -74,12 +72,11 @@ const Home = () => (
 
     <section aria-labelledby="how-it-works" className="border-t bg-muted/40">
       <div className="mx-auto w-full max-w-5xl px-4 py-20">
-        {/* COPY: section heading */}
         <h2
           id="how-it-works"
           className="text-center font-heading text-3xl font-semibold tracking-tight"
         >
-          [How it works]
+          How it works
         </h2>
         <ol className="mt-12 grid gap-6 sm:grid-cols-3">
           {STEPS.map(({ icon: Icon, title, description }, index) => (

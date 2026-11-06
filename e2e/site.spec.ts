@@ -72,11 +72,12 @@ test('the first Tab stop skips to the content', async ({ page }) => {
   await expect(page).toHaveURL('/#content')
 })
 
-// COPY: the home page still shows placeholders in [brackets]. Once the real copy is in,
-// this starts passing; then turn `test.fail` into `test`.
-test.fail('the home page has no placeholder copy left', async ({ page }) => {
+test('the home page has its real copy, no placeholders', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('main')).not.toContainText('[', { timeout: 1000 })
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'A three-oscillator synth that lives in your browser',
+  )
+  await expect(page.getByRole('main')).not.toContainText('[')
 })
 
 test('the home page is a prebuilt file; the synth is rendered per request', async ({ request }) => {
