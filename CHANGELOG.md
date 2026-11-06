@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The synth moved to `/app`; `/` is now a home page, and the old `/oscillators` URL redirects to `/app/oscillators`
 - Relicensed from GPL-2.0 to Apache-2.0
 
 ## [0.1.0] - 2020-12-15

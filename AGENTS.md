@@ -35,8 +35,13 @@ Before editing files for a substantial task:
 src/
   music/       Pure music theory: Note, Octave, Frequency, Scale, ScaleBuilder, ScaleStrategy, KEYBOARD_NOTES
   audio/       Web Audio: Engine (context + oscillators + oscilloscope), Context, Oscillator, Oscilloscope
-  components/  React UI: Piano, PianoKey, Mixer sections, knobs/, toggles/, toolbars/
-  routes/      File-based routes: __root (HTML document via shellComponent + head(); layout: SynthProvider + viewport frame + navbar; 404), index (/), oscillators
+  components/  React UI: Piano, PianoKey, Mixer sections, knobs/, toggles/, toolbars/, site/ (header, footer)
+  routes/      File-based routes, two sections:
+                 __root      HTML document (shellComponent + head()), 404 (NotFound brings the site chrome)
+                 _site.tsx   pathless site layout (header, scrolling page, footer); _site/index.tsx = /
+                 app.tsx     /app layout: LazyMotion + SynthProvider + fixed viewport frame + app navbar
+                 app/index.tsx = /app (piano), app/oscillators.tsx = /app/oscillators
+                 oscillators.tsx  301 redirect from the old /oscillators URL
   pages/       Presentational pages the routes render: PianoRoll, Oscillators, NotFound
   synth/       SynthProvider: owns the synth settings (state) and the audio Engine (created after mount); useSynth() for routes
   types/       Shared app types (synth.ts): plain settings data, no audio nodes
@@ -94,6 +99,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - Add a page by adding a file in `src/routes/` (`createFileRoute('/path')`); `pnpm dev`/`pnpm build` regenerate `routeTree.gen.ts`. Commit the regenerated file with the route.
 - Document-level tags go in `__root.tsx`'s `head()`. `HeadContent` keeps one meta per `name`, so tags that share a name (the light/dark `theme-color` pair) are written directly in `RootDocument`.
 - Route components are thin: read state with `useSynth()` and render a component from `pages/`.
+- **Two sections:** the site (`_site`) is a normal scrolling website and must not load synth code (no `SynthProvider`, no Motion); the app (`/app`) owns the audio engine and Motion. `e2e/site.spec.ts` checks that `/` creates no `AudioContext`.
 - Use `Link` from `@tanstack/react-router`; it sets the `active` class itself (use `activeOptions={{ exact: true }}` for `/`).
 - TanStack ships version-matched agent skills (`react-router`, `react-start`), linked into `.claude/skills/` by pnpm (see `permissions` in `pnpm-workspace.yaml`). Read them before changing routing or Start setup.
 
@@ -116,9 +122,9 @@ pnpm fix        # Biome: apply formatting and safe fixes
 
 ## Animation
 
-- Motion (`motion`) through `LazyMotion` in the root layout: use the small `m.*` components (`import * as m from 'motion/react-m'`); `strict` makes the full `motion.*` components throw. The features (`domMax`, needed for `layoutId`) load lazily from `src/lib/motion-features.ts`, after the page.
+- Motion (`motion`) through `LazyMotion` in the app layout (`routes/app.tsx`; the site doesn't load it): use the small `m.*` components (`import * as m from 'motion/react-m'`); `strict` makes the full `motion.*` components throw. The features (`domMax`, needed for `layoutId`) load lazily from `src/lib/motion-features.ts`, after the page.
 - **Never delay sound or state.** Audio starts on pointer-down; animations are purely visual and follow state, never gate it.
-- **Respect reduced motion:** `MotionConfig reducedMotion="user"` is set at the root; don't override it per component.
+- **Respect reduced motion:** `MotionConfig reducedMotion="user"` is set in the app layout; don't override it per component.
 - **SSR-safe:** nothing animates on first paint (`initial={false}` for server-rendered content), so server HTML and hydration stay identical.
 - Values, accessible names and focus never depend on an animation's progress.
 - **Page transitions are not Motion:** they use TanStack Router's `defaultViewTransition` (the browser's View Transitions API). Only the `<main>` page area (`view-transition-name: page`) animates; styles live at the end of `styles.css`. Motion can't animate the outgoing page, because the outlet switches to the new route immediately.

@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures'
 
 test('renders the 13-key piano from C4 to C5', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/app')
   await expect(page.locator('.piano-key')).toHaveText([
     'C',
     'C#',
@@ -23,14 +23,14 @@ test('navigates between pages and shows a 404 for unknown routes', async ({
   page,
   consoleErrors,
 }) => {
-  await page.goto('/')
+  await page.goto('/app')
   const pianoLink = page.getByRole('link', { name: 'Piano Roll' })
   const oscillatorsLink = page.getByRole('link', { name: 'Oscillators' })
   await expect(pianoLink).toHaveAttribute('aria-current', 'page')
   await expect(oscillatorsLink).not.toHaveAttribute('aria-current', 'page')
 
   await oscillatorsLink.click()
-  await expect(page).toHaveURL('/oscillators')
+  await expect(page).toHaveURL('/app/oscillators')
   await expect(page.getByRole('slider', { name: 'Master Volume' })).toBeVisible()
   await expect(oscillatorsLink).toHaveAttribute('aria-current', 'page')
   await expect(pianoLink).not.toHaveAttribute('aria-current', 'page')
@@ -49,7 +49,7 @@ test.describe('dark mode', () => {
   test.use({ colorScheme: 'dark' })
 
   test('follows the OS color scheme', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/app')
     const lightness = await page.evaluate(() => {
       const [r = 255, g = 255, b = 255] =
         getComputedStyle(document.body)

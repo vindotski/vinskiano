@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures'
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/oscillators')
+  await page.goto('/app/oscillators')
 })
 
 test('knobs are named sliders with readable values', async ({ page }) => {
@@ -106,7 +106,7 @@ test('the drawing eases to a new value while the value itself changes at once', 
 test('knobs still draw their value if Motion’s lazy features never load', async ({ browser }) => {
   const page = await browser.newPage()
   await page.route('**/motion-features-*.js', (route) => route.abort())
-  await page.goto('/oscillators')
+  await page.goto('/app/oscillators')
   const pitch = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
   await pitch.focus()
   await page.keyboard.press('End')

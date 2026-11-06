@@ -1,22 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router'
-import Oscillators from '../pages/Oscillators'
-import { useSynth } from '../synth/SynthProvider'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
+/** The synth moved under /app; keep old links working. */
 export const Route = createFileRoute('/oscillators')({
-  component: OscillatorsRoute,
+  beforeLoad: () => {
+    throw redirect({ to: '/app/oscillators', statusCode: 301 })
+  },
 })
-
-function OscillatorsRoute() {
-  const synth = useSynth()
-  return (
-    <Oscillators
-      master={synth.master}
-      oscilloscope={synth.oscilloscope}
-      oscillators={synth.oscillators}
-      onTrigger={synth.trigger}
-      onRelease={synth.release}
-      onMasterChange={synth.updateMaster}
-      onOscillatorChange={synth.updateOscillator}
-    />
-  )
-}

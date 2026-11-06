@@ -162,7 +162,6 @@
   body {
     @apply bg-background text-foreground antialiased;
     overscroll-behavior: contain;
-    overflow: hidden;
   }
 
   button:not(:disabled),

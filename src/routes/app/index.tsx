@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import PianoRoll from '../pages/PianoRoll'
-import { useSynth } from '../synth/SynthProvider'
+import PianoRoll from '../../pages/PianoRoll'
+import { useSynth } from '../../synth/SynthProvider'
 
-export const Route = createFileRoute('/')({
+export const Route = createFileRoute('/app/')({
   component: PianoRollRoute,
 })
 

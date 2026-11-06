@@ -1,7 +1,7 @@
 import { audioLog, expect, resetAudioLog, test } from './fixtures'
 
 test('a key plays all three oscillators at its pitch and stops on release', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/app')
   const a4 = page.locator('.piano-key').nth(9)
 
   await a4.hover()
@@ -19,7 +19,7 @@ test('a key plays all three oscillators at its pitch and stops on release', asyn
 })
 
 test('Space and Enter play a focused key', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/app')
   await page.locator('.piano-key').first().focus()
 
   await page.keyboard.down(' ')
@@ -33,7 +33,7 @@ test('Space and Enter play a focused key', async ({ page }) => {
 })
 
 test('dragging off a held key releases the note', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/app')
   const key = page.locator('.piano-key--white').nth(2)
   const box = await key.boundingBox()
   if (!box) throw new Error('key not visible')
@@ -48,7 +48,7 @@ test('dragging off a held key releases the note', async ({ page }) => {
 })
 
 test('waveform and pitch changes reach the audio graph', async ({ page }) => {
-  await page.goto('/oscillators')
+  await page.goto('/app/oscillators')
 
   await page
     .getByRole('radiogroup', { name: 'Oscillator 1 waveform' })
@@ -70,7 +70,7 @@ test('waveform and pitch changes reach the audio graph', async ({ page }) => {
 })
 
 test('master volume can be set to any value (no float truncation)', async ({ page }) => {
-  await page.goto('/oscillators')
+  await page.goto('/app/oscillators')
   const volume = page.getByRole('slider', { name: 'Master Volume' })
   // 29, 57 and 58 used to snap down: 29 / 100 * 100 === 28.999999999999996
   for (const value of ['28', '29', '57', '58', '100', '0']) {
@@ -80,7 +80,7 @@ test('master volume can be set to any value (no float truncation)', async ({ pag
 })
 
 test('the oscilloscope draws while playing and stops when you leave the page', async ({ page }) => {
-  await page.goto('/oscillators')
+  await page.goto('/app/oscillators')
   const preview = page.getByRole('button', { name: 'Preview' })
   await preview.hover()
   await page.mouse.down()
@@ -117,7 +117,7 @@ test('the oscilloscope draws while playing and stops when you leave the page', a
 })
 
 test('Preview plays while Space is held', async ({ page }) => {
-  await page.goto('/oscillators')
+  await page.goto('/app/oscillators')
   await page.getByRole('button', { name: 'Preview' }).focus()
   await page.keyboard.down(' ')
   expect((await audioLog(page)).started).toHaveLength(3)
@@ -128,7 +128,7 @@ test('Preview plays while Space is held', async ({ page }) => {
 test('pressing at the very edge of a key keeps the note playing while held', async ({ page }) => {
   // The press animation moves the key's face, never its hit area. If the hit area shrank,
   // a press near the bottom edge would end up outside it and release the note at once.
-  await page.goto('/')
+  await page.goto('/app')
   await page.waitForTimeout(500) // let Motion's lazily loaded features arrive
   const key = page.locator('.piano-key--white').nth(1)
   const box = await key.boundingBox()

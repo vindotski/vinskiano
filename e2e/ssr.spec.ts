@@ -3,7 +3,7 @@ import { expect, test } from './fixtures'
 // Plain HTTP requests: what the server sends before any JavaScript runs.
 
 test('the server renders the piano', async ({ request }) => {
-  const response = await request.get('/')
+  const response = await request.get('/app')
   expect(response.status()).toBe(200)
   const html = await response.text()
   expect(html.match(/class="piano-key /g)).toHaveLength(13)
@@ -11,7 +11,7 @@ test('the server renders the piano', async ({ request }) => {
 })
 
 test('the server renders the oscillator controls', async ({ request }) => {
-  const html = await (await request.get('/oscillators')).text()
+  const html = await (await request.get('/app/oscillators')).text()
   for (const name of ['Oscillator 1 volume', 'Oscillator 2 pitch', 'Oscillator 3 waveform']) {
     expect(html).toContain(name)
   }

@@ -18,8 +18,8 @@ const Navbar = () => {
 
       <ul className="flex items-center gap-1">
         <li>
-          {/* Link adds the `active` class itself; "/" must match exactly. */}
-          <Link to="/" className={linkClass} activeOptions={{ exact: true }}>
+          {/* Link adds the `active` class itself; "/app" must match exactly. */}
+          <Link to="/app" className={linkClass} activeOptions={{ exact: true }}>
             {({ isActive }) => (
               <>
                 {isActive && (
@@ -32,7 +32,7 @@ const Navbar = () => {
         </li>
 
         <li>
-          <Link to="/oscillators" className={linkClass}>
+          <Link to="/app/oscillators" className={linkClass}>
             {({ isActive }) => (
               <>
                 {isActive && (
