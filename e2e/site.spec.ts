@@ -90,3 +90,28 @@ test('the home page is a prebuilt file; the synth is rendered per request', asyn
   const app = await request.get('/app')
   expect(app.headers()['last-modified']).toBeUndefined()
 })
+
+test('static files are sent compressed, in the best encoding the browser accepts', async ({
+  page,
+  request,
+}) => {
+  // Find a real script of the home page (names are hashed at build time).
+  await page.goto('/')
+  const script = await page.evaluate(
+    () => document.querySelector<HTMLScriptElement>('script[src^="/assets/"]')?.src,
+  )
+  const style = await page.evaluate(
+    () => document.querySelector<HTMLLinkElement>('link[rel="stylesheet"]')?.href,
+  )
+  if (!script || !style) throw new Error('no script or stylesheet on the home page')
+
+  for (const url of ['/', script, style]) {
+    const encoding = async (accept: string) =>
+      (await request.get(url, { headers: { 'Accept-Encoding': accept } })).headers()[
+        'content-encoding'
+      ]
+    expect(await encoding('gzip, deflate, br, zstd'), url).toBe('br')
+    expect(await encoding('gzip'), url).toBe('gzip')
+    expect(await encoding('identity'), url).toBeUndefined()
+  }
+})

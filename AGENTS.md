@@ -96,6 +96,15 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - Keep Web Audio code in `audio/`; components never create audio nodes directly.
 - **Server-safe code (everything renders on the server first):** nothing touches `window`, `document` or Web Audio at module scope or during render. Do browser work in effects (the audio `Engine` is created in `SynthProvider`'s mount effect), or wrap it in `ClientOnly`. Server and first client render must match, or hydration fails (the e2e console-error fixture catches that). UI state is plain data (`types/synth.ts`); the engine follows it. `src/ssr.test.tsx` and `e2e/ssr.spec.ts` enforce this.
 
+## Supported browsers and performance
+
+- **Floor: Chrome/Edge 111, Safari/iOS 16.4, Firefox 128** (early 2023, mid 2024 for Firefox), set as the client `build.target` in `vite.config.ts`. Tailwind v4 sets it: it relies on `oklch()` colors, cascade layers, `@property` and `color-mix()`. Everything else we use (`dvh`, Pointer Events, Web Audio, `Intl`) is older than that.
+- **No polyfills.** Vite only lowers syntax, it doesn't add polyfills, and nothing we use needs one at this floor. Before adding a browser API, check it against the floor (MDN/Baseline); if it's newer, feature-detect it and let older browsers do without (like View Transitions, Safari 18 / Firefox 144: older browsers switch pages instantly).
+- **Browser tests run in Chromium, Firefox and WebKit** (see Tests); that's the check that a change works beyond Chrome.
+- **Static files are compressed at build time** (Nitro `compressPublicAssets`: gzip and brotli, chosen by `Accept-Encoding`). Hashed `/assets/` are cached for a year. Pages rendered per request (`/app`) are not compressed by Nitro; a reverse proxy or CDN in front can do that.
+- **Measure before optimizing:** Lighthouse (mobile) on `/` and `/app`, median of several runs. Install it pinned in a scratch directory, never as a project dependency.
+- **Web Audio stays hand-written; no Tone.js (decided 2026-11).** Tone.js is good at scheduling, envelopes, effects and polyphony, but it would add a large bundle and an unmaintained shim (`standardized-audio-context`), replace a small tested `Engine`, and needs care with SSR. The planned features map to native nodes: envelopes to `GainNode` automation, filters to `BiquadFilterNode`, LFOs to an `OscillatorNode` driving an `AudioParam`. Revisit if sequencing or many effects arrive.
+
 ## Routing
 
 - Add a page by adding a file in `src/routes/` (`createFileRoute('/path')`); `pnpm dev`/`pnpm build` regenerate `routeTree.gen.ts`. Commit the regenerated file with the route.
