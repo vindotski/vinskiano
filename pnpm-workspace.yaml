@@ -16,6 +16,9 @@ permissions:
     skills: [react-router]
   "@tanstack/react-start":
     skills: [react-start]
+  # Available on demand through TanStack Intent; no need to auto-load it.
+  "@tanstack/devtools-vite":
+    skills: false
 
 skills:
   dirs: [.claude/skills]

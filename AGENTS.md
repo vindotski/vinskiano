@@ -20,6 +20,7 @@ Before editing files for a substantial task:
 ## Stack (current)
 
 - TanStack Start (full SSR) on Vite 8, with Nitro producing a standalone Node server; React 19 (StrictMode via Start's default client entry); TanStack Router (file-based, code-split routes)
+- TanStack devtools (Router panel) in development only; the `devtools()` Vite plugin strips them from production builds
 - TypeScript 7, strict (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`). No JavaScript left in `src/`.
 - Biome for linting and formatting (`biome.json`)
 - Vitest for unit tests (config in `vite.config.ts`), Playwright for browser tests (`playwright.config.ts`, Chromium)

@@ -1,4 +1,6 @@
+import { TanStackDevtools } from '@tanstack/react-devtools'
 import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
+import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import type { ReactNode } from 'react'
 import Navbar from '../components/Navbar'
 import NotFound from '../pages/NotFound'
@@ -44,6 +46,11 @@ function RootDocument({ children }: { children: ReactNode }) {
       <body>
         <noscript>Vinskiano needs JavaScript to make sound.</noscript>
         {children}
+        {/* Development only: the devtools Vite plugin removes this from production builds. */}
+        <TanStackDevtools
+          config={{ position: 'bottom-right' }}
+          plugins={[{ name: 'TanStack Router', render: <TanStackRouterDevtoolsPanel /> }]}
+        />
         <Scripts />
       </body>
     </html>
