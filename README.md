@@ -75,7 +75,7 @@ See [CHANGELOG.md](CHANGELOG.md) for more information.
 
 [Ivan Vinski](https://www.vin.ski) – ivan@vin.ski
 
-Distributed under the MIT license. See [LICENSE](LICENSE) for more information.
+Distributed under the Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE) for more information.
 
 https://github.com/vindotski/vinskiano
 

@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Relicensed from GPL-2.0 to MIT
+- Relicensed from GPL-2.0 to Apache-2.0
 
 ## [0.1.0] - 2020-12-15
 

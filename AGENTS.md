@@ -126,6 +126,6 @@ pnpm fix        # Biome: apply formatting and safe fixes
 
 ## Skills
 
-Third-party skills live in `.claude/skills/` and are pinned in `skills-lock.json` (source repo, path and commit). Don't edit them in place; to update one, re-copy it from its source and bump the commit.
+Third-party skills live in `.claude/skills/` and are pinned in `skills-lock.json` (source repo, path and commit). Don't edit them in place; to update one, re-copy it from its source (including the upstream LICENSE file, which MIT requires us to keep) and bump the commit.
 
 Skills shipped inside npm packages (TanStack) are symlinked by pnpm on install, match the installed version, and are gitignored in `.claude/skills/.gitignore`. Approve new ones in `permissions` in `pnpm-workspace.yaml` after reading them.
