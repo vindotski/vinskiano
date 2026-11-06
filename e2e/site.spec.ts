@@ -78,3 +78,13 @@ test.fail('the home page has no placeholder copy left', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('main')).not.toContainText('[', { timeout: 1000 })
 })
+
+test('the home page is a prebuilt file; the synth is rendered per request', async ({ request }) => {
+  // Nitro adds etag/last-modified only when it serves a file from .output/public.
+  const home = await request.get('/')
+  expect(home.headers().etag).toBeTruthy()
+  expect(home.headers()['last-modified']).toBeTruthy()
+
+  const app = await request.get('/app')
+  expect(app.headers()['last-modified']).toBeUndefined()
+})

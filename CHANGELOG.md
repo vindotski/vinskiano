@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The page area is a `main` landmark for screen readers
 - A home page at `/` with a hero, screenshots of the app (light and dark) and a short how-it-works section; the copy is still placeholder
 - A "Skip to content" link for keyboard users on the site
+- The home page is prerendered at build time and served as a static file
 
 ### Changed
 
