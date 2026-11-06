@@ -1,9 +1,9 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
-import App from '../App'
 import Navbar from '../components/Navbar'
 import appCss from '../index.css?url'
 import NotFound from '../pages/NotFound'
+import { SynthProvider } from '../synth/SynthProvider'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -53,9 +53,12 @@ function RootDocument({ children }: { children: ReactNode }) {
 /** The app frame around every page: synth state, navbar, then the page. */
 function RootLayout() {
   return (
-    <App>
-      <Navbar />
-      <Outlet />
-    </App>
+    <SynthProvider>
+      {/* Fills the real viewport. Held upright, a phone gets the app rotated to landscape. */}
+      <div className="flex h-[calc(var(--vh)*100)] w-screen flex-col portrait:absolute portrait:top-[-100vw] portrait:left-0 portrait:h-[100vw] portrait:w-[calc(var(--vh)*100)] portrait:origin-bottom-left portrait:rotate-90 portrait:overflow-auto">
+        <Navbar />
+        <Outlet />
+      </div>
+    </SynthProvider>
   )
 }

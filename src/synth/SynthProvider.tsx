@@ -1,10 +1,30 @@
-import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
-import { Engine, type Sound } from './audio'
-import { Frequency, KEYBOARD_NOTES, type Note } from './music'
-import { type Synth, SynthProvider } from './synth/SynthProvider'
-import type { MasterSettings, OscillatorSettings, OscillatorState } from './types/synth'
-import { disableContextMenu } from './utils/disable-context-menu'
-import { trackViewportHeight } from './utils/viewport-height'
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
+import { Engine, type Oscilloscope, type Sound } from '../audio'
+import { Frequency, KEYBOARD_NOTES, type Note } from '../music'
+import type { MasterSettings, OscillatorSettings, OscillatorState } from '../types/synth'
+import { disableContextMenu } from '../utils/disable-context-menu'
+import { trackViewportHeight } from '../utils/viewport-height'
+
+/** Everything the pages need from the synth: its state and how to play and change it. */
+export interface Synth {
+  scale: readonly Note[]
+  master: MasterSettings
+  /** The output analyser; null until the audio engine exists (it's browser-only). */
+  oscilloscope: Oscilloscope | null
+  oscillators: OscillatorState[]
+  trigger: (note: Note) => void
+  release: (note: Note) => void
+  updateMaster: (settings: MasterSettings) => void
+  updateOscillator: (id: number, settings: OscillatorSettings) => void
+}
 
 /** A sound that is currently playing, tagged with the note that started it. */
 type PlayingSound = Sound & { note: Note }
@@ -17,12 +37,14 @@ const INITIAL_OSCILLATORS: OscillatorState[] = [
   { id: 3, waveform: 'sine', pitch: 12, volume: 0.75 },
 ]
 
+const SynthContext = createContext<Synth | null>(null)
+
 /**
- * Holds the synth's settings as plain state and drives the audio engine from them, and
- * frames the page. The engine (Web Audio) only exists in the browser: it's created after
- * mount, so this component also renders on the server.
+ * Owns the synth: its settings as plain state, and the audio engine that follows them.
+ * The engine (Web Audio) only exists in the browser: it's created after mount, so this
+ * provider also renders on the server.
  */
-const App = ({ children }: { children: ReactNode }) => {
+export function SynthProvider({ children }: { children: ReactNode }) {
   const [master, setMaster] = useState(INITIAL_MASTER)
   const [oscillators, setOscillators] = useState(INITIAL_OSCILLATORS)
   const [engine, setEngine] = useState<Engine | null>(null)
@@ -80,12 +102,13 @@ const App = ({ children }: { children: ReactNode }) => {
     updateOscillator,
   }
 
-  return (
-    // Fills the real viewport. Held upright, a phone gets the app rotated to landscape.
-    <div className="flex h-[calc(var(--vh)*100)] w-screen flex-col portrait:absolute portrait:top-[-100vw] portrait:left-0 portrait:h-[100vw] portrait:w-[calc(var(--vh)*100)] portrait:origin-bottom-left portrait:rotate-90 portrait:overflow-auto">
-      <SynthProvider value={synth}>{children}</SynthProvider>
-    </div>
-  )
+  return <SynthContext value={synth}>{children}</SynthContext>
 }
 
-export default App
+export function useSynth(): Synth {
+  const synth = useContext(SynthContext)
+  if (!synth) {
+    throw new Error('useSynth() must be used inside <SynthProvider>')
+  }
+  return synth
+}
