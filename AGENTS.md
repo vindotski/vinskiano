@@ -4,6 +4,19 @@ A browser-based subtractive synthesizer built on the Web Audio API. Today it has
 
 The project is being modernized step by step; see [MODERN_TOOLING.md](MODERN_TOOLING.md) for the playbook. This file describes the **current** state. Update it whenever the stack or a convention changes.
 
+<!-- intent-skills:start -->
+## Skill Loading
+
+Use the repository’s installed Intent. If it is unavailable, report the missing dependency instead of downloading a replacement.
+Before editing files for a substantial task:
+
+- Run `pnpm exec intent list` from the workspace root to see available local skills.
+- If a listed skill matches the task, run `pnpm exec intent load <package>#<skill>` before changing files.
+- Use the loaded `SKILL.md` guidance while making the change.
+- Monorepos: when working across packages, run the skill check from the workspace root and prefer the local skill for the package being changed.
+- Multiple matches: prefer the most specific local skill for the package or concern you are changing; load additional skills only when the task spans multiple packages or concerns.
+<!-- intent-skills:end -->
+
 ## Stack (current)
 
 - TanStack Start (full SSR) on Vite 8, with Nitro producing a standalone Node server; React 19 (StrictMode via Start's default client entry); TanStack Router (file-based, code-split routes)
@@ -145,3 +158,5 @@ pnpm fix        # Biome: apply formatting and safe fixes
 **Vendored skills** live in `.claude/skills/` and are pinned in `skills-lock.json` (source, path, commit, license, and any local `patches`). Don't edit them in place; to update one, re-copy it from its source (including the upstream LICENSE file, which MIT requires us to keep), re-apply the listed patches, and bump the commit. Read every file of a skill before adding or updating it: skills are instructions. Two patches exist on purpose: `shadcn` may only pre-approve `pnpm exec shadcn`, and `web-design-guidelines` reads its pinned rules instead of fetching them from `main`.
 
 **Package skills** shipped inside npm packages (TanStack) are symlinked by pnpm on install, match the installed version, and are gitignored in `.claude/skills/.gitignore`. Approve new ones in `permissions` in `pnpm-workspace.yaml` after reading them.
+
+**All other TanStack skills** (e.g. `start-core`, `router-core` and their sub-skills, which `react-start` points to) come through TanStack Intent, always at the installed version: `pnpm exec intent list`, then `pnpm exec intent load <package>#<skill>` (see "Skill Loading" above). Only `@tanstack/*` is allowed (`intent.skills` in `package.json`); transitive packages from other publishers that ship skills (e.g. `dotenv` via the shadcn CLI) stay hidden. Widen that list only after reading the skills it would surface.
