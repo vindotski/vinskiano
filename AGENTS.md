@@ -23,7 +23,7 @@ Before editing files for a substantial task:
 - TanStack devtools (Router panel) in development only; the `devtools()` Vite plugin strips them from production builds
 - TypeScript 7, strict (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`). No JavaScript left in `src/`.
 - Biome for linting and formatting (`biome.json`)
-- Vitest for unit tests (config in `vite.config.ts`), Playwright for browser tests (`playwright.config.ts`, Chromium)
+- Vitest for unit tests (config in `vite.config.ts`), Playwright for browser tests (`playwright.config.ts`: Chromium, Firefox and WebKit, plus phones in both orientations)
 - pnpm (pinned via `packageManager`), Node 26 (`.nvmrc`)
 - React Aria hooks (`react-aria`, `react-stately`) for accessible controls; the rotary `Knob` is built on its slider hooks
 - Motion (motion.dev) for animations, loaded lazily (see Animation)
@@ -146,7 +146,10 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - Unit tests sit next to the code as `*.test.ts`. They suit pure logic best (`music/`).
 - A known bug gets a `test.fails` with a `// BUG:` comment explaining it. The fix flips it to a plain `test`.
 - Browser tests live in `e2e/`. The fixture in `e2e/fixtures.ts` wraps the Web Audio prototypes, so tests can assert what reaches the audio graph (`audioLog(page)`: started oscillators with frequency, detune and type; stops; analyser reads). It also fails any test that logs a console error.
-- Specs named `*mobile*` run on a touch device (Pixel 7); the rest run on desktop Chrome.
+- Projects: desktop `chromium`, `firefox` and `webkit` run every spec except phone specs; specs named `*mobile*` or `*orientation*` run on touch phones held both ways (`pixel-portrait`, `pixel-landscape`, `iphone-portrait`, `iphone-landscape`). Upright, the app rotates itself 90° (`data-app-frame`, Tailwind's `rotate-90`, i.e. the CSS `rotate` property, not `transform`), so phone specs must hold in both. Run one with `--project=<name>`.
+- Open the synth with `openApp(page)`, not `page.goto('/app')`: it waits until the engine exists, i.e. the page is hydrated. Before that the server-rendered controls ignore input, and tests on a busy machine get there first.
+- Don't poll for things that only exist for a moment (animations, transitions): record them when they happen (see `e2e/motion.spec.ts`). Don't use fixed waits for things that take time (sound starting): poll for the result.
+- Engines differ in ways that aren't bugs: Firefox logs no console error for a 404 response; WebKit tabs to links only with Option (Safari's default). Handle those in the test, with a comment.
 - When fixing a bug, first write a test that fails without the fix.
 - Before calling a step done, run `pnpm verify`.
 - When dependencies change, compare the gzip sizes `pnpm build` prints with the previous commit and report the difference.

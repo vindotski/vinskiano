@@ -1,7 +1,7 @@
-import { audioLog, chooseWaveform, expect, resetAudioLog, test } from './fixtures'
+import { audioLog, chooseWaveform, expect, openApp, resetAudioLog, test } from './fixtures'
 
 test('a key plays all three oscillators at its pitch and stops on release', async ({ page }) => {
-  await page.goto('/app')
+  await openApp(page)
   const a4 = page.locator('.piano-key').nth(9)
 
   await a4.hover()
@@ -19,7 +19,7 @@ test('a key plays all three oscillators at its pitch and stops on release', asyn
 })
 
 test('Space and Enter play a focused key', async ({ page }) => {
-  await page.goto('/app')
+  await openApp(page)
   await page.locator('.piano-key').first().focus()
 
   await page.keyboard.down(' ')
@@ -33,7 +33,7 @@ test('Space and Enter play a focused key', async ({ page }) => {
 })
 
 test('dragging off a held key releases the note', async ({ page }) => {
-  await page.goto('/app')
+  await openApp(page)
   const key = page.locator('.piano-key--white').nth(2)
   const box = await key.boundingBox()
   if (!box) throw new Error('key not visible')
@@ -48,7 +48,7 @@ test('dragging off a held key releases the note', async ({ page }) => {
 })
 
 test('waveform and pitch changes reach the audio graph', async ({ page }) => {
-  await page.goto('/app')
+  await openApp(page)
 
   await chooseWaveform(page, 1, 'Square')
   await expect(page.getByRole('button', { name: 'Oscillator 1 waveform' })).toHaveAccessibleName(
@@ -70,7 +70,7 @@ test('waveform and pitch changes reach the audio graph', async ({ page }) => {
 })
 
 test('master volume can be set to any value (no float truncation)', async ({ page }) => {
-  await page.goto('/app')
+  await openApp(page)
   const volume = page.getByRole('slider', { name: 'Master volume' })
   // 29, 57 and 58 used to snap down: 29 / 100 * 100 === 28.999999999999996
   for (const value of ['28', '29', '57', '58', '100', '0']) {
@@ -80,16 +80,14 @@ test('master volume can be set to any value (no float truncation)', async ({ pag
 })
 
 test('the oscilloscope draws while playing and stops when you leave the app', async ({ page }) => {
-  await page.goto('/app')
+  await openApp(page)
   await page.locator('.piano-key').nth(9).hover()
   await page.mouse.down()
-  await page.waitForTimeout(300)
 
   // Count the canvas rows the line covers: pixels that differ from the background (read from
   // the top-left corner). As a fraction of the height, so it holds at any size or pixel ratio.
-  const lineRows = await page
-    .locator('canvas.oscilloscope')
-    .evaluate((canvas: HTMLCanvasElement) => {
+  const lineRows = () =>
+    page.locator('canvas.oscilloscope').evaluate((canvas: HTMLCanvasElement) => {
       const context = canvas.getContext('2d')
       if (!context) return 0
       const { data } = context.getImageData(0, 0, canvas.width, canvas.height)
@@ -104,9 +102,10 @@ test('the oscilloscope draws while playing and stops when you leave the app', as
       }
       return rows.size / canvas.height
     })
-  await page.mouse.up()
   // A flat line covers a few percent of the rows; three stacked sines cover most of them.
-  expect(lineRows).toBeGreaterThan(0.3)
+  // Polled: on a busy machine the sound can take a moment to start.
+  await expect.poll(lineRows).toBeGreaterThan(0.3)
+  await page.mouse.up()
 
   await page.getByRole('link', { name: 'Vinskiano home' }).click()
   await expect(page).toHaveURL('/')
@@ -119,7 +118,7 @@ test('the oscilloscope draws while playing and stops when you leave the app', as
 test('pressing at the very edge of a key keeps the note playing while held', async ({ page }) => {
   // The press animation moves the key's face, never its hit area. If the hit area shrank,
   // a press near the bottom edge would end up outside it and release the note at once.
-  await page.goto('/app')
+  await openApp(page)
   await page.waitForTimeout(500) // let Motion's lazily loaded features arrive
   const key = page.locator('.piano-key--white').nth(1)
   const box = await key.boundingBox()
@@ -138,7 +137,7 @@ test('pressing at the very edge of a key keeps the note playing while held', asy
 })
 
 test('the waveform dropdown works with the keyboard', async ({ page }) => {
-  await page.goto('/app')
+  await openApp(page)
   const trigger = page.getByRole('button', { name: 'Oscillator 3 waveform' })
   await trigger.focus()
   await page.keyboard.press('Enter') // open

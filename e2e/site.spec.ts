@@ -62,9 +62,10 @@ test('outline buttons keep their border', async ({ page }) => {
   expect(border).not.toMatch(/rgba\(0, 0, 0, 0\)|transparent/)
 })
 
-test('the first Tab stop skips to the content', async ({ page }) => {
+test('the first Tab stop skips to the content', async ({ page, browserName }) => {
   await page.goto('/')
-  await page.keyboard.press('Tab')
+  // Safari only tabs to links with Option held, unless "Press Tab to highlight each item" is on.
+  await page.keyboard.press(browserName === 'webkit' ? 'Alt+Tab' : 'Tab')
   const skip = page.getByRole('link', { name: 'Skip to content' })
   await expect(skip).toBeFocused()
   await expect(skip).toBeVisible()

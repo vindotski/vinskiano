@@ -5,6 +5,8 @@ export interface AudioLog {
   started: { frequency: number; detune: number; type: OscillatorType }[]
   stopped: number
   analyserReads: number
+  /** Analysers created: the engine makes one when the app mounts, i.e. once it's hydrated. */
+  analysers: number
 }
 
 declare global {
@@ -17,8 +19,13 @@ declare global {
  * Wrap the Web Audio prototypes before the app loads, so tests can check what
  * reaches the audio graph. Nobody listens in CI; this is the next best thing.
  */
-function instrumentWebAudio() {
-  window.__audio = { started: [], stopped: 0, analyserReads: 0 }
+export function instrumentWebAudio() {
+  window.__audio = { started: [], stopped: 0, analyserReads: 0, analysers: 0 }
+  const createAnalyser = BaseAudioContext.prototype.createAnalyser
+  BaseAudioContext.prototype.createAnalyser = function (this: BaseAudioContext) {
+    window.__audio.analysers++
+    return createAnalyser.call(this)
+  }
   const osc = OscillatorNode.prototype
   const start = osc.start
   const stop = osc.stop
@@ -45,8 +52,17 @@ export const audioLog = (page: Page) => page.evaluate(() => window.__audio)
 
 export const resetAudioLog = (page: Page) =>
   page.evaluate(() => {
-    window.__audio = { started: [], stopped: 0, analyserReads: 0 }
+    window.__audio = { ...window.__audio, started: [], stopped: 0, analyserReads: 0 }
   })
+
+/**
+ * Open the synth and wait until it's hydrated (its audio engine exists). Before that the
+ * server-rendered controls don't respond yet, and under load tests get there first.
+ */
+export async function openApp(page: Page) {
+  await page.goto('/app')
+  await page.waitForFunction(() => window.__audio.analysers > 0)
+}
 
 export const test = base.extend<{ consoleErrors: string[] }>({
   consoleErrors: [

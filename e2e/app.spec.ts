@@ -1,7 +1,7 @@
-import { expect, test } from './fixtures'
+import { expect, openApp, test } from './fixtures'
 
 test('every control is on one screen: oscillators, master and keyboard', async ({ page }) => {
-  await page.goto('/app')
+  await openApp(page)
   for (const n of [1, 2, 3]) {
     const oscillator = page.getByRole('group', { name: `Oscillator ${n}`, exact: true })
     await expect(oscillator.getByRole('slider', { name: `Oscillator ${n} volume` })).toBeVisible()
@@ -16,7 +16,7 @@ test('every control is on one screen: oscillators, master and keyboard', async (
 })
 
 test('renders the 13-key piano from C4 to C5', async ({ page }) => {
-  await page.goto('/app')
+  await openApp(page)
   await expect(page.locator('.piano-key')).toHaveText([
     'C',
     'C#',
@@ -38,17 +38,20 @@ test('moves between the site and the app, and shows a 404 for unknown routes', a
   page,
   consoleErrors,
 }) => {
-  await page.goto('/app')
+  await openApp(page)
   await expect(page.getByRole('slider', { name: 'Master volume' })).toBeVisible()
   await page.getByRole('link', { name: 'Vinskiano home' }).click()
   await expect(page).toHaveURL('/')
   await page.getByRole('main').getByRole('link', { name: 'Open the synth' }).first().click()
   await expect(page.locator('.piano-key')).toHaveCount(13)
 
-  await page.goto('/does-not-exist')
+  const response = await page.goto('/does-not-exist')
+  expect(response?.status()).toBe(404)
   await expect(page.getByRole('heading', { name: '404 - Not Found' })).toBeVisible()
-  // The server answers with a real 404 status, which Chrome logs as a console error.
-  expect(consoleErrors).toEqual([expect.stringContaining('status of 404')])
+  // Chrome and WebKit log a real 404 status as a console error; Firefox doesn't. Anything else
+  // is still a failure.
+  const others = consoleErrors.filter((error) => !/404/.test(error))
+  expect(others).toEqual([])
   consoleErrors.length = 0
 })
 
@@ -56,7 +59,7 @@ test.describe('dark mode', () => {
   test.use({ colorScheme: 'dark' })
 
   test('follows the OS color scheme', async ({ page }) => {
-    await page.goto('/app')
+    await openApp(page)
     const lightness = await page.evaluate(() => {
       const [r = 255, g = 255, b = 255] =
         getComputedStyle(document.body)
@@ -79,7 +82,7 @@ for (const viewport of [
     test.use({ viewport })
 
     test('the app bar fits on one row', async ({ page }) => {
-      await page.goto('/app')
+      await openApp(page)
       const rows = await page.evaluate(() => {
         const bar = document.querySelector('header')
         const parts = bar?.querySelectorAll('fieldset, section[aria-label="Master"], header > a')

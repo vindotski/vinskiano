@@ -1,7 +1,7 @@
-import { audioLog, expect, test } from './fixtures'
+import { audioLog, expect, openApp, test } from './fixtures'
 
 test('a tap plays a key exactly once', async ({ page }) => {
-  await page.goto('/app')
+  await openApp(page)
   await page.locator('.piano-key').first().tap()
   // Touch used to trigger both touch and emulated mouse handlers: 6 starts.
   expect(await audioLog(page)).toMatchObject({ stopped: 3 })

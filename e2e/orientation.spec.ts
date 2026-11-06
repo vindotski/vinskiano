@@ -1,0 +1,117 @@
+import type { Locator, Page } from '@playwright/test'
+import { audioLog, expect, openApp, resetAudioLog, test } from './fixtures'
+
+// Runs on phones held upright and sideways. Upright, the app rotates itself 90° so the
+// keyboard keeps its landscape shape; everything must still work by touch.
+
+const isPortrait = (page: Page) => {
+  const size = page.viewportSize()
+  return !!size && size.height > size.width
+}
+
+/** Where a point in an element's own (unrotated) coordinates ends up on screen. */
+const toScreen = (element: Locator, x: number, y: number) =>
+  element.evaluate(
+    (svg: SVGGraphicsElement, [localX = 0, localY = 0]) => {
+      const matrix = svg.getScreenCTM()
+      if (!matrix) throw new Error('no screen matrix')
+      const point = new DOMPoint(localX, localY).matrixTransform(matrix)
+      return { x: point.x, y: point.y }
+    },
+    [x, y],
+  )
+
+/** The frame is turned with the CSS `rotate` property (Tailwind's `rotate-90`), not `transform`. */
+const frameRotation = (page: Page) =>
+  page.locator('[data-app-frame]').evaluate((frame) => getComputedStyle(frame).rotate)
+
+test.beforeEach(async ({ page }) => {
+  await openApp(page)
+  await page.waitForTimeout(500) // Motion's lazy features, fonts
+})
+
+test('upright, the app turns sideways; sideways, it stays as is', async ({ page }) => {
+  expect(await frameRotation(page)).toBe(isPortrait(page) ? '90deg' : 'none')
+})
+
+test('a tapped key plays once and stops on release', async ({ page }) => {
+  await page.locator('.piano-key').nth(9).tap()
+  const log = await audioLog(page)
+  expect(log.started.map((s) => s.frequency)).toEqual([440, 440, 440])
+  expect(log.stopped).toBe(3)
+})
+
+test('tapping a knob turns it to that point of the dial', async ({ page }) => {
+  // BUG: the knob reads the pointer's angle in screen coordinates, so with the app rotated
+  // a tap lands 90° off (here the far end, 24, instead of 16).
+  test.fail(isPortrait(page), 'knob angle ignores the rotation')
+  // The dial's 3 o'clock, as the user sees it (in the knob's own coordinates, so it also holds
+  // when the whole app is rotated): 90° of the 270° sweep from the middle, i.e. +16 semitones.
+  const slider = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
+  const dial = page.locator('.knob').filter({ has: slider }).locator('svg.knob-dial')
+  const view = await dial.evaluate((svg: SVGSVGElement) => {
+    const { width, height } = svg.viewBox.baseVal
+    return { width, height }
+  })
+  const point = await toScreen(dial, view.width * 0.9, view.height / 2)
+  await page.touchscreen.tap(point.x, point.y)
+  await expect(slider).toHaveValue('16')
+})
+
+test('the waveform dropdown opens next to its trigger and works', async ({ page }) => {
+  // BUG: upright, the popover renders outside the rotated app (in <body>), so it's unrotated
+  // and away from its trigger. Fixed by rendering popovers inside the app frame.
+  test.fail(isPortrait(page), 'popover is not rotated with the app')
+
+  const trigger = page.getByRole('button', { name: 'Oscillator 1 waveform' })
+  await trigger.tap()
+  const listbox = page.getByRole('listbox')
+  await expect(listbox).toBeVisible()
+
+  const [t, l] = await Promise.all([trigger.boundingBox(), listbox.boundingBox()])
+  const viewport = page.viewportSize()
+  if (!t || !l || !viewport) throw new Error('not visible')
+  // Inside the viewport, and touching the trigger's neighbourhood.
+  expect(l.x).toBeGreaterThanOrEqual(0)
+  expect(l.y).toBeGreaterThanOrEqual(0)
+  expect(l.x + l.width).toBeLessThanOrEqual(viewport.width)
+  expect(l.y + l.height).toBeLessThanOrEqual(viewport.height)
+  expect(Math.abs(l.x + l.width / 2 - (t.x + t.width / 2)) + Math.abs(l.y - t.y)).toBeLessThan(250)
+
+  // The options must read the same way as the rest of the app: one under the other, i.e.
+  // across the keyboard's direction (left to right unrotated, top to bottom upright).
+  const axis = async (first: Locator, second: Locator) => {
+    const [a, b] = await Promise.all([first.boundingBox(), second.boundingBox()])
+    if (!a || !b) throw new Error('not visible')
+    return Math.abs(b.x - a.x) > Math.abs(b.y - a.y) ? 'x' : 'y'
+  }
+  const keys = page.locator('.piano-key--white')
+  const options = page.getByRole('option')
+  expect(await axis(options.nth(0), options.nth(1))).not.toBe(await axis(keys.nth(0), keys.nth(1)))
+
+  await page.getByRole('option', { name: 'Square' }).tap()
+  await expect(trigger).toHaveAccessibleName(/^Square/)
+  await resetAudioLog(page)
+  await page.locator('.piano-key').first().tap()
+  expect((await audioLog(page)).started.map((s) => s.type)).toEqual(['square', 'sine', 'sine'])
+})
+
+test('the app bar is one row and nothing scrolls sideways', async ({ page }) => {
+  const rows = await page.evaluate(() => {
+    const parts = document.querySelectorAll('header fieldset, header section[aria-label="Master"]')
+    // Compare positions along the bar's own axis, which is vertical on screen when rotated.
+    const frame = document.querySelector('[data-app-frame]')
+    const rotated = !!frame && getComputedStyle(frame).rotate !== 'none'
+    const centers = [...parts].map((part) => {
+      const box = part.getBoundingClientRect()
+      return Math.round((rotated ? box.left + box.width / 2 : box.top + box.height / 2) / 10)
+    })
+    return new Set(centers).size
+  })
+  expect(rows).toBe(1)
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    ),
+  ).toBe(0)
+})
