@@ -73,7 +73,7 @@ See [CHANGELOG.md](CHANGELOG.md) for more information.
 
 ## Meta
 
-[Ivan Vinski](https://ivanvinski.com) – contact@ivanvinski.com
+[Ivan Vinski](https://www.vin.ski) – ivan@vin.ski
 
 Distributed under the MIT license. See [LICENSE](LICENSE) for more information.
 

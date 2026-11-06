@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "license": "MIT",
+  "author": "Ivan Vinski <ivan@vin.ski> (https://www.vin.ski)",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vindotski/vinskiano.git"

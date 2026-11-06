@@ -1,0 +1,3 @@
+# Canonical author identity for git log/shortlog/blame. Older commits used a
+# previous address; this maps them without rewriting history.
+Ivan Vinski <ivan@vin.ski> <contact@ivanvinski.com>
