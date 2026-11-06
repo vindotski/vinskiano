@@ -80,10 +80,9 @@ const Knob = ({
   }
   const state = useSliderState({ ...sliderProps, numberFormatter })
   const { groupProps } = useSlider(sliderProps, state, trackRef)
-  const { inputProps } = useSliderThumb(
-    { index: 0, trackRef, inputRef, 'aria-label': label },
-    state,
-  )
+  // The thumb's input is labelled by the slider group (aria-label above). Giving the thumb its
+  // own aria-label too made screen readers announce the name twice.
+  const { inputProps } = useSliderThumb({ index: 0, trackRef, inputRef }, state)
   const { focusProps, isFocusVisible } = useFocusRing()
 
   const current = state.getThumbValue(0)

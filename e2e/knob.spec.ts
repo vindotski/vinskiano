@@ -114,3 +114,10 @@ test('knobs still draw their value if Motion’s lazy features never load', asyn
   await expect.poll(() => pointerAngle(page, 'Oscillator 2 pitch')).toBe(135)
   await page.close()
 })
+
+test('each knob is announced with its name once', async ({ page }) => {
+  // Regression: the name used to be read twice ("Oscillator 1 volume Oscillator 1 volume").
+  for (const name of ['Oscillator 1 volume', 'Oscillator 2 pitch', 'Master volume']) {
+    await expect(page.getByRole('slider', { name, exact: true })).toHaveAccessibleName(name)
+  }
+})

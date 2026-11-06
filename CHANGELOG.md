@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Piano keys dip slightly when pressed, like a real key; sound and color still respond instantly
 - Knobs glide to new values set with the keyboard or a click; the value itself (and the sound) changes instantly, and dragging stays direct
-- Pages crossfade when switching between Piano Roll and Oscillators (native View Transitions; instant with reduced motion or in browsers without support)
+- Pages crossfade when moving between the site and the synth (native View Transitions; instant with reduced motion or in browsers without support)
 - The page area is a `main` landmark for screen readers
 - A home page at `/` with a hero, screenshots of the app (light and dark) and a short how-it-works section; the copy is still placeholder
 - A "Skip to content" link for keyboard users on the site
@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The synth moved to `/app`; `/` is now a home page, and the old `/oscillators` URL redirects to `/app`
 - The whole synth is one screen: an app bar with the three oscillators and, on the right, a master volume knob and the oscilloscope, above the keyboard. The separate Oscillators page and its Preview button are gone; the master volume is a knob instead of a slider, and each oscillator's waveform is a compact dropdown, so the bar stays on one row even on a small phone in landscape
 - Relicensed from GPL-2.0 to Apache-2.0
+
+### Fixed
+
+- Screen readers announced each knob's name twice
 
 ## [0.1.0] - 2020-12-15
 
