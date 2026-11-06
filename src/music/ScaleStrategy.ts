@@ -5,7 +5,7 @@ export interface ScaleStrategyOptions {
   octave?: Octave
 }
 
-class ScaleStrategy {
+abstract class ScaleStrategy {
   octave: Octave
 
   constructor(options: ScaleStrategyOptions = {}) {
@@ -13,13 +13,7 @@ class ScaleStrategy {
   }
 
   /** The notes that follow `rootNote` in the scale (the root itself excluded). */
-  generate(rootNote: Note): Note[] {
-    if (!(rootNote instanceof Note)) {
-      throw new Error('ScaleStrategy.rootNote must be an instance of Note class')
-    }
-
-    throw new Error('Scale strategy not implemented')
-  }
+  abstract generate(rootNote: Note): Note[]
 }
 
 class ChromaticScaleStrategy extends ScaleStrategy {

@@ -49,9 +49,10 @@ describe('ScaleBuilder with ChromaticScaleStrategy', () => {
     expect(chromatic('C', 4)).toBeInstanceOf(Scale)
   })
 
-  // BUG: the default strategy is the abstract ScaleStrategy, which throws.
-  test.fails('builds with the default options', () => {
-    expect(new ScaleBuilder().build()).toHaveLength(12)
+  test('builds a chromatic scale from A4 by default', () => {
+    expect(Array.from(new ScaleBuilder().build(), String)).toEqual(
+      Array.from(chromatic('A', 4), String),
+    )
   })
 })
 
@@ -73,14 +74,15 @@ describe('Scale', () => {
     expect(scale.indexOfName('H')).toBe(-1)
   })
 
-  // BUG: Array methods build their result through Symbol.species, i.e.
-  // `new Scale(length)`, and the Scale constructor always pushes a root note.
-  test.fails('filter() can return an empty result', () => {
-    expect([...chromatic('C', 4).filter(() => false)]).toEqual([])
+  // Array methods build their result through Symbol.species. If that were
+  // Scale, its constructor would push a phantom root note into every result.
+  test('filter() can return an empty result', () => {
+    expect(chromatic('C', 4).filter(() => false)).toEqual([])
   })
 
-  // Same cause: map() returns a Scale (of strings, bypassing the Note guard).
-  test.fails('map() returns a plain array', () => {
-    expect(chromatic('C', 4).map(String)).not.toBeInstanceOf(Scale)
+  test('map() returns a plain array', () => {
+    const mapped = chromatic('C', 4).map(String)
+    expect(mapped).not.toBeInstanceOf(Scale)
+    expect(mapped.slice(0, 3)).toEqual(['C4', 'C#4', 'D4'])
   })
 })

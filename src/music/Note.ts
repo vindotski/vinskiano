@@ -17,7 +17,7 @@ class Note {
     }
 
     this.name = name
-    this.octave = options.octave || 4
+    this.octave = options.octave ?? 4
   }
 
   /** Same pitch: equal name and octave (notes are compared by value, not identity). */

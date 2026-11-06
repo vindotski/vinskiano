@@ -1,6 +1,6 @@
 import Note from './Note'
 import Scale from './Scale'
-import { ScaleStrategy } from './ScaleStrategy'
+import { ChromaticScaleStrategy, ScaleStrategy } from './ScaleStrategy'
 
 export interface ScaleBuilderOptions {
   rootNote?: Note
@@ -13,7 +13,7 @@ class ScaleBuilder {
 
   constructor(options: ScaleBuilderOptions = {}) {
     this.rootNote = options.rootNote || new Note()
-    this.strategy = options.strategy || new ScaleStrategy()
+    this.strategy = options.strategy || new ChromaticScaleStrategy()
   }
 
   build(): Scale {

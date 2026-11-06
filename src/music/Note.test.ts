@@ -28,8 +28,7 @@ describe('Note', () => {
     expect(a.equals(new Note({ name: 'C{sharp}', octave: 5 }))).toBe(false)
   })
 
-  // BUG: `options.octave || 4` treats octave 0 as missing.
-  test.fails('keeps octave 0', () => {
+  test('keeps octave 0', () => {
     expect(new Note({ name: 'C', octave: 0 }).octave).toBe(0)
   })
 })

@@ -22,12 +22,11 @@ describe('Frequency.fromNote', () => {
     expect(Frequency.fromNote(new Note({ name, octave })).hertz).toBeCloseTo(hertz, 3)
   })
 
-  // Octave 0 is left out because of the Note octave-0 bug (see Note.test.ts).
-  const allNotes = [1, 2, 3, 4, 5, 6, 7, 8].flatMap((octave) =>
+  const allNotes = [0, 1, 2, 3, 4, 5, 6, 7, 8].flatMap((octave) =>
     Octave.make().map((note, index) => ({ name: note.name, index, octave })),
   )
 
-  test('matches equal temperament for every note from C1 to B8', () => {
+  test('matches equal temperament for every note from C0 to B8', () => {
     for (const { name, index, octave } of allNotes) {
       const hertz = Frequency.fromNote(new Note({ name, octave })).hertz
       expect(hertz, `${name}${octave}`).toBeCloseTo(expectedHertz(index, octave), 6)

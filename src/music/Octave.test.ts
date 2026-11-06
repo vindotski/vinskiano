@@ -48,6 +48,12 @@ describe('Octave', () => {
     expect(() => octave.push(new Note())).toThrow(TypeError)
   })
 
+  test('map() and filter() return plain arrays', () => {
+    const octave = Octave.make()
+    expect(octave.map((note) => note.name)).not.toBeInstanceOf(Octave)
+    expect(octave.filter((note) => note.name.includes('{'))).toHaveLength(5)
+  })
+
   test('can be made from custom notes', () => {
     const octave = Octave.make([new Note({ name: 'C' }), new Note({ name: 'G' })])
     expect(names(octave)).toEqual(['C', 'G'])

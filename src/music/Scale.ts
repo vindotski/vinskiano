@@ -8,6 +8,12 @@ export interface ScaleOptions {
 class Scale extends Array<Note> {
   name: string
 
+  // Array methods (map, filter, slice, ...) create their result with
+  // `new this.constructor[Symbol.species](length)`. Return plain arrays instead.
+  static override get [Symbol.species](): ArrayConstructor {
+    return Array
+  }
+
   constructor(options: ScaleOptions = {}) {
     super()
 
