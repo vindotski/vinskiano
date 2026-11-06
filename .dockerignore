@@ -1,0 +1,11 @@
+# Keep the build context small and never send host-specific or generated files.
+.git
+.claude
+node_modules
+dist
+coverage
+test-results
+playwright-report
+*.log
+.DS_Store
+.env*

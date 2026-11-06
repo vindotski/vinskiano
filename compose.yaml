@@ -1,0 +1,36 @@
+# pnpm docker       production image (Caddy) on http://localhost:${PORT:-3000}
+# pnpm docker:dev   Vite dev server with hot reload, source bind-mounted
+# pnpm docker:test  lint + typecheck + unit tests in the dev container
+services:
+  app:
+    build:
+      context: .
+      target: production
+    ports:
+      - "${PORT:-3000}:80"
+
+  dev:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "${PORT:-3000}:3000"
+    volumes:
+      - .:/app
+      # Linux node_modules live in a named volume, never mixed with the host's macOS ones.
+      - node_modules:/app/node_modules
+    # Re-sync the volume with the lockfile on start (fast when nothing changed).
+    command: sh -c "pnpm install --frozen-lockfile && pnpm dev --host 0.0.0.0"
+
+  test:
+    profiles: [test]
+    build:
+      context: .
+      target: dev
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    command: sh -c "pnpm install --frozen-lockfile && pnpm check && pnpm typecheck && pnpm test"
+
+volumes:
+  node_modules:

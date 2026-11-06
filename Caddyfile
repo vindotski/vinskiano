@@ -1,0 +1,16 @@
+# Serves the Vite build. Plain HTTP on :80; TLS belongs to whatever fronts this in production.
+:80 {
+	root * /srv
+	encode zstd gzip
+
+	# Vite puts content hashes in asset file names, so they can be cached forever.
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+	# index.html must always be revalidated so new deploys show up.
+	@html path / /index.html
+	header @html Cache-Control "no-cache"
+
+	# Single-page app: unknown paths get index.html and the router takes over (404 included).
+	try_files {path} /index.html
+	file_server
+}

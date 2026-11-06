@@ -34,6 +34,9 @@ public/        Static assets copied as-is (favicon, manifest, icons)
 index.html     Vite entry HTML
 vite.config.ts
 tsconfig.json
+Dockerfile     Stages: base (Node + pinned pnpm), deps, dev, build, production (Caddy)
+Caddyfile      Static serving: SPA fallback, compression, cache headers
+compose.yaml   app / dev / test services
 ```
 
 ## Commands
@@ -47,6 +50,14 @@ pnpm typecheck  # tsc, strict, no emit
 pnpm test       # Vitest, once (pnpm test:watch to watch)
 pnpm test:e2e   # Playwright against the production build (builds + serves on :4173)
 pnpm verify     # everything: check, typecheck, unit and browser tests
+```
+
+Docker (nothing but Docker needed on the host; `PORT=3010 pnpm docker` if 3000 is busy):
+
+```bash
+pnpm docker       # production image: Vite build served by Caddy, on :3000
+pnpm docker:dev   # dev server with hot reload; source bind-mounted, node_modules in a named volume
+pnpm docker:test  # lint + typecheck + unit tests in the dev container
 pnpm check      # Biome: lint + format check (CI-safe, writes nothing)
 pnpm fix        # Biome: apply formatting and safe fixes
 ```
@@ -67,6 +78,12 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - Route components are thin: read state with `useSynth()` and render a component from `pages/`.
 - Use `Link` from `@tanstack/react-router`; it sets the `active` class itself (use `activeOptions={{ exact: true }}` for `/`).
 - TanStack ships version-matched agent skills (`react-router`, `router-plugin`), linked into `.claude/skills/` by pnpm (see `permissions` in `pnpm-workspace.yaml`). Read them before changing routing.
+
+## Docker
+
+- Base images are pinned by version **and** digest (`image:1.2.3@sha256:…`); update both together.
+- The production image is Caddy plus `dist/`, with no Node, npm or pnpm at runtime.
+- After changing dependencies, `pnpm docker:dev` re-syncs the `node_modules` volume on start; `docker compose down -v` resets it.
 
 ## Styling
 
