@@ -1,11 +1,11 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
+import React from 'react'
+import ReactDOM from 'react-dom'
+import './index.css'
 
-import App from './App';
+import App from './App'
 import './App.css'
 import { Context } from './audio'
-import { Note, ScaleBuilder, ChromaticScaleStrategy } from './music'
+import { ChromaticScaleStrategy, Note, ScaleBuilder } from './music'
 import './utils/disable-context-menu'
 
 const updateViewportVars = () => {
@@ -24,20 +24,19 @@ context.master.gain.value = 0.5
 
 const scaleOptions = {
   rootNote: new Note({ name: 'C', octave: 4 }),
-  strategy: new ChromaticScaleStrategy()
+  strategy: new ChromaticScaleStrategy(),
 }
 const scale = new ScaleBuilder(scaleOptions).build()
-scale.push(new Note({
-  name: scaleOptions.rootNote.name,
-  octave: scaleOptions.rootNote.octave + 1
-}))
+scale.push(
+  new Note({
+    name: scaleOptions.rootNote.name,
+    octave: scaleOptions.rootNote.octave + 1,
+  }),
+)
 
 ReactDOM.render(
   <React.StrictMode>
-    <App
-      context={context}
-      scale={scale}
-    />
+    <App context={context} scale={scale} />
   </React.StrictMode>,
-  document.getElementById('root')
-);
+  document.getElementById('root'),
+)

@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types'
-import ButtonToggle from './ButtonToggle'
+import SawtoothIcon from '../../waveform-sawtooth.svg'
 import SineIcon from '../../waveform-sine.svg'
 import SquareIcon from '../../waveform-square.svg'
 import TriangleIcon from '../../waveform-triangle.svg'
-import SawtoothIcon from '../../waveform-sawtooth.svg'
+import ButtonToggle from './ButtonToggle'
 
 const WaveformToggle = ({ value, onChange, label }) => {
   const getIcon = (value) => {
@@ -40,20 +40,20 @@ const WaveformToggle = ({ value, onChange, label }) => {
         options={[
           {
             value: 'sine',
-            label: 'Sine'
+            label: 'Sine',
           },
           {
             value: 'square',
-            label: 'Square'
+            label: 'Square',
           },
           {
             value: 'triangle',
-            label: 'Triangle'
+            label: 'Triangle',
           },
           {
             value: 'sawtooth',
-            label: 'Sawtooth'
-          }
+            label: 'Sawtooth',
+          },
         ]}
         render={render}
       />
@@ -64,12 +64,12 @@ const WaveformToggle = ({ value, onChange, label }) => {
 ButtonToggle.propTypes = {
   value: PropTypes.string.isRequired,
   onChange: PropTypes.func,
-  label: PropTypes.string
+  label: PropTypes.string,
 }
 
 ButtonToggle.defaultProps = {
   onChange: () => {},
-  label: 'Waveform'
+  label: 'Waveform',
 }
 
 export default WaveformToggle

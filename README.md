@@ -62,8 +62,8 @@ Serve files in `build` directory.
 
 ## Scripts
 
-* `yarn start` - starts project for development
-* `yarn build` - builds project for production
+- `yarn start` - starts project for development
+- `yarn build` - builds project for production
 
 ## Release History
 

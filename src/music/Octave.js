@@ -13,10 +13,10 @@ class Octave extends Array {
     new Note({ name: 'G{sharp}', octave: -1 }),
     new Note({ name: 'A', octave: -1 }),
     new Note({ name: 'A{sharp}', octave: -1 }),
-    new Note({ name: 'B', octave: -1 })
+    new Note({ name: 'B', octave: -1 }),
   ]
 
-  constructor () {
+  constructor() {
     super()
 
     return new Proxy(this, {
@@ -26,22 +26,22 @@ class Octave extends Array {
         }
 
         return Reflect.get(object, key, receiver)
-      }
+      },
     })
   }
 
-  get (index) {
+  get(index) {
     return this[index % this.length]
   }
 
-  indexOf (noteName) {
-    return this.findIndex(note => noteName === note.name)
+  indexOf(noteName) {
+    return this.findIndex((note) => noteName === note.name)
   }
 
-  static make (notes = null) {
-    const octave = new Octave();
-    (notes || this.DEFAULT).forEach(note => (octave.push(note)));
-    Object.freeze(octave);
+  static make(notes = null) {
+    const octave = new Octave()
+    ;(notes || this.DEFAULT).forEach((note) => octave.push(note))
+    Object.freeze(octave)
     return octave
   }
 }

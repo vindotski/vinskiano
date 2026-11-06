@@ -1,14 +1,14 @@
 import Note from './Note'
 
 class Scale extends Array {
-  constructor (options = {}) {
+  constructor(options = {}) {
     super()
 
     this.name = options.name || 'Unnamed Scale'
     this.push(options.rootNote || new Note())
   }
 
-  push (note) {
+  push(note) {
     if (!(note instanceof Note)) {
       throw new Error('Scale can only contain Note objects')
     }
@@ -16,8 +16,8 @@ class Scale extends Array {
     super.push(note)
   }
 
-  indexOf (noteName) {
-    return this.findIndex(note => noteName === note.name)
+  indexOf(noteName) {
+    return this.findIndex((note) => noteName === note.name)
   }
 }
 

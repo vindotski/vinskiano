@@ -1,13 +1,11 @@
-import React from 'react'
 import PropTypes from 'prop-types'
+import React from 'react'
 
 class MixerSection extends React.Component {
-  render () {
+  render() {
     return (
       <div className={`mixer-section ${this.props.className}`}>
-        <div className="mixer-section-body">
-          {this.props.children}
-        </div>
+        <div className="mixer-section-body">{this.props.children}</div>
       </div>
     )
   }
@@ -15,11 +13,11 @@ class MixerSection extends React.Component {
 
 MixerSection.propTypes = {
   title: PropTypes.string.isRequired,
-  className: PropTypes.string
+  className: PropTypes.string,
 }
 
 MixerSection.defaultProps = {
-  className: ''
+  className: '',
 }
 
 export default MixerSection

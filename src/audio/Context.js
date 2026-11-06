@@ -1,4 +1,4 @@
-function make () {
+function make() {
   const audioContext = new (window.AudioContext || window.webkitAudioContext)()
 
   const master = audioContext.createGain()

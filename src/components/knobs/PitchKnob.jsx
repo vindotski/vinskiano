@@ -4,23 +4,18 @@ import Knob from './Knob'
 const PitchKnob = ({ value, onChange }) => {
   return (
     <>
-      <Knob
-        value={value}
-        min={-24}
-        max={24}
-        onChange={onChange}
-      />
+      <Knob value={value} min={-24} max={24} onChange={onChange} />
     </>
   )
 }
 
 PitchKnob.propTypes = {
   value: PropTypes.number.isRequired,
-  onChange: PropTypes.func
+  onChange: PropTypes.func,
 }
 
 PitchKnob.defaultProps = {
-  onChange: () => {}
+  onChange: () => {},
 }
 
 export default PitchKnob

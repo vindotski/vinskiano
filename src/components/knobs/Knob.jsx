@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types'
-import { CircleSlider } from "react-circle-slider"
+import { CircleSlider } from 'react-circle-slider'
 
 const Knob = ({ value, min, max, onChange }) => {
   return (
@@ -23,13 +23,13 @@ Knob.propTypes = {
   value: PropTypes.number.isRequired,
   min: PropTypes.number,
   max: PropTypes.number,
-  onChange: PropTypes.func
+  onChange: PropTypes.func,
 }
 
 Knob.defaultProps = {
   min: 0,
   max: 100,
-  onChange: () => {}
+  onChange: () => {},
 }
 
 export default Knob

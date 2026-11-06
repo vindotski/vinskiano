@@ -1,8 +1,8 @@
-import React from 'react'
 import PropTypes from 'prop-types'
+import React from 'react'
 
 class Slider extends React.Component {
-  render () {
+  render() {
     return (
       <div className="input-group">
         <label className="input-group-label">
@@ -28,14 +28,14 @@ Slider.propTypes = {
   value: PropTypes.any.isRequired,
   onChange: PropTypes.func,
   min: PropTypes.any,
-  max: PropTypes.any
+  max: PropTypes.any,
 }
 
 Slider.defaultProps = {
   label: '',
   onChange: () => {},
   min: 0,
-  max: 100
+  max: 100,
 }
 
 export default Slider

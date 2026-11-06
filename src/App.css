@@ -177,7 +177,7 @@ button {
 }
 
 button.toggled {
-  background: #0075FF;
+  background: #0075ff;
   color: #fff;
 }
 
@@ -218,7 +218,7 @@ button.toggled {
 .navbar {
   display: flex;
   justify-content: space-between;
-  background-color: #1A1A1A;
+  background-color: #1a1a1a;
   color: #fff;
   padding: 0.5em 1em;
   font-size: 1.25em;
@@ -233,7 +233,7 @@ button.toggled {
 }
 
 .navbar .navbar-link.active {
-  color: #0075FF;
+  color: #0075ff;
 }
 
 .navbar .navbar-content {
@@ -264,7 +264,7 @@ button.toggled {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: #1A1A1A;
+  background-color: #1a1a1a;
   color: #fff;
   font-size: 2em;
 }

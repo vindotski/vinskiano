@@ -1,5 +1,5 @@
 class Oscillator {
-  constructor (options) {
+  constructor(options) {
     const { context, destination } = options
 
     if (!context) {
@@ -22,7 +22,7 @@ class Oscillator {
     this.sounds = []
   }
 
-  emit (hertz) {
+  emit(hertz) {
     const signal = this.context.createOscillator()
     signal.type = this.waveform
     signal.detune.value = this.pitch * 100
@@ -38,14 +38,14 @@ class Oscillator {
     }
     sound.stop = () => {
       signal.stop()
-      this.sounds = this.sounds.filter(s => sound !== s)
+      this.sounds = this.sounds.filter((s) => sound !== s)
     }
 
     return sound
   }
 
-  stop () {
-    [...this.sounds].forEach(sound => (sound.stop()))
+  stop() {
+    ;[...this.sounds].forEach((sound) => sound.stop())
   }
 }
 

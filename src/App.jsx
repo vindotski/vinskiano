@@ -1,23 +1,19 @@
-import React from 'react'
-import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
-} from 'react-router-dom'
 import PropTypes from 'prop-types'
-import { Frequency } from './music'
+import React from 'react'
+import { Route, BrowserRouter as Router, Switch } from 'react-router-dom'
 import { Oscillator } from './audio'
 import Oscilloscope from './audio/Oscilloscope'
 import Navbar from './components/Navbar'
-import PianoRoll from './pages/PianoRoll'
-import Oscillators from './pages/Oscillators'
+import { Frequency } from './music'
 import NotFound from './pages/NotFound'
+import Oscillators from './pages/Oscillators'
+import PianoRoll from './pages/PianoRoll'
 
 class App extends React.Component {
   state = {
     master: {
       gain: this.props.context.master.gain.value,
-      oscilloscope: new Oscilloscope(this.props.context, this.props.context.master)
+      oscilloscope: new Oscilloscope(this.props.context, this.props.context.master),
     },
     oscillators: [
       new Oscillator({
@@ -25,27 +21,27 @@ class App extends React.Component {
         context: this.props.context,
         destination: this.props.context.master,
         pitch: -12,
-        volume: 0.5
+        volume: 0.5,
       }),
       new Oscillator({
         id: 2,
         context: this.props.context,
         destination: this.props.context.master,
         pitch: 0,
-        volume: 0.25
+        volume: 0.25,
       }),
       new Oscillator({
         id: 3,
         context: this.props.context,
         destination: this.props.context.master,
         pitch: 12,
-        volume: 0.75
-      })
+        volume: 0.75,
+      }),
     ],
-    sounds: []
+    sounds: [],
   }
 
-  render () {
+  render() {
     return (
       <div className="App">
         <Router>
@@ -82,7 +78,7 @@ class App extends React.Component {
     this.props.context.resume()
 
     const newSounds = []
-    this.state.oscillators.forEach(oscillator => {
+    this.state.oscillators.forEach((oscillator) => {
       const hertz = Frequency.fromNote(note).hertz
       const sound = oscillator.emit(hertz)
       sound.note = note
@@ -92,18 +88,17 @@ class App extends React.Component {
     })
 
     this.setState({
-      sounds: [
-        ...this.state.sounds,
-        ...newSounds
-      ]
+      sounds: [...this.state.sounds, ...newSounds],
     })
   }
 
   release = (note) => {
-    const noteSounds = this.state.sounds.filter(s => note.name === s.note.name && note.octave === s.note.octave)
-    noteSounds.forEach(sound => (sound.stop()))
+    const noteSounds = this.state.sounds.filter(
+      (s) => note.name === s.note.name && note.octave === s.note.octave,
+    )
+    noteSounds.forEach((sound) => sound.stop())
 
-    const sounds = this.state.sounds.filter(s => (note !== s.note))
+    const sounds = this.state.sounds.filter((s) => note !== s.note)
     this.setState({ sounds })
   }
 
@@ -114,7 +109,7 @@ class App extends React.Component {
 
   updateOscillator = (id, options) => {
     const oscillators = this.state.oscillators.slice()
-    const oscillatorIndex = oscillators.findIndex(o => id === o.id)
+    const oscillatorIndex = oscillators.findIndex((o) => id === o.id)
     const oscillator = oscillators[oscillatorIndex]
 
     if (!oscillator) {
@@ -132,7 +127,7 @@ class App extends React.Component {
 
 App.propTypes = {
   context: PropTypes.object.isRequired,
-  scale: PropTypes.array.isRequired
+  scale: PropTypes.array.isRequired,
 }
 
 export default App

@@ -1,7 +1,7 @@
 const NAME_PATTERN = /^[a-gA-G]({sharp}|{flat})?$/
 
 class Note {
-  constructor (options = {}) {
+  constructor(options = {}) {
     const name = options.name || 'A'
 
     if (!NAME_PATTERN.test(name)) {
@@ -12,10 +12,10 @@ class Note {
     this.octave = options.octave || 4
   }
 
-  toString () {
+  toString() {
     let name = this.name
     name = name.replace('{sharp}', '#')
-    name = name.replace('{flat}',' b')
+    name = name.replace('{flat}', ' b')
     return `${name}${this.octave}`
   }
 }

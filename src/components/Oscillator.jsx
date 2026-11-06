@@ -1,53 +1,37 @@
-import React from 'react'
 import PropTypes from 'prop-types'
-import WaveformToggle from './toggles/WaveformToggle'
+import React from 'react'
 import PitchKnob from './knobs/PitchKnob'
 import VolumeKnob from './knobs/VolumeKnob'
+import WaveformToggle from './toggles/WaveformToggle'
 
 class Oscillator extends React.Component {
-  render () {
+  render() {
     return (
       <div className="oscillator">
         <span class="oscillator-label">{this.props.label || ''}</span>
 
-        <VolumeKnob
-          value={this.props.volume}
-          onChange={(volume) => this.update({ volume })}
-        />
+        <VolumeKnob value={this.props.volume} onChange={(volume) => this.update({ volume })} />
 
         <WaveformToggle
           value={this.props.waveform}
           onChange={(waveform) => this.update({ waveform })}
         />
 
-        <PitchKnob
-          value={this.props.pitch}
-          onChange={(pitch) => this.update({ pitch })}
-        />
+        <PitchKnob value={this.props.pitch} onChange={(pitch) => this.update({ pitch })} />
 
-        {
-          !!this.props.showLabels
-          ? (
-            <>
-              <span className="oscillator-helper-label">
-                Osc #
-              </span>
+        {!!this.props.showLabels ? (
+          <>
+            <span className="oscillator-helper-label">Osc #</span>
 
-              <span className="oscillator-helper-label">
-                Volume
-              </span>
+            <span className="oscillator-helper-label">Volume</span>
 
-              <span className="oscillator-helper-label">
-                Waveform
-              </span>
+            <span className="oscillator-helper-label">Waveform</span>
 
-              <span className="oscillator-helper-label">
-                Pitch
-              </span>
-            </>
-          )
-          : ''
-        }
+            <span className="oscillator-helper-label">Pitch</span>
+          </>
+        ) : (
+          ''
+        )}
       </div>
     )
   }
@@ -56,18 +40,18 @@ class Oscillator extends React.Component {
     const defaults = {
       waveform: this.props.waveform,
       pitch: this.props.pitch,
-      volume: this.props.volume
+      volume: this.props.volume,
     }
 
     const newValues = {
       ...defaults,
-      ...options
+      ...options,
     }
 
     this.props.onChange(this.props.id, {
       ...newValues,
       pitch: parseInt(newValues.pitch),
-      volume: parseFloat(newValues.volume)
+      volume: parseFloat(newValues.volume),
     })
   }
 }
@@ -79,12 +63,12 @@ Oscillator.propTypes = {
   volume: PropTypes.number.isRequired,
   onChange: PropTypes.func,
   label: PropTypes.string,
-  showLabels: PropTypes.bool
+  showLabels: PropTypes.bool,
 }
 
 Oscillator.defaultProps = {
   onChange: () => {},
-  showLabels: true
+  showLabels: true,
 }
 
 export default Oscillator

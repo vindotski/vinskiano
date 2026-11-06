@@ -1,10 +1,10 @@
-import React from 'react'
 import PropTypes from 'prop-types'
+import React from 'react'
 import MixerSection from './MixerSection'
 import Oscillator from './Oscillator'
 
 class OscillatorsMixerSection extends React.Component {
-  render () {
+  render() {
     return (
       <MixerSection title="Oscillators" className="mixer-section--oscillators">
         {this.props.oscillators.map((oscillator, index) => (
@@ -23,11 +23,11 @@ class OscillatorsMixerSection extends React.Component {
 
 OscillatorsMixerSection.propTypes = {
   oscillators: PropTypes.array.isRequired,
-  onChange: PropTypes.func
+  onChange: PropTypes.func,
 }
 
 OscillatorsMixerSection.defaultProps = {
-  onChange: () => {}
+  onChange: () => {},
 }
 
 export default OscillatorsMixerSection

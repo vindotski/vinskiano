@@ -1,12 +1,12 @@
-import React from 'react'
 import PropTypes from 'prop-types'
+import React from 'react'
 
 class PianoKey extends React.Component {
   state = {
-    active: false
+    active: false,
   }
 
-  render () {
+  render() {
     return (
       <button
         className={this.classes()}
@@ -37,7 +37,7 @@ class PianoKey extends React.Component {
   classes = () => {
     const classList = [
       'piano-key',
-      `piano-key--${!this.props.note.name.includes('{') ? 'white' : 'black'}`
+      `piano-key--${!this.props.note.name.includes('{') ? 'white' : 'black'}`,
     ]
 
     if (this.state.active) {
@@ -69,12 +69,12 @@ class PianoKey extends React.Component {
 PianoKey.propTypes = {
   note: PropTypes.object.isRequired,
   onTrigger: PropTypes.func,
-  onRelease: PropTypes.func
+  onRelease: PropTypes.func,
 }
 
 PianoKey.defaultProps = {
   onTrigger: () => {},
-  onRelease: () => {}
+  onRelease: () => {},
 }
 
 export default PianoKey

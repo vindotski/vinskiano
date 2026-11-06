@@ -15,7 +15,7 @@ The first commit should make the repo easy for an AI agent to work in.
   - Look for existing ones before writing your own. TagTape used [antfu/skills](https://github.com/antfu/skills) (`pnpm`, `vitest`) and [mcollina/skills](https://github.com/mcollina/skills) (`node`).
   - Install them into `.claude/skills/` and track them in `skills-lock.json`.
   - Libraries increasingly ship their own skills; TanStack does, through **TanStack Intent** (`pnpm exec intent load <skill>`). Prefer those, since they match the installed version.
-- **A `commit-message` skill** (Conventional Commits, with your scopes) so the agent *suggests* messages and you commit.
+- **A `commit-message` skill** (Conventional Commits, with your scopes) so the agent _suggests_ messages and you commit.
 - **Ground rules worth writing down early:**
   - **You make every commit and push**; the agent never does.
   - **One step = one commit.** Plan first, then review each step before committing.
@@ -32,18 +32,19 @@ The first commit should make the repo easy for an AI agent to work in.
 
 ## 2. Toolchain swap
 
-| Old (Vinskiano today) | Modern | Why |
-|---|---|---|
-| Create React App (`react-scripts`) | **Vite** | CRA is deprecated. Vite starts in milliseconds and handles Web Workers, WASM and AudioWorklets natively. |
-| yarn v1 | **pnpm** | Fast, strict, with workspaces and built-in supply-chain settings |
-| JavaScript | **TypeScript (strict)** | Catches bugs in audio and DSP code that's hard to test by ear |
-| ESLint + CRA config | **Biome** | One fast tool for linting and formatting, one config file |
-| Jest (via CRA) | **Vitest** + Testing Library | Same API as Jest, runs on Vite's config |
-| — | **Playwright** | Real browser checks, which matters for Web Audio |
-| React 17, react-router 5 | **React 19**, **TanStack Router** (file-based, type-safe) or React Router 7 | Both of the old versions are years out of date |
-| CSS files | **Tailwind CSS v4** + **shadcn/ui** | Design tokens, dark mode, accessible components |
+| Old (Vinskiano today)              | Modern                                                                      | Why                                                                                                      |
+| ---------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Create React App (`react-scripts`) | **Vite**                                                                    | CRA is deprecated. Vite starts in milliseconds and handles Web Workers, WASM and AudioWorklets natively. |
+| yarn v1                            | **pnpm**                                                                    | Fast, strict, with workspaces and built-in supply-chain settings                                         |
+| JavaScript                         | **TypeScript (strict)**                                                     | Catches bugs in audio and DSP code that's hard to test by ear                                            |
+| ESLint + CRA config                | **Biome**                                                                   | One fast tool for linting and formatting, one config file                                                |
+| Jest (via CRA)                     | **Vitest** + Testing Library                                                | Same API as Jest, runs on Vite's config                                                                  |
+| —                                  | **Playwright**                                                              | Real browser checks, which matters for Web Audio                                                         |
+| React 17, react-router 5           | **React 19**, **TanStack Router** (file-based, type-safe) or React Router 7 | Both of the old versions are years out of date                                                           |
+| CSS files                          | **Tailwind CSS v4** + **shadcn/ui**                                         | Design tokens, dark mode, accessible components                                                          |
 
 **Notes from TagTape:**
+
 - **Node 24:** run TypeScript with Node's native type stripping where a build step isn't needed.
 - **pnpm settings** live in `pnpm-workspace.yaml`, not `.npmrc`. Pin the pnpm version via `packageManager` in `package.json`.
 - **Write the supply-chain settings out explicitly:** `minimumReleaseAge: 1440` (never install a release under a day old), `trustPolicy: no-downgrade`, `blockExoticSubdeps: true`, `strictDepBuilds: true`, plus an `allowBuilds` list of the packages allowed to run install scripts. If `trustPolicy` flags something, find out why before adding an exception.

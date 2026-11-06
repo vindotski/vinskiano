@@ -1,5 +1,5 @@
 class Oscilloscope {
-  constructor (context, source) {
+  constructor(context, source) {
     const analyzer = context.createAnalyser()
     analyzer.fftSize = 2048
     source.connect(analyzer)
@@ -10,7 +10,7 @@ class Oscilloscope {
     this.graph = []
   }
 
-  update () {
+  update() {
     this.analyzer.getByteTimeDomainData(this.buffer)
     this.graph = []
 

@@ -1,12 +1,12 @@
-import React from 'react'
 import PropTypes from 'prop-types'
+import React from 'react'
 
 class Oscilloscope extends React.Component {
   state = {
-    canvas: React.createRef()
+    canvas: React.createRef(),
   }
 
-  componentDidMount () {
+  componentDidMount() {
     const { oscilloscope } = this.props
     const canvas = this.state.canvas.current
 
@@ -22,11 +22,11 @@ class Oscilloscope extends React.Component {
       context.strokeStyle = 'rgb(0, 0, 0)'
       context.beginPath()
 
-      const sliceWidth = context.canvas.width * 1.0 / bufferLength
+      const sliceWidth = (context.canvas.width * 1.0) / bufferLength
       let x = 0
 
       for (let i = 0; i < bufferLength; i++) {
-        const y = nodes[i] * context.canvas.height / 2
+        const y = (nodes[i] * context.canvas.height) / 2
 
         if (i === 0) {
           context.moveTo(x, y)
@@ -46,18 +46,13 @@ class Oscilloscope extends React.Component {
     requestAnimationFrame(update)
   }
 
-  render () {
-    return (
-      <canvas
-        ref={this.state.canvas}
-        className="oscilloscope"
-      />
-    )
+  render() {
+    return <canvas ref={this.state.canvas} className="oscilloscope" />
   }
 }
 
 Oscilloscope.propTypes = {
-  oscilloscope: PropTypes.object.isRequired
+  oscilloscope: PropTypes.object.isRequired,
 }
 
 export default Oscilloscope

@@ -1,11 +1,11 @@
-import React from 'react'
 import PropTypes from 'prop-types'
+import React from 'react'
 import MixerSection from './MixerSection'
-import Slider from './Slider'
 import Oscilloscope from './Oscilloscope'
+import Slider from './Slider'
 
 class MasterMixerSection extends React.Component {
-  render () {
+  render() {
     return (
       <MixerSection title="Master" className="mixer-section--master">
         <Slider
@@ -14,10 +14,7 @@ class MasterMixerSection extends React.Component {
           onChange={this.updateGain}
         />
 
-        <label
-          className="input-group-label"
-          style={{ marginBottom: '0.7em' }}
-        >
+        <label className="input-group-label" style={{ marginBottom: '0.7em' }}>
           Oscilloscope
         </label>
         <Oscilloscope oscilloscope={this.props.oscilloscope} />
@@ -27,24 +24,24 @@ class MasterMixerSection extends React.Component {
 
   updateGain = (e) => {
     this.update({
-      gain: parseFloat(e.target.value) / 100
+      gain: parseFloat(e.target.value) / 100,
     })
   }
 
   update = (options) => {
     const defaults = {
       gain: this.props.gain,
-      oscilloscope: this.props.oscilloscope
+      oscilloscope: this.props.oscilloscope,
     }
 
     const newValues = {
       ...defaults,
-      ...options
+      ...options,
     }
 
     this.props.onChange({
       ...newValues,
-      gain: parseFloat(newValues.gain)
+      gain: parseFloat(newValues.gain),
     })
   }
 }
@@ -52,11 +49,11 @@ class MasterMixerSection extends React.Component {
 MasterMixerSection.propTypes = {
   gain: PropTypes.number.isRequired,
   oscilloscope: PropTypes.object.isRequired,
-  onChange: PropTypes.func
+  onChange: PropTypes.func,
 }
 
 MasterMixerSection.defaultProps = {
-  onChange: () => {}
+  onChange: () => {},
 }
 
 export default MasterMixerSection

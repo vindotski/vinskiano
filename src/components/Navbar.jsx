@@ -9,22 +9,13 @@ const Navbar = () => {
 
       <ul className="navbar-content">
         <li className="navbar-item">
-          <NavLink
-            to="/"
-            className="navbar-link"
-            activeClassName="active"
-            exact
-          >
+          <NavLink to="/" className="navbar-link" activeClassName="active" exact>
             Piano Roll
           </NavLink>
         </li>
 
         <li className="navbar-item">
-          <NavLink
-            to="/oscillators"
-            className="navbar-link"
-            activeClassName="active"
-          >
+          <NavLink to="/oscillators" className="navbar-link" activeClassName="active">
             Oscillators
           </NavLink>
         </li>

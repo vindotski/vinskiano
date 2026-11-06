@@ -1,9 +1,5 @@
 const Toolbar = ({ children }) => {
-  return (
-    <div className="toolbar">
-      {children}
-    </div>
-  )
+  return <div className="toolbar">{children}</div>
 }
 
 export default Toolbar

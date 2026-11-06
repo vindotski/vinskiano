@@ -1,12 +1,12 @@
+import PropTypes from 'prop-types'
 import React from 'react'
-import PropTypes from 'prop-types';
 import PianoKey from './PianoKey'
 
 class Piano extends React.Component {
-  render () {
+  render() {
     return (
       <div className="piano">
-        {this.props.notes.map(note => (
+        {this.props.notes.map((note) => (
           <PianoKey
             key={note}
             note={note}
@@ -22,12 +22,12 @@ class Piano extends React.Component {
 Piano.propTypes = {
   notes: PropTypes.array.isRequired,
   onTrigger: PropTypes.func,
-  onRelease: PropTypes.func
+  onRelease: PropTypes.func,
 }
 
 Piano.defaultProps = {
   onTrigger: () => {},
-  onRelease: () => {}
+  onRelease: () => {},
 }
 
 export default Piano
