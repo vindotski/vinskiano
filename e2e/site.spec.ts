@@ -41,5 +41,5 @@ test('old /oscillators links redirect into the app', async ({ page, request }) =
   const response = await request.get('/oscillators', { maxRedirects: 0 })
   expect(response.status()).toBe(301)
   await page.goto('/oscillators')
-  await expect(page).toHaveURL('/app/oscillators')
+  await expect(page).toHaveURL('/app')
 })

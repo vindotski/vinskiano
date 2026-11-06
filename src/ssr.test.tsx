@@ -2,8 +2,8 @@
 // Rendering the pages to a string here proves they are safe to server-render.
 import { renderToString } from 'react-dom/server'
 import { describe, expect, test } from 'vitest'
+import AppBar from './components/AppBar'
 import { KEYBOARD_NOTES } from './music'
-import Oscillators from './pages/Oscillators'
 import PianoRoll from './pages/PianoRoll'
 
 const noop = () => {}
@@ -30,22 +30,21 @@ describe('server rendering', () => {
     expect(html.match(/class="piano-key /g)).toHaveLength(13)
   })
 
-  test('the oscillators page renders without an audio engine', () => {
+  test('the app bar renders without an audio engine', () => {
     const html = renderToString(
-      <Oscillators
-        master={{ gain: 0.5 }}
-        oscilloscope={null}
+      <AppBar
         oscillators={[
           { id: 1, waveform: 'sine', pitch: -12, volume: 0.5 },
           { id: 2, waveform: 'square', pitch: 0, volume: 0.25 },
         ]}
-        onTrigger={noop}
-        onRelease={noop}
-        onMasterChange={noop}
         onOscillatorChange={noop}
+        master={{ gain: 0.5 }}
+        onMasterChange={noop}
+        oscilloscope={null}
       />,
     )
     expect(html).toContain('Oscillator 2 pitch')
+    expect(html).toContain('Master volume')
     expect(html).toContain('canvas')
   })
 })

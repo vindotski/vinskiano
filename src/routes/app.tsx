@@ -1,7 +1,8 @@
-import { createFileRoute, Outlet } from '@tanstack/react-router'
+import { createFileRoute, Link, Outlet } from '@tanstack/react-router'
 import { LazyMotion, MotionConfig } from 'motion/react'
-import Navbar from '../components/Navbar'
-import { SynthProvider } from '../synth/SynthProvider'
+import AppBar from '../components/AppBar'
+import Logo from '../components/icons/Logo'
+import { SynthProvider, useSynth } from '../synth/SynthProvider'
 
 /** The synth: owns the audio engine, so it only exists under /app (the site never creates one). */
 export const Route = createFileRoute('/app')({
@@ -22,7 +23,7 @@ function AppLayout() {
           <div className="fixed inset-0 overflow-hidden">
             {/* Fills the real viewport (dvh tracks mobile browser bars). Held upright, a phone gets the app rotated to landscape. */}
             <div className="flex h-dvh w-screen flex-col portrait:absolute portrait:top-[-100vw] portrait:left-0 portrait:h-[100vw] portrait:w-[100dvh] portrait:origin-bottom-left portrait:rotate-90 portrait:overflow-auto">
-              <Navbar />
+              <SynthBar />
               {/* The page area is what transitions between pages (view-transition-name: page). */}
               <main className="flex min-h-0 flex-1 flex-col [view-transition-name:page]">
                 <Outlet />
@@ -32,5 +33,28 @@ function AppLayout() {
         </SynthProvider>
       </MotionConfig>
     </LazyMotion>
+  )
+}
+
+/** The app bar, wired to the synth. */
+function SynthBar() {
+  const synth = useSynth()
+  return (
+    <AppBar
+      start={
+        <Link
+          to="/"
+          aria-label="Vinskiano home"
+          className="rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+        >
+          <Logo className="size-7" />
+        </Link>
+      }
+      oscillators={synth.oscillators}
+      onOscillatorChange={synth.updateOscillator}
+      master={synth.master}
+      onMasterChange={synth.updateMaster}
+      oscilloscope={synth.oscilloscope}
+    />
   )
 }

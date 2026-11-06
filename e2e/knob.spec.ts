@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures'
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/app/oscillators')
+  await page.goto('/app')
 })
 
 test('knobs are named sliders with readable values', async ({ page }) => {
@@ -52,9 +52,10 @@ async function turnKnob(page: import('@playwright/test').Page, name: string, deg
   if (!box) throw new Error(`${name} not visible`)
   const cx = box.x + box.width / 2
   const cy = box.y + box.height / 2
+  const radius = box.width * 0.38 // inside the dial at any knob size
   const at = (deg: number) => ({
-    x: cx + 25 * Math.sin((deg * Math.PI) / 180),
-    y: cy - 25 * Math.cos((deg * Math.PI) / 180),
+    x: cx + radius * Math.sin((deg * Math.PI) / 180),
+    y: cy - radius * Math.cos((deg * Math.PI) / 180),
   })
   await page.mouse.move(at(0).x, at(0).y)
   await page.mouse.down()
@@ -106,7 +107,7 @@ test('the drawing eases to a new value while the value itself changes at once', 
 test('knobs still draw their value if Motion’s lazy features never load', async ({ browser }) => {
   const page = await browser.newPage()
   await page.route('**/motion-features-*.js', (route) => route.abort())
-  await page.goto('/app/oscillators')
+  await page.goto('/app')
   const pitch = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
   await pitch.focus()
   await page.keyboard.press('End')

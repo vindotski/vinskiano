@@ -3,16 +3,23 @@ import PitchKnob from './knobs/PitchKnob'
 import VolumeKnob from './knobs/VolumeKnob'
 import WaveformToggle from './toggles/WaveformToggle'
 
-/** Shared with the header row in OscillatorsMixerSection so the columns line up. */
-export const OSCILLATOR_GRID =
-  'grid grid-cols-[3rem_1fr_auto_1fr] items-center justify-items-center gap-x-4'
-
 interface OscillatorProps extends OscillatorSettings {
   id: number
   label: string
   onChange: (id: number, settings: OscillatorSettings) => void
 }
 
+/** A small caption under a knob. Visual only: each knob already has an accessible name. */
+const Caption = ({ children }: { children: string }) => (
+  <span
+    aria-hidden="true"
+    className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase short:hidden"
+  >
+    {children}
+  </span>
+)
+
+/** One oscillator as a compact strip: number, volume, waveform, pitch. */
 const Oscillator = ({ id, label, waveform, pitch, volume, onChange }: OscillatorProps) => {
   const name = `Oscillator ${label}`
   const update = (changes: Partial<OscillatorSettings>) => {
@@ -22,18 +29,37 @@ const Oscillator = ({ id, label, waveform, pitch, volume, onChange }: Oscillator
 
   return (
     // `oscillator` is a hook for tests.
-    <div className={`oscillator ${OSCILLATOR_GRID}`}>
-      <span className="grid size-8 place-items-center rounded-full bg-foreground text-sm font-semibold text-background">
+    <fieldset aria-label={name} className="oscillator flex items-center gap-1.5 xl:gap-2">
+      <span
+        aria-hidden="true"
+        className="grid size-5 place-items-center rounded-full bg-foreground text-[11px] font-semibold text-background xl:size-6 xl:text-xs"
+      >
         {label}
       </span>
-      <VolumeKnob label={`${name} volume`} value={volume} onChange={(v) => update({ volume: v })} />
+      <div className="flex flex-col items-center">
+        <VolumeKnob
+          label={`${name} volume`}
+          value={volume}
+          onChange={(v) => update({ volume: v })}
+          className="size-9 xl:size-12"
+        />
+        <Caption>Vol</Caption>
+      </div>
       <WaveformToggle
         label={`${name} waveform`}
         value={waveform}
         onChange={(w) => update({ waveform: w })}
       />
-      <PitchKnob label={`${name} pitch`} value={pitch} onChange={(p) => update({ pitch: p })} />
-    </div>
+      <div className="flex flex-col items-center">
+        <PitchKnob
+          label={`${name} pitch`}
+          value={pitch}
+          onChange={(p) => update({ pitch: p })}
+          className="size-9 xl:size-12"
+        />
+        <Caption>Pitch</Caption>
+      </div>
+    </fieldset>
   )
 }
 

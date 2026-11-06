@@ -48,7 +48,7 @@ test('dragging off a held key releases the note', async ({ page }) => {
 })
 
 test('waveform and pitch changes reach the audio graph', async ({ page }) => {
-  await page.goto('/app/oscillators')
+  await page.goto('/app')
 
   await page
     .getByRole('radiogroup', { name: 'Oscillator 1 waveform' })
@@ -60,7 +60,7 @@ test('waveform and pitch changes reach the audio graph', async ({ page }) => {
   await expect(pitch2).toHaveValue('24')
 
   await resetAudioLog(page)
-  await page.getByRole('button', { name: 'Preview' }).hover()
+  await page.locator('.piano-key').first().hover()
   await page.mouse.down()
   const { started } = await audioLog(page)
   await page.mouse.up()
@@ -70,8 +70,8 @@ test('waveform and pitch changes reach the audio graph', async ({ page }) => {
 })
 
 test('master volume can be set to any value (no float truncation)', async ({ page }) => {
-  await page.goto('/app/oscillators')
-  const volume = page.getByRole('slider', { name: 'Master Volume' })
+  await page.goto('/app')
+  const volume = page.getByRole('slider', { name: 'Master volume' })
   // 29, 57 and 58 used to snap down: 29 / 100 * 100 === 28.999999999999996
   for (const value of ['28', '29', '57', '58', '100', '0']) {
     await volume.fill(value)
@@ -79,10 +79,9 @@ test('master volume can be set to any value (no float truncation)', async ({ pag
   }
 })
 
-test('the oscilloscope draws while playing and stops when you leave the page', async ({ page }) => {
-  await page.goto('/app/oscillators')
-  const preview = page.getByRole('button', { name: 'Preview' })
-  await preview.hover()
+test('the oscilloscope draws while playing and stops when you leave the app', async ({ page }) => {
+  await page.goto('/app')
+  await page.locator('.piano-key').nth(9).hover()
   await page.mouse.down()
   await page.waitForTimeout(300)
 
@@ -109,20 +108,12 @@ test('the oscilloscope draws while playing and stops when you leave the page', a
   // A flat line covers a few percent of the rows; three stacked sines cover most of them.
   expect(lineRows).toBeGreaterThan(0.3)
 
-  await page.getByRole('link', { name: 'Piano Roll' }).click()
+  await page.getByRole('link', { name: 'Vinskiano home' }).click()
+  await expect(page).toHaveURL('/')
   await page.waitForTimeout(100)
   await resetAudioLog(page)
   await page.waitForTimeout(500)
   expect((await audioLog(page)).analyserReads).toBe(0)
-})
-
-test('Preview plays while Space is held', async ({ page }) => {
-  await page.goto('/app/oscillators')
-  await page.getByRole('button', { name: 'Preview' }).focus()
-  await page.keyboard.down(' ')
-  expect((await audioLog(page)).started).toHaveLength(3)
-  await page.keyboard.up(' ')
-  expect((await audioLog(page)).stopped).toBe(3)
 })
 
 test('pressing at the very edge of a key keeps the note playing while held', async ({ page }) => {

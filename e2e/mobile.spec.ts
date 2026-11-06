@@ -8,13 +8,7 @@ test('a tap plays a key exactly once', async ({ page }) => {
   expect((await audioLog(page)).started).toHaveLength(3)
 })
 
-test('the Preview button works by touch', async ({ page }) => {
-  await page.goto('/app/oscillators')
-  await page.getByRole('button', { name: 'Preview' }).tap()
-  expect((await audioLog(page)).started).toHaveLength(3)
-})
-
-for (const path of ['/', '/app', '/app/oscillators']) {
+for (const path of ['/', '/app']) {
   test(`no horizontal scrolling on ${path}`, async ({ page }) => {
     await page.goto(path)
     const overflow = await page.evaluate(

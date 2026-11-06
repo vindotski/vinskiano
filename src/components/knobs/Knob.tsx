@@ -47,6 +47,8 @@ export interface KnobProps {
   /** How screen readers announce the value. */
   formatOptions?: FormatOptions
   onChange?: (value: number) => void
+  /** Classes for the dial, e.g. a size (`size-12`); it scales with its viewBox. */
+  className?: string | undefined
 }
 
 /**
@@ -61,6 +63,7 @@ const Knob = ({
   bipolar = false,
   formatOptions,
   onChange = () => {},
+  className,
 }: KnobProps) => {
   const trackRef = useRef<SVGSVGElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -148,7 +151,7 @@ const Knob = ({
     >
       <svg
         ref={trackRef}
-        className="knob-dial cursor-grab touch-none active:cursor-grabbing short:size-12"
+        className={cn('knob-dial cursor-grab touch-none active:cursor-grabbing', className)}
         width={SIZE}
         height={SIZE}
         viewBox={`0 0 ${SIZE} ${SIZE}`}

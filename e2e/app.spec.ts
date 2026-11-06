@@ -1,5 +1,22 @@
 import { expect, test } from './fixtures'
 
+test('every control is on one screen: oscillators, master and keyboard', async ({ page }) => {
+  await page.goto('/app')
+  for (const n of [1, 2, 3]) {
+    const oscillator = page.getByRole('group', { name: `Oscillator ${n}` })
+    await expect(oscillator.getByRole('slider', { name: `Oscillator ${n} volume` })).toBeVisible()
+    await expect(
+      oscillator.getByRole('radiogroup', { name: `Oscillator ${n} waveform` }),
+    ).toBeVisible()
+    await expect(oscillator.getByRole('slider', { name: `Oscillator ${n} pitch` })).toBeVisible()
+  }
+  await expect(
+    page.getByRole('region', { name: 'Master' }).getByRole('slider', { name: 'Master volume' }),
+  ).toHaveAttribute('aria-valuetext', '50%')
+  await expect(page.getByRole('img', { name: /oscilloscope/i })).toBeVisible()
+  await expect(page.locator('.piano-key')).toHaveCount(13)
+})
+
 test('renders the 13-key piano from C4 to C5', async ({ page }) => {
   await page.goto('/app')
   await expect(page.locator('.piano-key')).toHaveText([
@@ -19,23 +36,15 @@ test('renders the 13-key piano from C4 to C5', async ({ page }) => {
   ])
 })
 
-test('navigates between pages and shows a 404 for unknown routes', async ({
+test('moves between the site and the app, and shows a 404 for unknown routes', async ({
   page,
   consoleErrors,
 }) => {
   await page.goto('/app')
-  const pianoLink = page.getByRole('link', { name: 'Piano Roll' })
-  const oscillatorsLink = page.getByRole('link', { name: 'Oscillators' })
-  await expect(pianoLink).toHaveAttribute('aria-current', 'page')
-  await expect(oscillatorsLink).not.toHaveAttribute('aria-current', 'page')
-
-  await oscillatorsLink.click()
-  await expect(page).toHaveURL('/app/oscillators')
-  await expect(page.getByRole('slider', { name: 'Master Volume' })).toBeVisible()
-  await expect(oscillatorsLink).toHaveAttribute('aria-current', 'page')
-  await expect(pianoLink).not.toHaveAttribute('aria-current', 'page')
-
-  await page.getByRole('link', { name: 'Piano Roll' }).click()
+  await expect(page.getByRole('slider', { name: 'Master volume' })).toBeVisible()
+  await page.getByRole('link', { name: 'Vinskiano home' }).click()
+  await expect(page).toHaveURL('/')
+  await page.getByRole('main').getByRole('link', { name: 'Open the synth' }).click()
   await expect(page.locator('.piano-key')).toHaveCount(13)
 
   await page.goto('/does-not-exist')

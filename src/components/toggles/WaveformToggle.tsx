@@ -29,6 +29,7 @@ const WaveformToggle = ({ label, value, onChange = () => {} }: WaveformTogglePro
       <ToggleGroup
         aria-label={label}
         variant="outline"
+        size="sm"
         spacing={0}
         selectionMode="single"
         disallowEmptySelection
@@ -43,7 +44,7 @@ const WaveformToggle = ({ label, value, onChange = () => {} }: WaveformTogglePro
             key={option.value}
             id={option.value}
             aria-label={option.label}
-            className="relative isolate data-selected:border-primary data-selected:bg-transparent data-selected:text-primary-foreground"
+            className="relative isolate h-7 w-7 min-w-0 px-0 data-selected:border-primary data-selected:bg-transparent data-selected:text-primary-foreground xl:h-8 xl:w-9"
           >
             {({ isSelected }) => (
               <>
@@ -53,7 +54,7 @@ const WaveformToggle = ({ label, value, onChange = () => {} }: WaveformTogglePro
                     className="-inset-px rounded-[inherit] bg-primary"
                   />
                 )}
-                <WaveformIcon waveform={option.value} className="size-5" />
+                <WaveformIcon waveform={option.value} className="size-4" />
               </>
             )}
           </ToggleGroupItem>

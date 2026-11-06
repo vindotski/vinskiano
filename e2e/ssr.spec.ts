@@ -10,8 +10,8 @@ test('the server renders the piano', async ({ request }) => {
   expect(html).toContain('<title>Vinskiano</title>')
 })
 
-test('the server renders the oscillator controls', async ({ request }) => {
-  const html = await (await request.get('/app/oscillators')).text()
+test('the server renders the synth controls', async ({ request }) => {
+  const html = await (await request.get('/app')).text()
   for (const name of ['Oscillator 1 volume', 'Oscillator 2 pitch', 'Oscillator 3 waveform']) {
     expect(html).toContain(name)
   }

@@ -1,13 +1,15 @@
 import { useEffect, useRef } from 'react'
 import type { Oscilloscope as AudioOscilloscope } from '@/audio'
+import { cn } from '@/lib/utils'
 
 interface OscilloscopeProps {
   /** The output analyser; null until the audio engine exists (then the canvas stays empty). */
   oscilloscope: AudioOscilloscope | null
+  className?: string
 }
 
 /** Draws the master output. Colors come from the canvas's CSS (theme tokens), so dark mode just works. */
-const Oscilloscope = ({ oscilloscope }: OscilloscopeProps) => {
+const Oscilloscope = ({ oscilloscope, className }: OscilloscopeProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -64,7 +66,7 @@ const Oscilloscope = ({ oscilloscope }: OscilloscopeProps) => {
   return (
     <canvas
       ref={canvasRef}
-      className="oscilloscope h-28 w-full rounded-2xl bg-muted text-primary short:h-20"
+      className={cn('oscilloscope rounded-xl bg-muted text-primary', className)}
       aria-label="Oscilloscope showing the master output"
       role="img"
     />

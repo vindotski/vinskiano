@@ -35,14 +35,14 @@ Before editing files for a substantial task:
 src/
   music/       Pure music theory: Note, Octave, Frequency, Scale, ScaleBuilder, ScaleStrategy, KEYBOARD_NOTES
   audio/       Web Audio: Engine (context + oscillators + oscilloscope), Context, Oscillator, Oscilloscope
-  components/  React UI: Piano, PianoKey, Mixer sections, knobs/, toggles/, toolbars/, site/ (header, footer)
+  components/  React UI: AppBar (oscillator strips + master knob + oscilloscope), Oscillator, Piano, PianoKey, knobs/, toggles/, toolbars/, site/ (header, footer)
   routes/      File-based routes, two sections:
                  __root      HTML document (shellComponent + head()), 404 (NotFound brings the site chrome)
                  _site.tsx   pathless site layout (header, scrolling page, footer); _site/index.tsx = /
-                 app.tsx     /app layout: LazyMotion + SynthProvider + fixed viewport frame + app navbar
-                 app/index.tsx = /app (piano), app/oscillators.tsx = /app/oscillators
-                 oscillators.tsx  301 redirect from the old /oscillators URL
-  pages/       Presentational pages the routes render: PianoRoll, Oscillators, NotFound
+                 app.tsx     /app layout: LazyMotion + SynthProvider + fixed viewport frame + AppBar
+                 app/index.tsx = /app: the keyboard (the whole synth is one screen)
+                 oscillators.tsx  301 redirect from the old /oscillators URL to /app
+  pages/       Presentational pages the routes render: PianoRoll (keyboard), NotFound
   synth/       SynthProvider: owns the synth settings (state) and the audio Engine (created after mount); useSynth() for routes
   types/       Shared app types (synth.ts): plain settings data, no audio nodes
   utils/       Browser helpers that return a cleanup (context menu)
@@ -98,7 +98,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 
 - Add a page by adding a file in `src/routes/` (`createFileRoute('/path')`); `pnpm dev`/`pnpm build` regenerate `routeTree.gen.ts`. Commit the regenerated file with the route.
 - Document-level tags go in `__root.tsx`'s `head()`. `HeadContent` keeps one meta per `name`, so tags that share a name (the light/dark `theme-color` pair) are written directly in `RootDocument`.
-- Route components are thin: read state with `useSynth()` and render a component from `pages/`.
+- Route components are thin: read state with `useSynth()` and render a component from `pages/` or `components/`. Components stay presentational (props in, callbacks out); router links are passed in as slots (e.g. `AppBar`'s `start`), so components render without a router in unit tests.
 - **Two sections:** the site (`_site`) is a normal scrolling website and must not load synth code (no `SynthProvider`, no Motion); the app (`/app`) owns the audio engine and Motion. `e2e/site.spec.ts` checks that `/` creates no `AudioContext`.
 - Use `Link` from `@tanstack/react-router`; it sets the `active` class itself (use `activeOptions={{ exact: true }}` for `/`).
 - TanStack ships version-matched agent skills (`react-router`, `react-start`), linked into `.claude/skills/` by pnpm (see `permissions` in `pnpm-workspace.yaml`). Read them before changing routing or Start setup.
@@ -132,7 +132,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 
 ## Accessibility
 
-- Every control needs an accessible name: knobs take a `label` ("Oscillator 2 pitch"), sliders a `<label>`.
+- Every control needs an accessible name: knobs take a `label` ("Oscillator 2 pitch", "Master volume"); groups of controls get one too (each oscillator is a `fieldset` named "Oscillator 1", the master section a region named "Master").
 - Controls work by keyboard and show a visible focus ring. Knobs are native range inputs underneath (arrows, Page Up/Down, Home/End).
 - Browser tests find controls by role and name (`getByRole('slider', { name })`), never by DOM position.
 
