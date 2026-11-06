@@ -30,7 +30,7 @@ such as ADSR envelopes, modifiers, modulation, et cetera.
 #### 1. Clone the repository
 
 ```
-git clone https://github.com/ivanvinski/vinskiano.git
+git clone https://github.com/vindotski/vinskiano.git
 cd vinskiano
 ```
 
@@ -75,13 +75,13 @@ See [CHANGELOG.md](CHANGELOG.md) for more information.
 
 [Ivan Vinski](https://ivanvinski.com) – contact@ivanvinski.com
 
-Distributed under the GPL-2.0 license. See [LICENSE.txt](LICENSE.txt) for more information.
+Distributed under the MIT license. See [LICENSE](LICENSE) for more information.
 
-https://github.com/ivanvinski/vinskiano
+https://github.com/vindotski/vinskiano
 
 ## Contributing
 
-1. Fork it (<https://github.com/ivanvinski/vinskiano/fork>)
+1. Fork it (<https://github.com/vindotski/vinskiano/fork>)
 2. Create your feature branch (`git checkout -b feature/fooBar`)
 3. Commit your changes (`git commit -am 'Add some fooBar'`)
 4. Push to the branch (`git push origin feature/fooBar`)
