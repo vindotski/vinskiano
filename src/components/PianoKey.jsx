@@ -9,6 +9,7 @@ class PianoKey extends React.Component {
   render() {
     return (
       <button
+        type="button"
         className={this.classes()}
         onMouseDown={this.trigger}
         onMouseUp={this.release}

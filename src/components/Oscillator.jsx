@@ -19,7 +19,7 @@ class Oscillator extends React.Component {
 
         <PitchKnob value={this.props.pitch} onChange={(pitch) => this.update({ pitch })} />
 
-        {!!this.props.showLabels ? (
+        {this.props.showLabels ? (
           <>
             <span className="oscillator-helper-label">Osc #</span>
 
@@ -50,7 +50,7 @@ class Oscillator extends React.Component {
 
     this.props.onChange(this.props.id, {
       ...newValues,
-      pitch: parseInt(newValues.pitch),
+      pitch: Number.parseInt(newValues.pitch, 10),
       volume: parseFloat(newValues.volume),
     })
   }

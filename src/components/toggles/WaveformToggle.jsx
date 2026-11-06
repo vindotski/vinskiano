@@ -23,6 +23,7 @@ const WaveformToggle = ({ value, onChange, label }) => {
 
   const render = ({ value, option, onChange }) => (
     <button
+      type="button"
       key={option.value}
       className={`button-toggle-option ${value === option.value ? 'toggled' : ''}`}
       onClick={() => onChange(option.value)}
@@ -32,32 +33,30 @@ const WaveformToggle = ({ value, onChange, label }) => {
   )
 
   return (
-    <>
-      <ButtonToggle
-        value={value}
-        onChange={onChange}
-        label={label}
-        options={[
-          {
-            value: 'sine',
-            label: 'Sine',
-          },
-          {
-            value: 'square',
-            label: 'Square',
-          },
-          {
-            value: 'triangle',
-            label: 'Triangle',
-          },
-          {
-            value: 'sawtooth',
-            label: 'Sawtooth',
-          },
-        ]}
-        render={render}
-      />
-    </>
+    <ButtonToggle
+      value={value}
+      onChange={onChange}
+      label={label}
+      options={[
+        {
+          value: 'sine',
+          label: 'Sine',
+        },
+        {
+          value: 'square',
+          label: 'Square',
+        },
+        {
+          value: 'triangle',
+          label: 'Triangle',
+        },
+        {
+          value: 'sawtooth',
+          label: 'Sawtooth',
+        },
+      ]}
+      render={render}
+    />
   )
 }
 

@@ -45,7 +45,9 @@ class Oscillator {
   }
 
   stop() {
-    ;[...this.sounds].forEach((sound) => sound.stop())
+    for (const sound of [...this.sounds]) {
+      sound.stop()
+    }
   }
 }
 

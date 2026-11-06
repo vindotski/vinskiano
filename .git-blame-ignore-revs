@@ -1,0 +1,5 @@
+# Commits git blame should skip (bulk reformatting). GitHub reads this file
+# automatically; locally run: git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# style: apply Biome formatting
+a6bae57b992bf430cbf6a79beb06444f1f4f073d

@@ -3,7 +3,7 @@ import ScaleBuilder from './ScaleBuilder'
 import { ChromaticScaleStrategy } from './ScaleStrategy'
 
 const ROOT_HERTZ = 440
-const SEMITONE = Math.pow(2, 1 / 12)
+const SEMITONE = 2 ** (1 / 12)
 const ROOT_NOTE = new Note('A', 4)
 
 const scaleOptions = {
@@ -22,7 +22,7 @@ class Frequency {
   }
 
   scale(semitones) {
-    this.hertz = this.hertz * Math.pow(SEMITONE, semitones)
+    this.hertz = this.hertz * SEMITONE ** semitones
   }
 
   toString() {

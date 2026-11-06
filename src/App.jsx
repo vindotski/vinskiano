@@ -96,7 +96,9 @@ class App extends React.Component {
     const noteSounds = this.state.sounds.filter(
       (s) => note.name === s.note.name && note.octave === s.note.octave,
     )
-    noteSounds.forEach((sound) => sound.stop())
+    for (const sound of noteSounds) {
+      sound.stop()
+    }
 
     const sounds = this.state.sounds.filter((s) => note !== s.note)
     this.setState({ sounds })

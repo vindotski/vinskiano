@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
 
-const ButtonToggle = ({ value, options, onChange, label, render }) => {
+const ButtonToggle = ({ value, options, onChange, render }) => {
   return (
     <div className="button-toggle">
       <div className="button-toggle-options">
@@ -21,6 +21,7 @@ ButtonToggle.defaultProps = {
   onChange: () => {},
   render: ({ value, option, onChange }) => (
     <button
+      type="button"
       key={option.value}
       className={`button-toggle-option ${value === option.value ? 'toggled' : ''}`}
       onClick={() => onChange(option.value)}

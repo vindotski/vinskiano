@@ -9,7 +9,7 @@ class OscillatorsMixerSection extends React.Component {
       <MixerSection title="Oscillators" className="mixer-section--oscillators">
         {this.props.oscillators.map((oscillator, index) => (
           <Oscillator
-            key={index}
+            key={oscillator.id}
             {...oscillator}
             showLabels={index !== this.props.oscillators.length - 1}
             onChange={this.props.onChange}

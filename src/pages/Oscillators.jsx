@@ -20,6 +20,7 @@ const Oscillators = ({
         <ToolbarSpacer />
 
         <button
+          type="button"
           onTouchStart={() => onTrigger(previewNote)}
           onTouchEnd={() => onRelease(previewNote)}
         >

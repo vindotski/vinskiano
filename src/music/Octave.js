@@ -19,9 +19,12 @@ class Octave extends Array {
   constructor() {
     super()
 
+    // Index access wraps around the octave (octave[12] === octave[0]), so the
+    // constructor deliberately returns a Proxy instead of `this`.
+    // biome-ignore lint/correctness/noConstructorReturn: returning a Proxy is the point
     return new Proxy(this, {
       get: (object, key, receiver) => {
-        if (typeof key === 'string' && !isNaN(key)) {
+        if (typeof key === 'string' && !Number.isNaN(Number(key))) {
           return this.get(+key)
         }
 
@@ -40,7 +43,9 @@ class Octave extends Array {
 
   static make(notes = null) {
     const octave = new Octave()
-    ;(notes || this.DEFAULT).forEach((note) => octave.push(note))
+    for (const note of notes || Octave.DEFAULT) {
+      octave.push(note)
+    }
     Object.freeze(octave)
     return octave
   }
