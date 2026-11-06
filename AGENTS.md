@@ -121,6 +121,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - **Respect reduced motion:** `MotionConfig reducedMotion="user"` is set at the root; don't override it per component.
 - **SSR-safe:** nothing animates on first paint (`initial={false}` for server-rendered content), so server HTML and hydration stay identical.
 - Values, accessible names and focus never depend on an animation's progress.
+- **Page transitions are not Motion:** they use TanStack Router's `defaultViewTransition` (the browser's View Transitions API). Only the `<main>` page area (`view-transition-name: page`) animates; styles live at the end of `styles.css`. Motion can't animate the outgoing page, because the outlet switches to the new route immediately.
 - **Must work without the lazy features.** `m.*` components only animate once `motion-features` has loaded, and motion values bound to them don't render before that. Anything that must always show the right state (like the knob's drawing) uses plain elements updated from a motion value (`useMotionValueEvent`), not `m.*` props. `e2e/knob.spec.ts` blocks the features chunk to check this.
 
 ## Accessibility

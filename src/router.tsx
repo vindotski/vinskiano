@@ -8,6 +8,9 @@ export function getRouter() {
     scrollRestoration: true,
     defaultPreload: 'intent',
     defaultPreloadStaleTime: 0,
+    // Page changes use the browser's View Transitions API; see the view-transition styles in
+    // styles.css. Browsers without it simply switch pages instantly.
+    defaultViewTransition: true,
   })
 }
 

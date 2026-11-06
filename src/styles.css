@@ -171,3 +171,42 @@
     user-select: none;
   }
 }
+
+/* Page transitions (TanStack Router's defaultViewTransition): only the page area moves; the
+   navbar stays put. With reduced motion, view transitions switch instantly. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(page) {
+    animation: 120ms ease-in both page-out;
+  }
+
+  ::view-transition-new(page) {
+    animation: 200ms ease-out both page-in;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none;
+  }
+}
+
+@keyframes page-out {
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
