@@ -8,6 +8,7 @@ The project is being modernized step by step; see [MODERN_TOOLING.md](MODERN_TOO
 
 - Vite 8 (`@vitejs/plugin-react`), React 17, react-router-dom 5
 - Plain JavaScript (`.jsx` for files with JSX, `.js` otherwise), prop-types
+- Biome for linting and formatting (`biome.json`)
 - pnpm (pinned via `packageManager`), Node 26 (`.nvmrc`)
 - `react-circle-slider` for knobs
 
@@ -34,10 +35,14 @@ pnpm install
 pnpm dev      # dev server on http://localhost:3000
 pnpm build    # production build into dist/
 pnpm preview  # serve dist/ on http://localhost:3000
+pnpm check    # Biome: lint + format check (CI-safe, writes nothing)
+pnpm fix      # Biome: apply formatting and safe fixes
 ```
 
 ## Conventions
 
+- Code style is whatever Biome says: 2 spaces, single quotes, no semicolons. Don't hand-format; run `pnpm fix`.
+- Fix lint findings instead of silencing them. If a rule really doesn't apply, use a `biome-ignore` comment with a reason.
 - **pnpm supply-chain settings** live in `pnpm-workspace.yaml` (never `.npmrc`). Don't loosen them to make an install pass: find out why a package fails `trustPolicy` or `minimumReleaseAge` first. Every package with an install script must be listed in `allowBuilds` with a reason.
 - Keep `music/` free of browser and React code so it stays easy to unit test.
 - Keep Web Audio code in `audio/`; components never create audio nodes directly.
