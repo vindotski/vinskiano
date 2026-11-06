@@ -1,4 +1,6 @@
-@import "tailwindcss";
+/* Only scan src/ for class names. By default Tailwind scans the whole project, which
+   pulled in classes from docs and agent skills (e.g. the shadcn skill's example markup). */
+@import "tailwindcss" source(".");
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/inter";

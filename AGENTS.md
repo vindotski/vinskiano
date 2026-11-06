@@ -106,6 +106,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - Use theme tokens (`bg-background`, `text-primary`, `border-border`…), never raw colors, so light and dark both work.
 - Add shadcn/ui components with `pnpm exec shadcn add <name>` (the pinned CLI, React Aria base). They land in `src/components/ui/`; edit them freely after adding.
 - `@/` is an alias for `src/`. Merge classes with `cn()` from `@/lib/utils`.
+- Tailwind only scans `src/` for class names (`source(".")` in `styles.css`). Classes written anywhere else (docs, skills, tests) are not generated; keep class names in `src/` as complete literal strings.
 - Piano keys use their own tokens (`bg-key-white`, `bg-key-black`, …) so they stay ivory/ebony in dark mode.
 - `short:` is a custom variant for short viewports (≤ 500px tall, e.g. a phone in landscape): use it to tighten spacing so pages fit without scrolling.
 - Some elements keep plain class names as test hooks (`piano-key`, `piano-key--active`, `oscillator`, `oscilloscope`, `knob`…). Keep them when restyling; prefer roles and names for new tests.
