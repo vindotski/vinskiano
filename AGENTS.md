@@ -12,6 +12,7 @@ The project is being modernized step by step; see [MODERN_TOOLING.md](MODERN_TOO
 - Vitest for unit tests (config in `vite.config.ts`), Playwright for browser tests (`playwright.config.ts`, Chromium)
 - pnpm (pinned via `packageManager`), Node 26 (`.nvmrc`)
 - React Aria hooks (`react-aria`, `react-stately`) for accessible controls; the rotary `Knob` is built on its slider hooks
+- Tailwind CSS v4 (`@tailwindcss/vite`) with a shadcn/ui theme (`components.json`: style aria-luma, preset b51FfLcNG; tokens in `src/index.css`). Dark mode follows `prefers-color-scheme` via the `dark:` variant. Migrating from `src/App.css`.
 
 ## Layout
 
@@ -66,6 +67,12 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - Route components are thin: read state with `useSynth()` and render a component from `pages/`.
 - Use `Link` from `@tanstack/react-router`; it sets the `active` class itself (use `activeOptions={{ exact: true }}` for `/`).
 - TanStack ships version-matched agent skills (`react-router`, `router-plugin`), linked into `.claude/skills/` by pnpm (see `permissions` in `pnpm-workspace.yaml`). Read them before changing routing.
+
+## Styling
+
+- Use theme tokens (`bg-background`, `text-primary`, `border-border`…), never raw colors, so light and dark both work.
+- Add shadcn/ui components with `pnpm exec shadcn add <name>` (the pinned CLI, React Aria base). They land in `src/components/ui/`; edit them freely after adding.
+- `@/` is an alias for `src/`. Merge classes with `cn()` from `@/lib/utils`.
 
 ## Accessibility
 
