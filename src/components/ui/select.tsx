@@ -1,6 +1,7 @@
 import { cn } from 'cn'
 import { CheckIcon, ChevronDownIcon } from 'lucide-react'
 import type * as React from 'react'
+import { useUNSAFE_PortalContext as usePortalContext } from 'react-aria'
 import {
   Button as ButtonPrimitive,
   composeRenderProps,
@@ -9,6 +10,7 @@ import {
   ListBox as ListBoxPrimitive,
   type ListBoxProps,
   ListBoxSection as ListBoxSectionPrimitive,
+  PopoverContext,
   Popover as PopoverPrimitive,
   type ListBoxSectionProps as SelectGroupProps,
   Select as SelectPrimitive,
@@ -16,6 +18,7 @@ import {
   SelectValue as SelectValuePrimitive,
   type SelectValueProps,
   Separator as SeparatorPrimitive,
+  useSlottedContext,
 } from 'react-aria-components'
 
 function Select<T extends object, M extends 'single' | 'multiple' = 'single'>({
@@ -99,6 +102,42 @@ function SelectContent({
   )
 }
 
+/**
+ * Where to put a popover below its trigger when both sit in a rotated portal container (the
+ * synth turns itself sideways on an upright phone). React Aria positions popovers in screen
+ * coordinates, which are off by the rotation there; layout offsets ignore transforms, so they
+ * are the container's own coordinates. Returns nothing when the container isn't transformed.
+ * React Aria writes its own position straight onto the element (and keeps the popover hidden
+ * until it has one), so ours goes into CSS variables that `data-rotated:…!` classes apply
+ * over it.
+ */
+function placeInRotatedContainer(
+  container: HTMLElement | null | undefined,
+  trigger: Element | null | undefined,
+  offset: number,
+): React.CSSProperties | undefined {
+  if (!container || !(trigger instanceof HTMLElement)) return undefined
+  const { rotate, transform } = getComputedStyle(container)
+  if (rotate === 'none' && transform === 'none') return undefined
+  let x = 0
+  let y = 0
+  let element: Element | null = trigger
+  while (element instanceof HTMLElement && element !== container) {
+    x += element.offsetLeft
+    y += element.offsetTop
+    element = element.offsetParent
+  }
+  if (element !== container) return undefined
+  const top = y + trigger.offsetHeight + offset
+  return {
+    '--rotated-top': `${top}px`,
+    '--rotated-left': `${Math.max(0, Math.min(x, container.clientWidth - 160))}px`,
+    '--rotated-max-height': `${container.clientHeight - top - 8}px`,
+    // React Aria measures the trigger on screen, where its width is its height when rotated.
+    '--trigger-width': `${trigger.offsetWidth}px`,
+  } as React.CSSProperties
+}
+
 function SelectPopover({
   className,
   children,
@@ -110,13 +149,19 @@ function SelectPopover({
   className?: string | undefined
   children?: React.ReactNode
 }) {
+  const { getContainer } = usePortalContext()
+  const triggerRef = useSlottedContext(PopoverContext)?.triggerRef
+  // Computed while rendering the open popover, when both elements exist.
+  const rotated = placeInRotatedContainer(getContainer?.(), triggerRef?.current, offset)
   return (
     <PopoverPrimitive
       data-slot="select-content"
       placement={placement}
       offset={offset}
       crossOffset={crossOffset}
+      {...(rotated ? { 'data-rotated': '', style: rotated } : {})}
       className={cn(
+        'data-rotated:top-(--rotated-top)! data-rotated:left-(--rotated-left)! data-rotated:right-auto! data-rotated:bottom-auto! data-rotated:max-h-(--rotated-max-height)!',
         'isolate z-50 w-(--trigger-width) min-w-36 origin-(--trigger-anchor-point) overflow-hidden rounded-3xl text-popover-foreground shadow-lg ring-1 ring-foreground/5 duration-100 data-entering:animate-in data-entering:fade-in-0 data-entering:zoom-in-95 data-exiting:animate-out data-exiting:fade-out-0 data-exiting:zoom-out-95 data-[placement=bottom]:slide-in-from-top-2 data-[placement=left]:slide-in-from-right-2 data-[placement=right]:slide-in-from-left-2 data-[placement=top]:slide-in-from-bottom-2 **:data-[slot$=-item]:data-focused:bg-foreground/10 dark:ring-foreground/10 animate-none! relative bg-popover/70 before:pointer-events-none before:absolute before:inset-0 before:-z-1 before:rounded-[inherit] before:backdrop-blur-2xl before:backdrop-saturate-150 **:data-[slot$=-item]:focus:bg-foreground/10 **:data-[slot$=-item]:data-highlighted:bg-foreground/10 **:data-[slot$=-separator]:bg-foreground/5 **:data-[slot$=-trigger]:focus:bg-foreground/10 **:data-[slot$=-trigger]:aria-expanded:bg-foreground/10! **:data-[variant=destructive]:focus:bg-foreground/10! **:data-[variant=destructive]:text-accent-foreground! **:data-[variant=destructive]:**:text-accent-foreground!',
         className,
       )}

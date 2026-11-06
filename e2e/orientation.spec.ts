@@ -42,9 +42,6 @@ test('a tapped key plays once and stops on release', async ({ page }) => {
 })
 
 test('tapping a knob turns it to that point of the dial', async ({ page }) => {
-  // BUG: the knob reads the pointer's angle in screen coordinates, so with the app rotated
-  // a tap lands 90° off (here the far end, 24, instead of 16).
-  test.fail(isPortrait(page), 'knob angle ignores the rotation')
   // The dial's 3 o'clock, as the user sees it (in the knob's own coordinates, so it also holds
   // when the whole app is rotated): 90° of the 270° sweep from the middle, i.e. +16 semitones.
   const slider = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
@@ -59,24 +56,24 @@ test('tapping a knob turns it to that point of the dial', async ({ page }) => {
 })
 
 test('the waveform dropdown opens next to its trigger and works', async ({ page }) => {
-  // BUG: upright, the popover renders outside the rotated app (in <body>), so it's unrotated
-  // and away from its trigger. Fixed by rendering popovers inside the app frame.
-  test.fail(isPortrait(page), 'popover is not rotated with the app')
-
   const trigger = page.getByRole('button', { name: 'Oscillator 1 waveform' })
   await trigger.tap()
   const listbox = page.getByRole('listbox')
   await expect(listbox).toBeVisible()
 
+  // Inside the rotated app, so it turns with it.
+  expect(await listbox.evaluate((box) => !!box.closest('[data-app-frame]'))).toBe(true)
   const [t, l] = await Promise.all([trigger.boundingBox(), listbox.boundingBox()])
   const viewport = page.viewportSize()
   if (!t || !l || !viewport) throw new Error('not visible')
-  // Inside the viewport, and touching the trigger's neighbourhood.
+  // Inside the viewport, and right next to the trigger (whichever side that is on screen).
   expect(l.x).toBeGreaterThanOrEqual(0)
   expect(l.y).toBeGreaterThanOrEqual(0)
   expect(l.x + l.width).toBeLessThanOrEqual(viewport.width)
   expect(l.y + l.height).toBeLessThanOrEqual(viewport.height)
-  expect(Math.abs(l.x + l.width / 2 - (t.x + t.width / 2)) + Math.abs(l.y - t.y)).toBeLessThan(250)
+  const gapX = Math.max(0, l.x - (t.x + t.width), t.x - (l.x + l.width))
+  const gapY = Math.max(0, l.y - (t.y + t.height), t.y - (l.y + l.height))
+  expect(Math.hypot(gapX, gapY)).toBeLessThan(12)
 
   // The options must read the same way as the rest of the app: one under the other, i.e.
   // across the keyboard's direction (left to right unrotated, top to bottom upright).

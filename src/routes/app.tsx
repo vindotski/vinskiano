@@ -1,5 +1,7 @@
 import { createFileRoute, Link, Outlet } from '@tanstack/react-router'
 import { LazyMotion, MotionConfig } from 'motion/react'
+import { useRef } from 'react'
+import { UNSAFE_PortalProvider as PortalProvider } from 'react-aria'
 import AppBar from '../components/AppBar'
 import Logo from '../components/icons/Logo'
 import { SynthProvider, useSynth } from '../synth/SynthProvider'
@@ -12,6 +14,7 @@ export const Route = createFileRoute('/app')({
 const loadMotionFeatures = () => import('../lib/motion-features').then((module) => module.default)
 
 function AppLayout() {
+  const frame = useRef<HTMLDivElement>(null)
   return (
     // Motion is only used by the app, so the site never loads it. Animations use the small `m`
     // components; `strict` rejects the full `motion` ones. reducedMotion="user" skips
@@ -23,14 +26,18 @@ function AppLayout() {
           <div className="fixed inset-0 overflow-hidden">
             {/* Fills the real viewport (dvh tracks mobile browser bars). Held upright, a phone gets the app rotated to landscape. */}
             <div
+              ref={frame}
               data-app-frame
               className="flex h-dvh w-screen flex-col portrait:absolute portrait:top-[-100vw] portrait:left-0 portrait:h-[100vw] portrait:w-[100dvh] portrait:origin-bottom-left portrait:rotate-90 portrait:overflow-auto"
             >
-              <SynthBar />
-              {/* The page area is what transitions between pages (view-transition-name: page). */}
-              <main className="flex min-h-0 flex-1 flex-col [view-transition-name:page]">
-                <Outlet />
-              </main>
+              {/* Popovers (the waveform dropdown) render inside the frame, so they turn with it. */}
+              <PortalProvider getContainer={() => frame.current}>
+                <SynthBar />
+                {/* The page area is what transitions between pages (view-transition-name: page). */}
+                <main className="flex min-h-0 flex-1 flex-col [view-transition-name:page]">
+                  <Outlet />
+                </main>
+              </PortalProvider>
             </div>
           </div>
         </SynthProvider>

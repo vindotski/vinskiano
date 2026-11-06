@@ -26,10 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Screen readers announced each knob's name twice
-
-### Known issues
-
-- On a phone held upright (where the synth turns itself sideways), the waveform dropdown opens unrotated, and tapping a knob turns it to the wrong point of the dial
+- On a phone held upright (where the synth turns itself sideways), the waveform dropdown opened sideways and away from its button, and tapping a knob turned it to the wrong point of the dial
 
 ## [0.1.0] - 2020-12-15
 

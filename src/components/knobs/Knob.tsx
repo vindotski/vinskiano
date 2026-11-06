@@ -126,9 +126,13 @@ const Knob = ({
   const drawn = drawing(shown.get())
 
   const turnTo = (event: PointerEvent<SVGSVGElement>) => {
-    const box = event.currentTarget.getBoundingClientRect()
-    const dx = event.clientX - (box.left + box.width / 2)
-    const dy = event.clientY - (box.top + box.height / 2)
+    // The pointer in the dial's own coordinates, so it holds however the dial is transformed
+    // (the whole app turns 90° on an upright phone).
+    const toDial = event.currentTarget.getScreenCTM()?.inverse()
+    if (!toDial) return
+    const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(toDial)
+    const dx = point.x - CENTER
+    const dy = point.y - CENTER
     const degrees = (Math.atan2(dx, -dy) * 180) / Math.PI
 
     if (Math.abs(degrees) > END) {
