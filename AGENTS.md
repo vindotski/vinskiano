@@ -9,6 +9,7 @@ The project is being modernized step by step; see [MODERN_TOOLING.md](MODERN_TOO
 - Vite 8 (`@vitejs/plugin-react`), React 17, react-router-dom 5
 - TypeScript 7, strict (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`). No JavaScript left in `src/`.
 - Biome for linting and formatting (`biome.json`)
+- Vitest for unit tests (config in `vite.config.ts`)
 - pnpm (pinned via `packageManager`), Node 26 (`.nvmrc`)
 - `react-circle-slider` for knobs (no published types; declared in `src/types/react-circle-slider.d.ts`)
 
@@ -38,6 +39,7 @@ pnpm dev        # dev server on http://localhost:3000
 pnpm build      # production build into dist/
 pnpm preview    # serve dist/ on http://localhost:3000
 pnpm typecheck  # tsc, strict, no emit
+pnpm test       # Vitest, once (pnpm test:watch to watch)
 pnpm check      # Biome: lint + format check (CI-safe, writes nothing)
 pnpm fix        # Biome: apply formatting and safe fixes
 ```
@@ -51,6 +53,12 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - **pnpm supply-chain settings** live in `pnpm-workspace.yaml` (never `.npmrc`). Don't loosen them to make an install pass: find out why a package fails `trustPolicy` or `minimumReleaseAge` first. Every package with an install script must be listed in `allowBuilds` with a reason.
 - Keep `music/` free of browser and React code so it stays easy to unit test.
 - Keep Web Audio code in `audio/`; components never create audio nodes directly.
+
+## Tests
+
+- Unit tests sit next to the code as `*.test.ts`. They suit pure logic best (`music/`).
+- A known bug gets a `test.fails` with a `// BUG:` comment explaining it. The fix flips it to a plain `test`.
+- Before calling a step done, run `pnpm check && pnpm typecheck && pnpm test`.
 
 ## Git rules
 
