@@ -57,6 +57,8 @@ pnpm docker:dev   # dev server with hot reload, source mounted
 
 The production image runs as an unprivileged user, holds only Node and the built server, and has a health check.
 
+To run it on your own server with HTTPS, see [docs/deploy.md](docs/deploy.md).
+
 ## Development
 
 | Command                | What it does                                               |

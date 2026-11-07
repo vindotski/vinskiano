@@ -1,0 +1,43 @@
+# Caddy gets and renews the HTTPS certificate for VINSKIANO_DOMAIN automatically
+# (Let's Encrypt; no account email needed).
+
+{
+	servers {
+		# Slow or stalled clients can't hold connections open.
+		timeouts {
+			read_header 10s
+			read_body 10s
+			write 30s
+			idle 2m
+		}
+	}
+}
+
+{$VINSKIANO_DOMAIN} {
+	# Pages rendered per request (/app) get compressed here. Static files arrive already
+	# compressed by the app (brotli/gzip, built at build time), and Caddy leaves those alone.
+	encode zstd gzip
+
+	# Vinskiano accepts no uploads or forms; nothing it handles has a body worth more than this.
+	request_body {
+		max_size 16KB
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# Never shown inside another site's frame (clickjacking).
+		X-Frame-Options "DENY"
+		Cross-Origin-Opener-Policy "same-origin"
+		# The synth only makes sound; it needs no camera, microphone or location.
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+		-Server
+	}
+
+	reverse_proxy app:3000
+}
+
+www.{$VINSKIANO_DOMAIN} {
+	redir https://{$VINSKIANO_DOMAIN}{uri} permanent
+}

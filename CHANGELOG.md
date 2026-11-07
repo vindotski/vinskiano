@@ -10,6 +10,7 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 
 ### Added
 
+- A deploy kit for a single server (Hetzner or any cloud-init provider): first-boot setup, Caddy with automatic HTTPS, and a manual GitHub deploy that rolls back by itself if the new version isn't healthy. See [docs/deploy.md](docs/deploy.md)
 - Docker images on Docker Hub (`vindotski/vinskiano`, amd64 and arm64, with provenance and an SBOM): `latest` from `main`, and `X.Y.Z`, `X.Y` and `X` for each release
 - Continuous integration on GitHub Actions: lint, typecheck, unit tests, build, browser tests in Chromium, Firefox and WebKit, and a test and vulnerability scan of the Docker image; Dependabot keeps dependencies, actions and the base image up to date
 - Piano keys dip slightly when pressed, like a real key; sound and color still respond instantly
