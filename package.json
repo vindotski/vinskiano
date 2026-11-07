@@ -5,6 +5,7 @@
   "type": "module",
   "license": "Apache-2.0",
   "author": "Ivan Vinski <ivan@vin.ski> (https://www.vin.ski)",
+  "homepage": "https://vinskiano.app",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vindotski/vinskiano.git"
