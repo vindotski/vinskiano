@@ -80,6 +80,32 @@ export const test = base.extend<{ consoleErrors: string[] }>({
   ],
 })
 
+/**
+ * Open the home page and wait until it's hydrated. The page is prerendered HTML, so its links
+ * work before React takes over, but only as plain links: a click that early does a full page
+ * load, with no client-side navigation and no crossfade. React puts its props on an element
+ * when it hydrates it, which is what this waits for.
+ */
+export async function openHome(page: Page) {
+  await page.goto('/')
+  const link = page.getByRole('main').getByRole('link', { name: 'Open the synth' }).first()
+  await expect
+    .poll(() =>
+      link.evaluate((element) =>
+        Object.keys(element).some((key) => key.startsWith('__reactProps')),
+      ),
+    )
+    .toBe(true)
+}
+
+/**
+ * Wait until the page crossfade (a view transition) has finished. Leaving the page while one
+ * runs makes Firefox log "Skipped ViewTransition due to document being hidden".
+ */
+export async function pageTransitionDone(page: Page) {
+  await page.waitForFunction(() => !document.activeViewTransition)
+}
+
 /** Pick a waveform from an oscillator's waveform dropdown. */
 export async function chooseWaveform(page: Page, oscillator: number, waveform: string) {
   await page.getByRole('button', { name: `Oscillator ${oscillator} waveform` }).click()

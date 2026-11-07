@@ -1,4 +1,12 @@
-import { audioLog, chooseWaveform, expect, openApp, resetAudioLog, test } from './fixtures'
+import {
+  audioLog,
+  chooseWaveform,
+  expect,
+  openApp,
+  pageTransitionDone,
+  resetAudioLog,
+  test,
+} from './fixtures'
 
 test('a key plays all three oscillators at its pitch and stops on release', async ({ page }) => {
   await openApp(page)
@@ -109,7 +117,9 @@ test('the oscilloscope draws while playing and stops when you leave the app', as
 
   await page.getByRole('link', { name: 'Vinskiano home' }).click()
   await expect(page).toHaveURL('/')
-  await page.waitForTimeout(100)
+  // Wait until the synth is really gone (on a slow machine that takes a moment), then count.
+  await expect(page.locator('canvas.oscilloscope')).toHaveCount(0)
+  await pageTransitionDone(page)
   await resetAudioLog(page)
   await page.waitForTimeout(500)
   expect((await audioLog(page)).analyserReads).toBe(0)

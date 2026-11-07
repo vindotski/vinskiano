@@ -43,7 +43,7 @@ class Engine {
 
   /** Start one sound per oscillator at this frequency. Resumes the context if the browser suspended it. */
   play(hertz: number): Sound[] {
-    void this.context.resume()
+    this.context.resume().catch(ignore)
     return this.oscillators.map((oscillator) => {
       const sound = oscillator.emit(hertz)
       sound.start()
@@ -52,8 +52,15 @@ class Engine {
   }
 
   close(): void {
-    void this.context.close()
+    this.context.close().catch(ignore)
   }
 }
+
+/**
+ * resume() and close() only fail when there's nothing left to do: the context is already
+ * closed, or the page is being left (Firefox then rejects with "Navigated away from page").
+ * Left unhandled, that shows up as an error in the console.
+ */
+function ignore(): void {}
 
 export default Engine

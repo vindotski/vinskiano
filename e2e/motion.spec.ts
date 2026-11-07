@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test'
-import { expect, test } from './fixtures'
+import { expect, openHome, test } from './fixtures'
 
 declare global {
   interface Window {
@@ -38,7 +38,7 @@ test('going from the site to the app crossfades the page area, not the header', 
   page,
 }) => {
   await recordViewTransitions(page)
-  await page.goto('/')
+  await openHome(page)
   await page.getByRole('main').getByRole('link', { name: 'Open the synth' }).first().click()
   await expect.poll(() => viewTransitions(page)).toHaveLength(1)
   const [animated = []] = await viewTransitions(page)
@@ -53,7 +53,7 @@ test.describe('with reduced motion', () => {
 
   test('pages switch without a transition animation', async ({ page }) => {
     await recordViewTransitions(page)
-    await page.goto('/')
+    await openHome(page)
     await page.getByRole('main').getByRole('link', { name: 'Open the synth' }).first().click()
     await expect(page.locator('.piano-key')).toHaveCount(13)
     // Either no transition at all, or one that animates nothing.

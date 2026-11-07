@@ -1,7 +1,7 @@
-import { expect, test } from './fixtures'
+import { expect, openHome, test } from './fixtures'
 
 test('the home page links to the synth', async ({ page }) => {
-  await page.goto('/')
+  await openHome(page)
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await page.getByRole('main').getByRole('link', { name: 'Open the synth' }).first().click()
   await expect(page).toHaveURL('/app')

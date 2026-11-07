@@ -1,4 +1,4 @@
-import { expect, openApp, test } from './fixtures'
+import { expect, openApp, pageTransitionDone, test } from './fixtures'
 
 test('every control is on one screen: oscillators, master and keyboard', async ({ page }) => {
   await openApp(page)
@@ -44,6 +44,7 @@ test('moves between the site and the app, and shows a 404 for unknown routes', a
   await expect(page).toHaveURL('/')
   await page.getByRole('main').getByRole('link', { name: 'Open the synth' }).first().click()
   await expect(page.locator('.piano-key')).toHaveCount(13)
+  await pageTransitionDone(page)
 
   const response = await page.goto('/does-not-exist')
   expect(response?.status()).toBe(404)
