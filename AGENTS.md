@@ -72,6 +72,7 @@ pnpm typecheck  # tsc, strict, no emit (app + e2e, then scripts/ with Node types
 pnpm test       # Vitest, once (pnpm test:watch to watch)
 pnpm test:e2e   # Playwright against the production server (builds, then `pnpm start` on :4173)
 pnpm test:e2e:docker  # the same browser tests against the production Docker image
+pnpm lint:actions # actionlint (pinned, in Docker) on .github/workflows
 pnpm verify     # everything: check, typecheck, unit and browser tests
 pnpm screenshots  # recapture src/assets/screenshots/ (WebP, 3 widths) from the running app (start it first)
 ```
@@ -116,6 +117,17 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - **Two sections:** the site (`_site`) is a normal scrolling website and must not load synth code (no `SynthProvider`, no Motion); the app (`/app`) owns the audio engine and Motion. `e2e/site.spec.ts` checks that `/` creates no `AudioContext`.
 - Use `Link` from `@tanstack/react-router`; it sets the `active` class itself (use `activeOptions={{ exact: true }}` for `/`).
 - TanStack ships version-matched agent skills (`react-router`, `react-start`), linked into `.claude/skills/` by pnpm (see `permissions` in `pnpm-workspace.yaml`). Read them before changing routing or Start setup.
+
+## CI
+
+- `.github/workflows/ci.yml` runs on pushes to `dev`/`main` and on PRs, in three kinds of jobs:
+  - lint (`biome ci`), typecheck, unit tests and build;
+  - the browser tests, one job per engine (Chromium with the Pixel projects, Firefox, WebKit with the iPhone projects);
+  - the production Docker image: browser tests against it, then a Trivy scan that fails on fixable HIGH/CRITICAL vulnerabilities.
+- Actions are pinned to commit SHAs with the version in a comment; the Trivy and actionlint images are pinned by digest. Permissions are `contents: read`, and checkout uses `persist-credentials: false`. Run `pnpm lint:actions` after editing a workflow.
+- When pinning a new version (action, image, package), pick one at least about a week old, like Dependabot's cooldown and pnpm's `minimumReleaseAge`.
+- Dependabot (`.github/dependabot.yml`) opens weekly PRs against `dev` for npm, GitHub Actions and the Docker base image, with a 7-day cooldown.
+- CI runs on Linux, which differs from macOS: Firefox only runs Web Audio with an audio output, so its job adds a PulseAudio null sink (don't add it to Chromium: its audio clock stalls with it). Linux WebKit has no `navigator.audioSession`. To reproduce CI locally, run the steps in the `dev` Docker image.
 
 ## Docker
 

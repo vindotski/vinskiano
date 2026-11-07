@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Continuous integration on GitHub Actions: lint, typecheck, unit tests, build, browser tests in Chromium, Firefox and WebKit, and a test and vulnerability scan of the Docker image; Dependabot keeps dependencies, actions and the base image up to date
 - Piano keys dip slightly when pressed, like a real key; sound and color still respond instantly
 - Knobs glide to new values set with the keyboard or a click; the value itself (and the sound) changes instantly, and dragging stays direct
 - Pages crossfade when moving between the site and the synth (native View Transitions; instant with reduced motion or in browsers without support)

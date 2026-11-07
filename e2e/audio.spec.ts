@@ -168,6 +168,8 @@ test('asks for media playback, so an iPhone on silent still plays (where support
       ? String(session.type)
       : null
   })
-  // Safari's Audio Session API (WebKit here); the others don't have it.
-  expect(sessionType).toBe(browserName === 'webkit' ? 'playback' : null)
+  // Safari's Audio Session API: Playwright's WebKit has it on macOS (like Safari), not its Linux
+  // build (CI). Chromium and Firefox don't have it.
+  const hasApi = browserName === 'webkit' && process.platform === 'darwin'
+  expect(sessionType).toBe(hasApi ? 'playback' : null)
 })

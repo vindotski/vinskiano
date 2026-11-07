@@ -1,0 +1,35 @@
+# Weekly update PRs against dev. The cooldown lets new releases settle for a week first
+# (like pnpm's minimumReleaseAge), so a compromised release is usually caught before we get it.
+version: 2
+updates:
+  - package-ecosystem: npm # also handles pnpm (pnpm-lock.yaml)
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      # Minor and patch updates in one PR; each major gets its own.
+      dependencies:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: docker # the pinned node base image in the Dockerfile
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7

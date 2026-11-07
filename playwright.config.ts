@@ -8,7 +8,9 @@ const DOCKER = !!process.env.E2E_DOCKER
 export default defineConfig({
   testDir: 'e2e',
   fullyParallel: true,
-  reporter: 'list',
+  // On CI: fail if a test.only slipped in, and show failures as annotations on the PR.
+  forbidOnly: !!process.env.CI,
+  reporter: process.env.CI ? [['github'], ['list']] : 'list',
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: 'retain-on-failure',
