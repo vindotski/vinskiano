@@ -1,7 +1,9 @@
 # syntax=docker/dockerfile:1
 
 # ---- base: Node + the pnpm version pinned in package.json -------------------
-FROM node:26.13.0-slim@sha256:5adad64f9a1fca2d51972caa65983634c8a774eb300d72b20f7f2a0f60368072 AS base
+# Build stages run on the build machine's own platform: the output (.output/) is plain
+# JavaScript, so a multi-platform release only emulates the small production stage.
+FROM --platform=$BUILDPLATFORM node:26.13.0-slim@sha256:5adad64f9a1fca2d51972caa65983634c8a774eb300d72b20f7f2a0f60368072 AS base
 ENV PNPM_HOME=/pnpm \
     PATH=/pnpm:$PATH \
     CI=true

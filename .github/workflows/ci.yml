@@ -5,6 +5,7 @@ name: CI
 on:
   push:
     branches: [dev, main]
+    tags: ["v*.*.*"]
   pull_request:
 
 # Read-only by default; no job needs more.
@@ -109,3 +110,68 @@ jobs:
           aquasec/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c
           image --scanners vuln --ignore-unfixed --severity HIGH,CRITICAL --exit-code 1
           vinskiano-app
+
+  # Publishes vindotski/vinskiano to Docker Hub, only from main and version tags, and only
+  # after every check above has passed. The deploy (deploy/) pulls these images.
+  # Needs the repository variable DOCKERHUB_USERNAME and the secret DOCKERHUB_TOKEN.
+  publish:
+    name: Publish image to Docker Hub
+    needs: [check, e2e, docker]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # A release tag must match package.json's version (bump it in the release commit first).
+      - name: Check the tag matches package.json
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          tag="${REF#refs/tags/v}"
+          version="$(jq -r .version package.json)"
+          if [ "$tag" != "$version" ]; then
+            echo "::error::Tag v$tag doesn't match package.json version $version"
+            exit 1
+          fi
+
+      # arm64 (e.g. Hetzner's Ampere servers) is built under QEMU emulation on the amd64 runner.
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # main → latest; v1.2.3 → 1.2.3, 1.2 and 1; every publish → sha-abc1234.
+      - id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: vindotski/vinskiano
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha,format=short
+          labels: |
+            org.opencontainers.image.title=Vinskiano
+            org.opencontainers.image.description=A three-oscillator synth that lives in your browser. https://vinskiano.app
+            org.opencontainers.image.licenses=Apache-2.0
+            org.opencontainers.image.url=https://vinskiano.app
+
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          target: production
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: mode=max
+          sbom: true
+          cache-from: type=gha,scope=release
+          cache-to: type=gha,scope=release,mode=max

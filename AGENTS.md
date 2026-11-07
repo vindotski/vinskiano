@@ -118,12 +118,20 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - Use `Link` from `@tanstack/react-router`; it sets the `active` class itself (use `activeOptions={{ exact: true }}` for `/`).
 - TanStack ships version-matched agent skills (`react-router`, `react-start`), linked into `.claude/skills/` by pnpm (see `permissions` in `pnpm-workspace.yaml`). Read them before changing routing or Start setup.
 
+## Releases
+
+- One version, in `package.json`. Each release is a git tag `vX.Y.Z` on `main`.
+- **Publishing:** CI's `publish` job pushes `vindotski/vinskiano` to Docker Hub after every other job passes. A push to `main` publishes `latest` and `sha-…`; a `vX.Y.Z` tag publishes `X.Y.Z`, `X.Y` and `X`, and fails if the tag doesn't match `package.json`. Images are amd64 and arm64 with provenance and an SBOM. It needs the repo variable `DOCKERHUB_USERNAME` and the secret `DOCKERHUB_TOKEN`.
+- **Release steps:** new work goes under `## [Unreleased]` in `CHANGELOG.md`, without a version bump. At release time the user picks the version (semver: fixes → patch, features → minor, breaking changes → major). The agent bumps `package.json` and renames the section to the version and date in a `chore(repo): publish release X.Y.Z` commit; the user merges to `main` and tags `vX.Y.Z`.
+- Pushing `main` publishes an image, so work stays on `dev` until it's meant to ship.
+
 ## CI
 
 - `.github/workflows/ci.yml` runs on pushes to `dev`/`main` and on PRs, in three kinds of jobs:
   - lint (`biome ci`), typecheck, unit tests and build;
   - the browser tests, one job per engine (Chromium with the Pixel projects, Firefox, WebKit with the iPhone projects);
-  - the production Docker image: browser tests against it, then a Trivy scan that fails on fixable HIGH/CRITICAL vulnerabilities.
+  - the production Docker image: browser tests against it, then a Trivy scan that fails on fixable HIGH/CRITICAL vulnerabilities;
+  - on `main` and `v*` tags only, after all of the above: publishing the image (see Releases).
 - Actions are pinned to commit SHAs with the version in a comment; the Trivy and actionlint images are pinned by digest. Permissions are `contents: read`, and checkout uses `persist-credentials: false`. Run `pnpm lint:actions` after editing a workflow.
 - When pinning a new version (action, image, package), pick one at least about a week old, like Dependabot's cooldown and pnpm's `minimumReleaseAge`.
 - Dependabot (`.github/dependabot.yml`) opens weekly PRs against `dev` for npm, GitHub Actions and the Docker base image, with a 7-day cooldown.
@@ -132,6 +140,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 ## Docker
 
 - Base images are pinned by version **and** digest (`image:1.2.3@sha256:…`); update both together.
+- The build stages run on the build machine's platform (`--platform=$BUILDPLATFORM`): `.output/` is plain JavaScript with no native modules, so multi-platform images only emulate the production stage. Keep it that way; a native dependency in the server bundle would need the build stages per platform again.
 - The production image is Node plus `.output/` (Nitro's self-contained server), with no npm/pnpm or source code. It runs as the unprivileged `node` user, `.output/` is root-owned (the server can't change its own code), and a `HEALTHCHECK` fetches `/`. Keep it that way: the server must never need root or write to disk.
 - `pnpm test:e2e:docker` runs the whole browser suite against the production image (`docker compose up --build app` on port 4173). Run it after changing the Dockerfile or anything the server build depends on.
 - After changing dependencies, `pnpm docker:dev` re-syncs the `node_modules` volume on start; `docker compose down -v` resets it.

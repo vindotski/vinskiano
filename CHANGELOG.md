@@ -4,11 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vinskiano:X.Y.Z`.
 
 ## [Unreleased]
 
 ### Added
 
+- Docker images on Docker Hub (`vindotski/vinskiano`, amd64 and arm64, with provenance and an SBOM): `latest` from `main`, and `X.Y.Z`, `X.Y` and `X` for each release
 - Continuous integration on GitHub Actions: lint, typecheck, unit tests, build, browser tests in Chromium, Firefox and WebKit, and a test and vulnerability scan of the Docker image; Dependabot keeps dependencies, actions and the base image up to date
 - Piano keys dip slightly when pressed, like a real key; sound and color still respond instantly
 - Knobs glide to new values set with the keyboard or a click; the value itself (and the sound) changes instantly, and dragging stays direct
