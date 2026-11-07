@@ -6,7 +6,7 @@ ENV PNPM_HOME=/pnpm \
     PATH=/pnpm:$PATH \
     CI=true
 # Node 25+ no longer ships Corepack, so install the pinned pnpm with npm.
-# npm only exists in these build stages; the production image has no Node at all.
+# pnpm only exists in these build stages; the production image runs plain Node.
 RUN npm install --global pnpm@12.18.0 && npm cache clean --force
 WORKDIR /app
 
@@ -28,8 +28,16 @@ RUN pnpm build
 
 # ---- production: Node running the Nitro server -------------------------------
 FROM node:26.13.0-slim@sha256:5adad64f9a1fca2d51972caa65983634c8a774eb300d72b20f7f2a0f60368072 AS production
+# The server needs only node: drop the npm/npx the base image ships (less to patch or abuse).
+RUN rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx
 WORKDIR /app
+# Owned by root and only readable by the server, so it can't modify its own code.
 COPY --from=build /app/.output ./.output
-ENV PORT=3000
+ENV NODE_ENV=production \
+    PORT=3000
 EXPOSE 3000
+# The base image's unprivileged user; the server needs no root (port 3000, no writes).
+USER node
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
+  CMD ["node", "-e", "fetch('http://localhost:' + process.env.PORT + '/').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
 CMD ["node", ".output/server/index.mjs"]

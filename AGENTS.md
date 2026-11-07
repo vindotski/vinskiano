@@ -71,6 +71,7 @@ pnpm preview    # Vite's preview of the production build
 pnpm typecheck  # tsc, strict, no emit (app + e2e, then scripts/ with Node types)
 pnpm test       # Vitest, once (pnpm test:watch to watch)
 pnpm test:e2e   # Playwright against the production server (builds, then `pnpm start` on :4173)
+pnpm test:e2e:docker  # the same browser tests against the production Docker image
 pnpm verify     # everything: check, typecheck, unit and browser tests
 pnpm screenshots  # recapture src/assets/screenshots/ (WebP, 3 widths) from the running app (start it first)
 ```
@@ -119,7 +120,8 @@ pnpm fix        # Biome: apply formatting and safe fixes
 ## Docker
 
 - Base images are pinned by version **and** digest (`image:1.2.3@sha256:…`); update both together.
-- The production image is Node plus `.output/` (Nitro's self-contained server), with no npm/pnpm or source code.
+- The production image is Node plus `.output/` (Nitro's self-contained server), with no npm/pnpm or source code. It runs as the unprivileged `node` user, `.output/` is root-owned (the server can't change its own code), and a `HEALTHCHECK` fetches `/`. Keep it that way: the server must never need root or write to disk.
+- `pnpm test:e2e:docker` runs the whole browser suite against the production image (`docker compose up --build app` on port 4173). Run it after changing the Dockerfile or anything the server build depends on.
 - After changing dependencies, `pnpm docker:dev` re-syncs the `node_modules` volume on start; `docker compose down -v` resets it.
 
 ## Styling

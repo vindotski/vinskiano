@@ -2,6 +2,8 @@ import { defineConfig, devices } from '@playwright/test'
 
 const PORT = 4173
 const PHONE_SPECS = /mobile|orientation/
+// E2E_DOCKER=1 (`pnpm test:e2e:docker`) tests the production Docker image instead of a local build.
+const DOCKER = !!process.env.E2E_DOCKER
 
 export default defineConfig({
   testDir: 'e2e',
@@ -28,9 +30,13 @@ export default defineConfig({
   ],
   // Tests run against the production server (the Nitro build), not the dev server.
   webServer: {
-    command: 'pnpm build && pnpm start',
+    command: DOCKER ? 'docker compose up --build app' : 'pnpm build && pnpm start',
+    // compose maps PORT on the host to the container's 3000.
     env: { PORT: String(PORT) },
     port: PORT,
     reuseExistingServer: false,
+    timeout: DOCKER ? 600_000 : 60_000, // a cold image build takes minutes
+    // Ctrl-C, so `docker compose up` stops its container instead of leaving it running.
+    gracefulShutdown: { signal: 'SIGINT', timeout: 15_000 },
   },
 })

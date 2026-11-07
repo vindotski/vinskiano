@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Static files (scripts, styles, the home page) are sent compressed with brotli or gzip: the home page now transfers about 257 KB instead of 569 KB, and its largest paint on a mobile connection drops from 4.2 s to 2.6 s
 - The home page's app screenshot is a WebP in three sizes, so phones download about 6 KB instead of 87 KB; it is fetched first and cached for good
+- The Docker image runs as an unprivileged user, has a health check, and no longer ships npm
 - Supported browsers are declared: Chrome/Edge 111, Safari 16.4 and Firefox 128 or newer
 - The synth moved to `/app`; `/` is now a home page, and the old `/oscillators` URL redirects to `/app`
 - The whole synth is one screen: an app bar with the three oscillators and, on the right, a master volume knob and the oscilloscope, above the keyboard. The separate Oscillators page and its Preview button are gone; the master volume is a knob instead of a slider, and each oscillator's waveform is a compact dropdown, so the bar stays on one row even on a small phone in landscape
