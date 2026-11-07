@@ -121,6 +121,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 ## Releases
 
 - One version, in `package.json`. Each release is a git tag `vX.Y.Z` on `main`.
+- **1.0.0 (2026-11-07)** is the first release since 0.1.0 (2020, tagged `0.1.0` without the `v`). Everything after it goes under `## [Unreleased]`.
 - **Publishing:** CI's `publish` job pushes `vindotski/vinskiano` to Docker Hub after every other job passes. A push to `main` publishes `latest` and `sha-…`; a `vX.Y.Z` tag publishes `X.Y.Z`, `X.Y` and `X`, and fails if the tag doesn't match `package.json`. Images are amd64 and arm64 with provenance and an SBOM. It needs the repo variable `DOCKERHUB_USERNAME` and the secret `DOCKERHUB_TOKEN`.
 - **Release steps:** new work goes under `## [Unreleased]` in `CHANGELOG.md`, without a version bump. At release time the user picks the version (semver: fixes → patch, features → minor, breaking changes → major). The agent bumps `package.json` and renames the section to the version and date in a `chore(repo): publish release X.Y.Z` commit; the user merges to `main` and tags `vX.Y.Z`.
 - Pushing `main` publishes an image, so work stays on `dev` until it's meant to ship.

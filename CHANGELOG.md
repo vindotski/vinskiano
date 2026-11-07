@@ -8,34 +8,38 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-07
+
+Vinskiano, back after six years: rebuilt on a current stack, redesigned as a single screen, and ready to deploy. The sound engine and the music are the same three oscillators as 0.1.0.
+
 ### Added
 
-- A deploy kit for a single server (Hetzner or any cloud-init provider): first-boot setup, Caddy with automatic HTTPS, and a manual GitHub deploy that rolls back by itself if the new version isn't healthy. See [docs/deploy.md](docs/deploy.md)
+- A home page at `/` with a short pitch, screenshots of the app (light and dark) and how it works; it's prerendered and served as a static file
+- Dark mode, following the system setting, and a new look and app icon
+- Knobs that work with the keyboard (arrows, Page Up/Down, Home/End) and screen readers, with a focus ring and spoken values; they sweep 270° like real knobs, so dragging past the bottom no longer jumps from maximum to minimum
+- Every control has an accessible name, the page area is a `main` landmark, and the site has a "Skip to content" link
+- Piano keys dip slightly when pressed, knobs glide to values set by keyboard or click, and pages crossfade between the site and the synth. Sound and values change instantly; reduced motion is respected
 - Docker images on Docker Hub (`vindotski/vinskiano`, amd64 and arm64, with provenance and an SBOM): `latest` from `main`, and `X.Y.Z`, `X.Y` and `X` for each release
-- Continuous integration on GitHub Actions: lint, typecheck, unit tests, build, browser tests in Chromium, Firefox and WebKit, and a test and vulnerability scan of the Docker image; Dependabot keeps dependencies, actions and the base image up to date
-- Piano keys dip slightly when pressed, like a real key; sound and color still respond instantly
-- Knobs glide to new values set with the keyboard or a click; the value itself (and the sound) changes instantly, and dragging stays direct
-- Pages crossfade when moving between the site and the synth (native View Transitions; instant with reduced motion or in browsers without support)
-- The page area is a `main` landmark for screen readers
-- A home page at `/` with a hero, screenshots of the app (light and dark) and a short how-it-works section
-- A "Skip to content" link for keyboard users on the site
-- The home page is prerendered at build time and served as a static file
+- A deploy kit for a single server (Hetzner or any cloud-init provider): first-boot setup, Caddy with automatic HTTPS, and a manual GitHub deploy that rolls back by itself if the new version isn't healthy. See [docs/deploy.md](docs/deploy.md)
+- Continuous integration: lint, typecheck, unit tests, build, browser tests in Chromium, Firefox and WebKit (desktop, and phones held both ways), and a test and vulnerability scan of the Docker image. Dependabot keeps dependencies, actions and images up to date
 
 ### Changed
 
-- Static files (scripts, styles, the home page) are sent compressed with brotli or gzip: the home page now transfers about 257 KB instead of 569 KB, and its largest paint on a mobile connection drops from 4.2 s to 2.6 s
-- The home page's app screenshot is a WebP in three sizes, so phones download about 6 KB instead of 87 KB; it is fetched first and cached for good
-- The Docker image runs as an unprivileged user, has a health check, and no longer ships npm
-- Supported browsers are declared: Chrome/Edge 111, Safari 16.4 and Firefox 128 or newer
-- The synth moved to `/app`; `/` is now a home page, and the old `/oscillators` URL redirects to `/app`
-- The whole synth is one screen: an app bar with the three oscillators and, on the right, a master volume knob and the oscilloscope, above the keyboard. The separate Oscillators page and its Preview button are gone; the master volume is a knob instead of a slider, and each oscillator's waveform is a compact dropdown, so the bar stays on one row even on a small phone in landscape
+- The whole synth is one screen: an app bar with the three oscillators and, on the right, a master volume knob and the oscilloscope, above the keyboard. Each oscillator's waveform is a compact dropdown, so the bar stays on one row even on a small phone in landscape. The separate Oscillators page and its Preview button are gone
+- The synth moved to `/app`; the old `/oscillators` URL redirects there
+- Rebuilt on TanStack Start (React 19, TypeScript, Vite): pages are rendered on the server and then run in the browser, so they show up before the scripts load
+- Supported browsers: Chrome/Edge 111, Safari 16.4 and Firefox 128 or newer
+- Faster loading: files are sent compressed (brotli or gzip), and the home page screenshot is a WebP sized to the screen. The home page transfers about 185 KB instead of 569 KB, and its largest paint on a throttled mobile connection drops from 4.2 s to about 2.3 s
+- The Docker image runs as an unprivileged user, has a health check, and ships no npm
 - Relicensed from GPL-2.0 to Apache-2.0
 
 ### Fixed
 
-- On iPhones, the synth stays audible with the ring/silent switch set to silent (it now asks Safari for media playback; needs iOS Safari 16.4 or newer)
-- Screen readers announced each knob's name twice
-- On a phone held upright (where the synth turns itself sideways), the waveform dropdown opened sideways and away from its button, and tapping a knob turned it to the wrong point of the dial
+- On iPhones, the synth stays audible with the ring/silent switch set to silent (needs iOS 16.4 or newer)
+- A tap on a touch screen played the note twice
+- Dragging off a held key left the note droning
+- Each visit to the oscillators page left another oscilloscope animation running in the background
+- The master volume couldn't be set to 29, 57 or 58 (it snapped down by one)
 
 ## [0.1.0] - 2020-12-15
 
