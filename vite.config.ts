@@ -1,3 +1,6 @@
+import { cpSync, readdirSync, readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import { devtools } from '@tanstack/devtools-vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
@@ -8,6 +11,25 @@ import { defineConfig } from 'vite'
 // The browsers we support: Tailwind v4 needs Chrome/Edge 111, Safari 16.4 and Firefox 128 (its
 // colors, cascade layers and @property), so that's our floor; see "Supported browsers" in AGENTS.md.
 const browsers = ['chrome111', 'edge111', 'firefox128', 'safari16.4', 'ios16.4']
+
+/**
+ * Spotcraft's backend kit reads its `auth` migrations from `./migrations/` next to its own file
+ * when it's imported (to know its schema version). Bundled into the server, that folder isn't
+ * there and the import throws ENOENT, so this copies it next to every server chunk that reads it.
+ * (Leaving the kit unbundled instead makes Nitro's tracer copy all of node_modules.)
+ */
+function copyKitMigrations(serverDir: string) {
+  const migrations = join(
+    dirname(fileURLToPath(import.meta.resolve('@spotcraft/kit'))),
+    'migrations',
+  )
+  const reads = /new URL\(["']\.\/migrations\/["'], import\.meta\.url\)/
+  for (const file of readdirSync(serverDir, { recursive: true, encoding: 'utf8' })) {
+    if (file.endsWith('.mjs') && reads.test(readFileSync(join(serverDir, file), 'utf8'))) {
+      cpSync(migrations, join(serverDir, dirname(file), 'migrations'), { recursive: true })
+    }
+  }
+}
 
 export default defineConfig({
   server: { port: 3000 },
@@ -27,6 +49,7 @@ export default defineConfig({
     nitro({
       prerender: { routes: ['/'], crawlLinks: false, failOnError: true },
       compressPublicAssets: { gzip: true, brotli: true },
+      hooks: { compiled: (app) => copyKitMigrations(app.options.output.serverDir) },
     }),
     tailwindcss(),
     tanstackStart(),

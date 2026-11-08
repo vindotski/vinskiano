@@ -2,6 +2,11 @@
 
 # Supply-chain safety
 minimumReleaseAge: 1440 # never install a release younger than one day
+# Spotcraft is our own deploy platform, published from vindotski/spotcraft by CI with
+# provenance; the app pins the Spotcraft version it deploys to, so it can't wait a day.
+minimumReleaseAgeExclude:
+  - "@spotcraft/kit"
+  - spotcraft
 trustPolicy: no-downgrade # fail if a package's publishing trust level drops
 blockExoticSubdeps: true # transitive deps must come from the registry
 strictDepBuilds: true # fail on unreviewed install scripts
