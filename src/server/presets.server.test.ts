@@ -35,7 +35,8 @@ describe.skipIf(!hasDatabase)('presets in Postgres', () => {
   }
 
   beforeAll(async () => {
-    kit = backendFromEnv()
+    // PUBLIC_URL only matters for cookies, which these tests never send.
+    kit = backendFromEnv({ PUBLIC_URL: 'http://localhost:3000', ...process.env })
     await migrate(kit.db)
   })
 

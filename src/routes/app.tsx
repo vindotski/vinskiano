@@ -4,7 +4,9 @@ import { useRef } from 'react'
 import { UNSAFE_PortalProvider as PortalProvider } from 'react-aria'
 import AppBar from '../components/AppBar'
 import Logo from '../components/icons/Logo'
+import PresetsMenu from '../components/PresetsMenu'
 import { SynthProvider, useSynth } from '../synth/SynthProvider'
+import { usePresets } from '../synth/usePresets'
 
 /** The synth: owns the audio engine, so it only exists under /app (the site never creates one). */
 export const Route = createFileRoute('/app')({
@@ -46,9 +48,10 @@ function AppLayout() {
   )
 }
 
-/** The app bar, wired to the synth. */
+/** The app bar, wired to the synth and the visitor's presets. */
 function SynthBar() {
   const synth = useSynth()
+  const presets = usePresets()
   return (
     <AppBar
       start={
@@ -59,6 +62,22 @@ function SynthBar() {
         >
           <Logo className="size-7" />
         </Link>
+      }
+      end={
+        <PresetsMenu
+          presets={presets.presets}
+          pending={presets.pending}
+          message={presets.message}
+          onOpen={presets.load}
+          onSave={(name) =>
+            presets.save(name, { master: synth.master, oscillators: synth.oscillators })
+          }
+          onLoad={(preset) => {
+            synth.loadSettings(preset.settings)
+            presets.announce(`Loaded “${preset.name}”`)
+          }}
+          onDelete={presets.remove}
+        />
       }
       oscillators={synth.oscillators}
       onOscillatorChange={synth.updateOscillator}

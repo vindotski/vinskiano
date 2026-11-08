@@ -18,7 +18,7 @@
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "node .output/server/index.mjs",
+    "start": "node --env-file-if-exists=.env .output/server/index.mjs",
     "check": "biome check",
     "fix": "biome check --write",
     "typecheck": "tsc && tsc -p scripts",
