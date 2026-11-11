@@ -10,10 +10,13 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 
 ### Added
 
+- Each oscillator has its own page (`/app/oscillators/1` to `3`), with large volume and pitch knobs and the four waveforms as large buttons. Open it from the icon next to the oscillator select. There's no keyboard there; changes apply right away and are heard back on the keyboard
 - Presets: save the current sound under a name, then load or delete it, from the bookmark button in the app bar. They're kept on the server in a guest account, with no sign-up: your first save sets a cookie that lasts a year. Clearing cookies or switching browsers starts a new, empty list
 
 ### Changed
 
+- The app bar shows one oscillator at a time, with a select for the other two. All three keep sounding; only the view changes, and the URL remembers the choice (`/app?osc=2`). This leaves room in the bar for the controls to come
+- The old `/oscillators` URL now opens oscillator 1's page instead of the keyboard
 - Vinskiano now deploys on [Spotcraft](https://spotcraft.dev), with a Postgres database for the presets. The server needs `DATABASE_URL`, `AUTH_SECRET` and `PUBLIC_URL`, and stops at start, naming the one that's missing or wrong. See [docs/deploy.md](docs/deploy.md)
 - Running locally needs Postgres too: `pnpm exec spotcraft dev start` runs it in Docker, and `pnpm exec spotcraft dev env --write` adds its settings to `.env`. Without it, `pnpm dev` still plays (only presets fail), but `pnpm start` and the Docker image won't start
 - The Docker image applies Debian's security updates when it's built, instead of waiting for a new Node base image
