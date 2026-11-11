@@ -19,67 +19,89 @@ export interface Presets {
   announce: (message: string) => void
 }
 
+type Change = (list: Preset[]) => Preset[]
+
 const byName = (a: Preset, b: Preset) => a.name.localeCompare(b.name)
 const reason = (error: unknown) =>
   error instanceof Error && error.message ? error.message : 'Something went wrong; try again'
 
 export function usePresets(): Presets {
   const [presets, setPresets] = useState<Preset[] | null>(null)
-  const [pending, setPending] = useState(false)
+  const [requests, setRequests] = useState(0)
   const [message, setMessage] = useState<string | null>(null)
-  const loading = useRef(false)
+  const listed = useRef(false)
+  /** Changes saved while the list loads: the list may have been read before them. */
+  const unlisted = useRef<Change[] | null>(null)
 
-  /** Runs a request, with `pending` set and any error turned into the message. */
-  const run = useCallback(async (request: () => Promise<string>) => {
-    setPending(true)
+  /** Runs a request with `pending` set (requests can overlap). */
+  const track = useCallback(async <T>(request: () => Promise<T>) => {
+    setRequests((n) => n + 1)
     try {
-      setMessage(await request())
-      return true
-    } catch (error) {
-      setMessage(reason(error))
-      return false
+      return await request()
     } finally {
-      setPending(false)
+      setRequests((n) => n - 1)
     }
   }, [])
 
+  /** Runs an action; its outcome or error becomes the message. */
+  const run = useCallback(
+    (action: () => Promise<string>) =>
+      track(async () => {
+        try {
+          setMessage(await action())
+          return true
+        } catch (error) {
+          setMessage(reason(error))
+          return false
+        }
+      }),
+    [track],
+  )
+
+  const change = useCallback((apply: Change) => {
+    unlisted.current?.push(apply)
+    setPresets((current) => apply(current ?? []))
+  }, [])
+
   const load = useCallback(() => {
-    if (loading.current) return
-    loading.current = true
-    void run(async () => {
+    if (listed.current) return
+    listed.current = true
+    const changes: Change[] = []
+    unlisted.current = changes
+    void track(async () => {
       try {
-        setPresets(await listPresets())
-        return ''
+        const list = await listPresets()
+        setPresets(changes.reduce((result, apply) => apply(result), list))
       } catch (error) {
-        loading.current = false // let the next open try again
-        throw error
+        listed.current = false // let the next open try again
+        setMessage(reason(error))
+      } finally {
+        unlisted.current = null
       }
     })
-  }, [run])
+  }, [track])
 
   const save = useCallback(
     (name: string, settings: PresetSettings) =>
       run(async () => {
         const saved = await savePreset({ data: { name, settings } })
         const replaced = presets?.some((p) => p.id === saved.id) ?? false
-        setPresets((current) =>
-          [...(current ?? []).filter((p) => p.id !== saved.id), saved].sort(byName),
-        )
+        change((list) => [...list.filter((p) => p.id !== saved.id), saved].sort(byName))
         return `${replaced ? 'Updated' : 'Saved'} “${saved.name}”`
       }),
-    [run, presets],
+    [run, change, presets],
   )
 
   const remove = useCallback(
     async (preset: Preset) => {
       await run(async () => {
         await deletePreset({ data: { id: preset.id } })
-        setPresets((current) => current?.filter((p) => p.id !== preset.id) ?? null)
+        change((list) => list.filter((p) => p.id !== preset.id))
         return `Deleted “${preset.name}”`
       })
     },
-    [run],
+    [run, change],
   )
 
-  return { presets, pending, message, load, save, remove, announce: setMessage }
+  return { presets, pending: requests > 0, message, load, save, remove, announce: setMessage }
 }

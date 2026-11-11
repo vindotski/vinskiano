@@ -103,3 +103,28 @@ test("another visitor doesn't see someone's presets", async ({ page, browser }) 
   await expect((await openPresets(stranger)).getByText('No saved sounds yet.')).toBeVisible()
   await other.close()
 })
+
+test('a save while the list is still loading stays in the list', async ({ page }) => {
+  await openApp(page)
+  // Hold the list's answer (read before the save) until the save has landed.
+  let saved = () => {}
+  const save = new Promise<void>((resolve) => {
+    saved = resolve
+  })
+  await page.route('**/_serverFn/**', async (route) => {
+    if (route.request().method() !== 'GET') return route.continue()
+    const response = await route.fetch()
+    await save
+    await route.fulfill({ response })
+  })
+
+  const presets = await openPresets(page)
+  await presets.getByRole('textbox', { name: 'Save this sound as' }).fill('Quick')
+  await page.keyboard.press('Enter')
+  await expect(presets.getByRole('status')).toHaveText('Saved “Quick”')
+  saved()
+  await page.waitForResponse((r) => r.request().method() === 'GET' && r.url().includes('_serverFn'))
+
+  await expect(presets.getByRole('button', { name: 'Load Quick' })).toBeVisible()
+  await expect(presets.getByRole('status')).toHaveText('Saved “Quick”')
+})
