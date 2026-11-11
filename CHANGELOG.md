@@ -16,6 +16,7 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 
 - Vinskiano now deploys on [Spotcraft](https://spotcraft.dev), with a Postgres database for the presets. The server needs `DATABASE_URL`, `AUTH_SECRET` and `PUBLIC_URL`, and stops at start, naming the one that's missing or wrong. See [docs/deploy.md](docs/deploy.md)
 - Running locally needs Postgres too: `pnpm exec spotcraft dev start` runs it in Docker, and `pnpm exec spotcraft dev env --write` adds its settings to `.env`. Without it, `pnpm dev` still plays (only presets fail), but `pnpm start` and the Docker image won't start
+- The Docker image applies Debian's security updates when it's built, instead of waiting for a new Node base image
 - The single-server deploy kit is retired: it has no database, so it can't run images with presets. It stays until the first Spotcraft deploy, then goes
 
 ## [1.0.0] - 2026-11-07

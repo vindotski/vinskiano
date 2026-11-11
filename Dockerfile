@@ -30,8 +30,12 @@ RUN pnpm build
 
 # ---- production: Node running the Nitro server -------------------------------
 FROM node:26.13.0-slim@sha256:5adad64f9a1fca2d51972caa65983634c8a774eb300d72b20f7f2a0f60368072 AS production
+# Debian's security fixes often land before the next Node image does: apply them here,
+# so the shipped image (the one Trivy scans) doesn't wait for one.
 # The server needs only node: drop the npm/npx the base image ships (less to patch or abuse).
-RUN rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx
+RUN apt-get update \
+ && apt-get upgrade --yes --no-install-recommends \
+ && rm -rf /var/lib/apt/lists/* /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx
 WORKDIR /app
 # Owned by root and only readable by the server, so it can't modify its own code.
 COPY --from=build /app/.output ./.output

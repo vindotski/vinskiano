@@ -174,6 +174,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 ## Docker
 
 - Base images are pinned by version **and** digest (`image:1.2.3@sha256:…`); update both together.
+- The production stage runs `apt-get upgrade`, so Debian security fixes ship without waiting for a new Node image (CI's Trivy scan fails on fixable ones). This exception to the week-old rule is deliberate: these are the distribution's own security updates.
 - The build stages run on the build machine's platform (`--platform=$BUILDPLATFORM`): `.output/` is plain JavaScript with no native modules, so multi-platform images only emulate the production stage. Keep it that way; a native dependency in the server bundle would need the build stages per platform again.
 - The production image is Node plus `.output/` (Nitro's self-contained server), with no npm/pnpm or source code. It runs as the unprivileged `node` user, `.output/` is root-owned (the server can't change its own code), and a `HEALTHCHECK` fetches `/`. Keep it that way: the server must never need root or write to disk.
 - `pnpm test:e2e:docker` runs the whole browser suite against the production image (`docker compose up --build app` on port 4173). Run it after changing the Dockerfile or anything the server build depends on.
