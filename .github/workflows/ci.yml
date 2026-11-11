@@ -184,3 +184,6 @@ jobs:
           sbom: true
           cache-from: type=gha,scope=release
           cache-to: type=gha,scope=release,mode=max
+          # Rebuild the production stage every time, so its apt-get upgrade picks up the
+          # latest Debian security fixes instead of a cached layer (the build stages stay cached).
+          no-cache-filters: production
