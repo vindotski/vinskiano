@@ -1,17 +1,18 @@
 ---
 name: commit-message
-description: Suggest a Conventional Commits message for the current changes in Vinskiano. Use when a step is finished and verified, or when the user asks for a commit message. The agent only suggests; the user commits.
+description: Suggest a Conventional Commits message for the current changes in Vinskiano. Use when a step is finished and verified, or when the user asks for a commit message. The agent proposes it and commits only once the user confirms.
 ---
 
 # Commit message
 
-The user commits. You never run `git commit`, `git push` or `git tag`. You suggest the message, and the user copies it.
+You propose the message and wait. Once the user confirms it ("commit it"), you stage the step's files and run `git commit` with exactly that message. You never commit without that confirmation, and never run `git push`, `git tag` or anything that rewrites history.
 
 ## Steps
 
 1. Read the change: `git status` and `git diff` (plus `git diff --staged` if anything is staged). Base the message on the diff, not on memory.
 2. If the changes mix unrelated work, say so and propose how to split them into separate commits.
-3. Output the message in one fenced code block, ready to paste. Nothing else goes in the block.
+3. Output the message in one fenced code block. Nothing else goes in the block.
+4. After the user confirms, stage only that step's files and commit with the message as shown.
 
 ## Format
 
@@ -26,7 +27,7 @@ The user commits. You never run `git commit`, `git push` or `git tag`. You sugge
 - **Summary:** imperative and lower case, with no trailing period, at most 72 characters ("add", not "added").
 - **Body (optional):** explains *why*, plus anything non-obvious. Wrap at 72 characters. Skip it for trivial changes.
 - **Breaking changes:** add `!` after the scope, and a `BREAKING CHANGE: <what and how to migrate>` footer.
-- Add no AI attribution or `Co-Authored-By` lines unless the user asks.
+- End with the `Co-Authored-By:` trailer for the model that did the work (the user asked for it), after a blank line.
 
 ## Types
 

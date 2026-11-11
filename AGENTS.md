@@ -1,6 +1,6 @@
 # Vinskiano
 
-A browser-based subtractive synthesizer built on the Web Audio API. Today it has a 13-key keyboard (C4–C5), three oscillators (waveform, pitch, volume), a master gain and an oscilloscope. A TanStack Start app: pages are server-rendered by a Node server (Nitro), then hydrate; all sound happens in the browser.
+A browser-based subtractive synthesizer built on the Web Audio API. Today it has a 13-key keyboard (C4–C5), three oscillators (waveform, pitch, volume), a master gain and an oscilloscope. A TanStack Start app: pages are server-rendered by a Node server (Nitro), then hydrate; all sound happens in the browser. Visitors can save presets, which the server keeps in Postgres under a guest account (no sign-up).
 
 The project is being modernized step by step; see [MODERN_TOOLING.md](MODERN_TOOLING.md) for the playbook. This file describes the **current** state. Update it whenever the stack or a convention changes.
 
@@ -27,6 +27,7 @@ Before editing files for a substantial task:
 - pnpm (pinned via `packageManager`), Node 26 (`.nvmrc`)
 - React Aria hooks (`react-aria`, `react-stately`) for accessible controls; the rotary `Knob` is built on its slider hooks
 - Motion (motion.dev) for animations, loaded lazily (see Animation)
+- Guest accounts and the app's Postgres through Spotcraft's backend kit (`@spotcraft/kit`: Better Auth's anonymous plugin, server-only), with Drizzle ORM for queries; Postgres 18, locally from `pnpm exec spotcraft dev start` (see Server data)
 - Tailwind CSS v4 (`@tailwindcss/vite`) with a shadcn/ui theme (`components.json`: style aria-luma, preset b51FfLcNG; tokens in `src/styles.css`). Dark mode follows `prefers-color-scheme` via the `dark:` variant.
 
 ## Layout
@@ -35,7 +36,7 @@ Before editing files for a substantial task:
 src/
   music/       Pure music theory: Note, Octave, Frequency, Scale, ScaleBuilder, ScaleStrategy, KEYBOARD_NOTES
   audio/       Web Audio: Engine (context + oscillators + oscilloscope), Context, Oscillator, Oscilloscope
-  components/  React UI: AppBar (oscillator strips + master knob + oscilloscope), Oscillator, WaveformSelect, Piano, PianoKey, knobs/, toolbars/, site/ (header, footer)
+  components/  React UI: AppBar (oscillator strips + presets + master knob + oscilloscope), Oscillator, WaveformSelect, PresetsMenu, Piano, PianoKey, knobs/, toolbars/, site/ (header, footer)
   routes/      File-based routes, two sections:
                  __root      HTML document (shellComponent + head()), 404 (NotFound brings the site chrome)
                  _site.tsx   pathless site layout (header, scrolling page, footer); _site/index.tsx = /
@@ -44,6 +45,12 @@ src/
                  oscillators.tsx  301 redirect from the old /oscillators URL to /app
   pages/       Presentational pages the routes render: Home (site), PianoRoll (keyboard), NotFound
   synth/       SynthProvider: owns the synth settings (state) and the audio Engine (created after mount); useSynth() for routes
+               preset.ts (checks a preset's settings and name; shared by browser and server),
+               presets.functions.ts (the server functions), usePresets (the browser side)
+  server/      Server-only: backend.server.ts (the kit, created on first use; database() runs migrations),
+               guest.server.ts (the visitor's guest from the request), presets.server.ts (queries),
+               schema.ts (Drizzle tables), migrations/ (numbered SQL), migrate.server.ts,
+               client-address.ts, startup.ts (Nitro plugin: checks the settings at start)
   types/       Shared app types (synth.ts): plain settings data, no audio nodes
   utils/       Browser helpers that return a cleanup (context menu)
   router.tsx   getRouter() (called per request on the server, once in the browser) and type registration
@@ -57,7 +64,9 @@ tsr.config.json  Route generator config
 tsconfig.json
 .output/       Build output (gitignored): .output/public (assets) + .output/server/index.mjs
 Dockerfile     Stages: base (Node + pinned pnpm), deps, dev, build, production (Node running .output/)
-compose.yaml   app / dev / test services
+compose.yaml   app / dev / test services (all on the local Spotcraft Postgres's network)
+.env.example   The server's settings (DATABASE_URL, AUTH_SECRET, PUBLIC_URL); .env is gitignored
+docs/          deploy.md (Spotcraft), deploy-single-server.md (retired)
 ```
 
 ## Commands
@@ -66,7 +75,7 @@ compose.yaml   app / dev / test services
 pnpm install
 pnpm dev        # dev server (SSR + HMR) on http://localhost:3000
 pnpm build      # production build into .output/
-pnpm start      # run the production server (PORT, default 3000)
+pnpm start      # run the production server (PORT, default 3000; reads .env if there is one)
 pnpm preview    # Vite's preview of the production build
 pnpm typecheck  # tsc, strict, no emit (app + e2e, then scripts/ with Node types)
 pnpm test       # Vitest, once (pnpm test:watch to watch)
@@ -75,6 +84,8 @@ pnpm test:e2e:docker  # the same browser tests against the production Docker ima
 pnpm lint:actions # actionlint (pinned, in Docker) on .github/workflows
 pnpm verify     # everything: check, typecheck, unit and browser tests
 pnpm screenshots  # recapture src/assets/screenshots/ (WebP, 3 widths) from the running app (start it first)
+pnpm exec spotcraft dev start       # local Postgres (Docker) on 127.0.0.1:54340; `stop`, `status`, `reset --yes`
+pnpm exec spotcraft dev env --write # its DATABASE_URL and an AUTH_SECRET into .env (add PUBLIC_URL from .env.example)
 ```
 
 Docker (nothing but Docker needed on the host; `PORT=3010 pnpm docker` if 3000 is busy):
@@ -126,6 +137,18 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - **Release steps:** new work goes under `## [Unreleased]` in `CHANGELOG.md`, without a version bump. At release time the user picks the version (semver: fixes → patch, features → minor, breaking changes → major). The agent bumps `package.json` and renames the section to the version and date in a `chore(repo): publish release X.Y.Z` commit; the user merges to `main` and tags `vX.Y.Z`.
 - Pushing `main` publishes an image, so work stays on `dev` until it's meant to ship.
 
+## Server data (guest accounts and presets)
+
+- **The only server-side data is presets**, in the `presets` table, owned by a guest in `auth.users`. Guests come from Spotcraft's backend kit: a visitor gets one on their first save, kept by an httpOnly cookie for a year. There are no sign-ups or auth routes.
+- **Server-only code lives in `src/server/`** (`*.server.ts`, which Start keeps out of the browser bundle). The browser reaches it only through server functions (`createServerFn` in `*.functions.ts`), whose handlers import the server modules; the build strips them from the client. The kit's browser export throws, so a leak fails loudly.
+- **Read with `currentGuestId()`, which never creates a guest; write with `guestId()`, which does.** Creating guests on reads would make one per first request, favicon and crawler. `guestId()` answers 429 with `retry-after` past the kit's limit on new guests (30 per client address per 10 minutes). The client address is the **last** `X-Forwarded-For` entry, the one Spotcraft's Caddy adds; it replaces whatever the client sent.
+- **The user id comes from the session, never from the request,** and every query filters by it. Check all input on the server (`parsePresetSettings`, `parsePresetName` in `synth/preset.ts`), and keep only known fields. Responses that depend on the visitor are `cache-control: private, no-store`.
+- **Start's CSRF middleware** guards server functions (it checks `Sec-Fetch-Site`, which every browser at our floor sends), so no `X-Forwarded-Proto` handling is needed behind the proxy.
+- **Migrations:** numbered SQL files in `src/server/migrations/` (`0002_….sql`), for tables in `public` only. They **only add** (never drop or rename) and run once per server process on first use (`database()`), in one transaction under an advisory lock. Vite inlines them (`import.meta.glob` with `?raw`), so nothing is read from disk. Keep `schema.ts` matching them. Never change `auth.*`: Spotcraft owns it.
+- **Bundling gotchas:** the kit reads its own migrations from files next to it at import, so a Nitro `compiled` hook in `vite.config.ts` copies them next to the bundled kit (unbundling it makes Nitro copy all of `node_modules`). Nitro plugins (`startup.ts`) are bundled by Nitro, not Vite: no `import.meta.glob` or other Vite features there.
+- **Tests:** database unit tests run against the local stack (Vitest loads all of `.env`) and are skipped without `DATABASE_URL`. Browser tests need the local stack too; preset tests call `asNewVisitor(page)` (its own `X-Forwarded-For`), so a run stays under the limit on new guests.
+- `@types/pg` is needed: `pg` ships no types, and without them Drizzle's raw `execute()` rows are silently `any`.
+
 ## Deploy (`docs/deploy.md`)
 
 - **Target: [Spotcraft](https://spotcraft.dev)** (decided 2026-11): the published image on Spotcraft's apps server, added and updated in its dashboard (image, tag, domain, container port 3000, Database ticked, `AUTH_SECRET`, `PUBLIC_URL`). Spotcraft runs Caddy (HTTPS, `www`, `X-Forwarded-*`), the health check and the deploy switch; a deploy that isn't healthy keeps the previous version. Keep `@spotcraft/kit` at the version of the Spotcraft it deploys to.
@@ -139,6 +162,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 
 - `.github/workflows/ci.yml` runs on pushes to `dev`/`main` and on PRs, in three kinds of jobs:
   - lint (`biome ci`), typecheck, unit tests and build;
+  - every job that runs tests first starts the local Spotcraft Postgres (`spotcraft dev start`, `dev env --write`), like a laptop;
   - the browser tests, one job per engine (Chromium with the Pixel projects, Firefox, WebKit with the iPhone projects);
   - the production Docker image: browser tests against it, then a Trivy scan that fails on fixable HIGH/CRITICAL vulnerabilities;
   - on `main` and `v*` tags only, after all of the above: publishing the image (see Releases).
@@ -153,6 +177,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - The build stages run on the build machine's platform (`--platform=$BUILDPLATFORM`): `.output/` is plain JavaScript with no native modules, so multi-platform images only emulate the production stage. Keep it that way; a native dependency in the server bundle would need the build stages per platform again.
 - The production image is Node plus `.output/` (Nitro's self-contained server), with no npm/pnpm or source code. It runs as the unprivileged `node` user, `.output/` is root-owned (the server can't change its own code), and a `HEALTHCHECK` fetches `/`. Keep it that way: the server must never need root or write to disk.
 - `pnpm test:e2e:docker` runs the whole browser suite against the production image (`docker compose up --build app` on port 4173). Run it after changing the Dockerfile or anything the server build depends on.
+- The compose services join the local Spotcraft stack's network (`spotcraft-dev_default`, external) and reach Postgres as `postgres:5432`, with the CLI's fixed local password; `AUTH_SECRET` comes from `.env`. Start the stack first.
 - After changing dependencies, `pnpm docker:dev` re-syncs the `node_modules` volume on start; `docker compose down -v` resets it.
 
 ## Styling
@@ -203,10 +228,10 @@ pnpm fix        # Biome: apply formatting and safe fixes
 
 ## Git rules
 
-- **The user makes every commit and push.** The agent never runs `git commit`, `git push`, `git tag` or anything that rewrites history.
-- **One step = one commit.** The agent finishes a step, verifies it, then stops and suggests a commit message (see the `commit-message` skill). The next step starts only when the user says so.
+- **The agent commits after the user confirms the message** (since 2026-11-08). It finishes a step, verifies it, proposes the message (see the `commit-message` skill), and runs `git commit` only once the user says so, with a `Co-Authored-By` trailer. It never runs `git push`, `git tag` or anything that rewrites history.
+- **One step = one commit.** The next step starts only when the user says so.
 - Messages follow [Conventional Commits](https://www.conventionalcommits.org/).
-- Branches: work happens on `dev`; `main` is what's released.
+- Branches: agent feature work happens on `claude/…` branches, merged into `dev`; `main` is what's released.
 
 ## Verifying work
 
@@ -228,7 +253,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 | `playwright-cli` (Playwright, from the installed `playwright-core`) | Driving a real browser to check work: `pnpm exec playwright cli open http://localhost:3000/app`, snapshots, clicks |
 | `vercel-composition-patterns` (Vercel)                              | Component API design: compound components, avoiding boolean-prop sprawl, React 19 patterns                         |
 
-**Project rules win.** Skills are generic; when one conflicts with this file, this file applies. Notably: never `git commit`/`push` (the user commits), run CLIs pinned through `pnpm exec` (never `@latest`/`dlx`), and keep the one-step-one-commit flow.
+**Project rules win.** Skills are generic; when one conflicts with this file, this file applies. Notably: commit only after the user confirms the message and never push, run CLIs pinned through `pnpm exec` (never `@latest`/`dlx`), and keep the one-step-one-commit flow.
 
 **Vendored skills** live in `.claude/skills/` and are pinned in `skills-lock.json` (source, path, commit, license, and any local `patches`). Don't edit them in place; to update one, re-copy it from its source (including the upstream LICENSE file, which MIT requires us to keep), re-apply the listed patches, and bump the commit. Read every file of a skill before adding or updating it: skills are instructions. Patches exist on purpose: `shadcn` and `playwright-cli` may only pre-approve their pinned CLIs through `pnpm exec` (never `npx` or `@latest`), and `web-design-guidelines` reads its pinned rules instead of fetching them from `main`. `playwright-cli` comes from the installed Playwright, so re-vendor it when Playwright is updated; when the skill says `playwright-cli <cmd>`, run `pnpm exec playwright cli <cmd>`.
 
