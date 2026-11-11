@@ -50,6 +50,8 @@ export default defineConfig({
       prerender: { routes: ['/'], crawlLinks: false, failOnError: true },
       compressPublicAssets: { gzip: true, brotli: true },
       hooks: { compiled: (app) => copyKitMigrations(app.options.output.serverDir) },
+      // Checks the guest accounts' settings at start (see the file).
+      plugins: ['src/server/startup.ts'],
     }),
     tailwindcss(),
     tanstackStart(),

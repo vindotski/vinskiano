@@ -126,16 +126,14 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - **Release steps:** new work goes under `## [Unreleased]` in `CHANGELOG.md`, without a version bump. At release time the user picks the version (semver: fixes → patch, features → minor, breaking changes → major). The agent bumps `package.json` and renames the section to the version and date in a `chore(repo): publish release X.Y.Z` commit; the user merges to `main` and tags `vX.Y.Z`.
 - Pushing `main` publishes an image, so work stays on `dev` until it's meant to ship.
 
-## Deploy (`deploy/`, `docs/deploy.md`)
+## Deploy (`docs/deploy.md`)
 
-- **Target:** one Linux server (Hetzner, or any provider with cloud-init; Ubuntu 22.04/24.04 or Debian 12/13, amd64/arm64) running `deploy/compose.yaml`: the published image plus Caddy (automatic HTTPS, `www` redirect, compression of server-rendered pages, security headers). Adapted from TagTape's kit (`../tagtape/deploy`); keep them alike where the apps don't differ.
-  - Only Caddy publishes ports. Both services have health checks, so `docker compose up --wait` really waits, and both run read-only, without capabilities and with memory limits.
-- **`deploy/cloud-init.yaml`** bootstraps a server: Docker (with `live-restore`, `no-new-privileges`, no userland proxy), the `deploy` user, ufw (SSH rate-limited), key-only SSH via `sshd_config.d/00-vinskiano.conf` (must sort before Ubuntu's `50-cloud-init.conf`), unattended upgrades with reboots at 04:00, swap, log rotation. Keep it provider-neutral; validate changes with `cloud-init schema -c deploy/cloud-init.yaml` in an `ubuntu:24.04` container.
-- **`deploy/remote-deploy.sh`** runs on the server: pins `VINSKIANO_TAG` in `.env`, pulls, `up --wait`. A tag that can't be pulled changes nothing; an unhealthy one is rolled back to the previous tag. Must run on the server's bash and sed (GNU) and on macOS's (for rehearsals): no `sed -i`, guard empty arrays.
-- **`.github/workflows/deploy.yml`** is manual (`workflow_dispatch` with an image `tag`), in the `production` environment: plain ssh/scp with the host key pinned (`DEPLOY_KNOWN_HOSTS`), then `deploy/check-site.sh` from outside. Variables `DEPLOY_HOST`, `VINSKIANO_DOMAIN`, `DEPLOY_USER`; secrets `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`.
-- **Rehearse changes to `deploy/` locally** (steps at the end of `docs/deploy.md`): a local registry, a temp dir as `/opt/vinskiano` with `VINSKIANO_DOMAIN=localhost`, the real `remote-deploy.sh`, then `check-site.sh` and `E2E_BASE_URL=https://localhost pnpm test:e2e`. Also rehearse the failure paths you touched (a missing tag, an image that crashes).
+- **Target: [Spotcraft](https://spotcraft.dev)** (decided 2026-11): the published image on Spotcraft's apps server, added and updated in its dashboard (image, tag, domain, container port 3000, Database ticked, `AUTH_SECRET`, `PUBLIC_URL`). Spotcraft runs Caddy (HTTPS, `www`, `X-Forwarded-*`), the health check and the deploy switch; a deploy that isn't healthy keeps the previous version. Keep `@spotcraft/kit` at the version of the Spotcraft it deploys to.
+- **The server checks its settings at start** (`src/server/startup.ts`, a Nitro plugin) and exits naming a missing or wrong one, so a bad deploy fails its health check instead of failing on the first save.
+- **Rehearse deploy changes locally** (steps in `docs/deploy.md`): the production image read-only, without capabilities and memory-limited, behind Caddy over HTTPS on the local Spotcraft network, then `E2E_BASE_URL=https://localhost:8443 pnpm test:e2e` and the failure path (a missing `AUTH_SECRET`).
 - **Deploys need a published image** (`sha-…` from `main`, or a release tag), and only the user starts them.
-- `E2E_BASE_URL=https://…` runs the browser tests against any running site (rehearsal or production) instead of starting a server.
+- `E2E_BASE_URL=https://…` runs the browser tests against any running site (rehearsal or production) instead of starting a server. `deploy/check-site.sh <url>` checks a live site from outside.
+- **Retired: the single-server kit** (`deploy/`, `.github/workflows/deploy.yml`, `docs/deploy-single-server.md`), adapted from TagTape's. It has no database, so it can't run images with guest accounts. Remove it after the first Spotcraft deploy works; keep `check-site.sh`.
 
 ## CI
 
