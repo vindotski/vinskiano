@@ -11,6 +11,7 @@ import { Engine, type Oscilloscope, type Sound } from '../audio'
 import { Frequency, KEYBOARD_NOTES, type Note } from '../music'
 import type { MasterSettings, OscillatorSettings, OscillatorState } from '../types/synth'
 import { disableContextMenu } from '../utils/disable-context-menu'
+import type { PresetSettings } from './preset'
 
 /** Everything the pages need from the synth: its state and how to play and change it. */
 export interface Synth {
@@ -23,6 +24,8 @@ export interface Synth {
   release: (note: Note) => void
   updateMaster: (settings: MasterSettings) => void
   updateOscillator: (id: number, settings: OscillatorSettings) => void
+  /** Replaces the whole sound at once, e.g. with a preset. */
+  loadSettings: (settings: PresetSettings) => void
 }
 
 /** A sound that is currently playing, tagged with the note that started it. */
@@ -90,6 +93,11 @@ export function SynthProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  const loadSettings = useCallback((settings: PresetSettings) => {
+    setMaster(settings.master)
+    setOscillators(settings.oscillators)
+  }, [])
+
   const synth: Synth = {
     scale: KEYBOARD_NOTES,
     master,
@@ -99,6 +107,7 @@ export function SynthProvider({ children }: { children: ReactNode }) {
     release,
     updateMaster: setMaster,
     updateOscillator,
+    loadSettings,
   }
 
   return <SynthContext value={synth}>{children}</SynthContext>

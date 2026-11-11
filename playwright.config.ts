@@ -40,8 +40,9 @@ export default defineConfig({
     : {
         webServer: {
           command: DOCKER ? 'docker compose up --build app' : 'pnpm build && pnpm start',
-          // compose maps PORT on the host to the container's 3000.
-          env: { PORT: String(PORT) },
+          // compose maps PORT on the host to the container's 3000. The guest accounts need the
+          // local Spotcraft Postgres (`pnpm exec spotcraft dev start`, then `dev env --write`).
+          env: { PORT: String(PORT), PUBLIC_URL: `http://localhost:${PORT}` },
           port: PORT,
           reuseExistingServer: false,
           timeout: DOCKER ? 600_000 : 60_000, // a cold image build takes minutes

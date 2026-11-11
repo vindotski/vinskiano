@@ -113,3 +113,22 @@ export async function chooseWaveform(page: Page, oscillator: number, waveform: s
 }
 
 export { expect }
+
+/**
+ * Makes the page a new visitor from its own address. The app trusts the last X-Forwarded-For
+ * entry (in production, the one Caddy adds), and allows 30 new guests per address per 10
+ * minutes, which a test run on one machine would otherwise use up. Behind a real proxy (an
+ * E2E_BASE_URL run) the proxy replaces the header, and the limit applies as usual.
+ */
+export async function asNewVisitor(page: Page) {
+  const byte = () => Math.floor(Math.random() * 254) + 1
+  await page.setExtraHTTPHeaders({ 'x-forwarded-for': `10.${byte()}.${byte()}.${byte()}` })
+}
+
+/** Open the presets popover (loading the list) and return it. */
+export async function openPresets(page: Page) {
+  await page.getByRole('button', { name: 'Presets' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Presets' })
+  await expect(dialog).toBeVisible()
+  return dialog
+}

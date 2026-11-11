@@ -1,125 +1,88 @@
 # Deploying Vinskiano
 
-Vinskiano runs as one Docker image (`vindotski/vinskiano`) behind [Caddy](https://caddyserver.com), which handles HTTPS. Everything needed to rebuild the server lives in [`deploy/`](../deploy):
+Vinskiano runs on [Spotcraft](https://spotcraft.dev): one Docker image (`vindotski/vinskiano`, published by CI) on Spotcraft's apps server, which runs it behind Caddy (HTTPS), watches it, and gives it its own Postgres database for the guest accounts and their presets.
 
-| File                                             | What it does                                                                                                                                            |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`cloud-init.yaml`](../deploy/cloud-init.yaml)   | First-boot setup: Docker, a `deploy` user for CI, firewall (SSH/80/443 only), key-only SSH, automatic security updates with reboots, swap, log rotation |
-| [`compose.yaml`](../deploy/compose.yaml)         | The app + Caddy. Only Caddy publishes ports. Both have health checks, both run read-only with no capabilities.                                          |
-| [`Caddyfile`](../deploy/Caddyfile)               | HTTPS for your domain (Let's Encrypt), `www` → apex redirect, compression for server-rendered pages, security headers                                   |
-| [`.env.example`](../deploy/.env.example)         | Server settings: domain, image tag, resources                                                                                                           |
-| [`remote-deploy.sh`](../deploy/remote-deploy.sh) | Runs on the server: pins the tag, pulls, restarts, waits until healthy, and rolls back if not                                                           |
-| [`check-site.sh`](../deploy/check-site.sh)       | Checks the live site from outside: home page, compressed assets, the synth, the `www` redirect                                                          |
+Use the same Spotcraft version as `@spotcraft/kit` in `package.json` (now **0.2.0**): the kit refuses to start against an older `auth` schema. The single-server kit in [`deploy/`](../deploy) ([its guide](deploy-single-server.md)) can't run images from this point on, since it has no database.
 
-Deploys run from GitHub Actions ([`deploy.yml`](../.github/workflows/deploy.yml)), started by hand with an image tag. Because the setup is reproducible, **moving servers, providers or IPs** means creating a new server from the same files and running a deploy.
+## What the image needs
 
-## 1. Create the server
+| Setting              | Value                                                                                                                                       |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Image                | `vindotski/vinskiano`, with a release tag (`X.Y.Z`) or a `sha-…` tag from `main`                                                            |
+| Container port       | `3000`                                                                                                                                      |
+| Memory               | `256` MB is plenty (the whole browser suite peaks at about 80 MB in a rehearsal)                                                            |
+| Read-only filesystem | Leave it on: the server writes nothing                                                                                                      |
+| **Database**         | Ticked. Spotcraft creates the app's database and sets `DATABASE_URL`; don't set it yourself.                                                |
+| `AUTH_SECRET`        | A new `openssl rand -hex 32`, never the local one. It signs the guests' session cookies: **changing it signs every guest out**, so keep it. |
+| `PUBLIC_URL`         | The site's address, `https://vinskiano.app`                                                                                                 |
 
-On **Hetzner Cloud** (any provider with cloud-init "user data" works the same way: DigitalOcean, Vultr, Linode, AWS, …):
+The server checks these settings when it starts and stops right away if one is missing or wrong, naming it (`AUTH_SECRET must be at least 32 characters`). Spotcraft then keeps the previous version running.
 
-- **Image:** Ubuntu 24.04 (Ubuntu 22.04 and Debian 12/13 work too)
-- **Type:** the smallest one is plenty. Vinskiano's server only renders pages and serves files; all sound is made in the browser. Arm64 (CAX) and x86 (CX) both work; the image is built for both.
-- **SSH key:** add yours. No password login.
-- **Cloud config:** paste the whole of [`deploy/cloud-init.yaml`](../deploy/cloud-init.yaml)
-- **IPv4 and IPv6:** keep both if you can (IPv6 needs no extra cost; some networks still need IPv4)
+The app runs its own migrations (`src/server/migrations`, the tables in `public`) on first use, under a lock, so there is no release step. Spotcraft keeps the `auth` schema up to date itself.
 
-Hetzner's own cloud firewall is optional: the server sets up `ufw` itself. If you add one, allow 22/tcp, 80/tcp, 443/tcp and 443/udp.
+## First deploy
 
-Give it a few minutes after boot (it installs updates, Docker, and may reboot once). Then this should work:
-
-```bash
-ssh deploy@<server-ip> docker version
-```
-
-There are two accounts, both key-only:
-
-- **`deploy`** runs the app. It's in the `docker` group, which is effectively root, so guard its key.
-- **`root`** is for admin work like reboots.
-
-If something looks wrong, read `/var/log/cloud-init-output.log`. A missing SSH key shows up there as a `WARNING`.
-
-## 2. Point DNS at it
-
-| Type | Name            | Value                       |
-| ---- | --------------- | --------------------------- |
-| A    | `vinskiano.app` | server IPv4                 |
-| A    | `www`           | server IPv4                 |
-| AAAA | both            | server IPv6 (if it has one) |
-
-If your DNS is on Cloudflare, set these records to **DNS only** (grey cloud), at least for the first deploy, so Caddy can get its certificate directly.
-
-## 3. Server settings
+1. **DNS:** point the domain's A and AAAA records at the apps server (DNS only, no proxy, if it's on Cloudflare). The `www` name gets redirected by Spotcraft.
+2. In the Spotcraft dashboard, **Add app**: name `vinskiano`, the image and tag, the domain, and the settings above.
+3. **Deploy.** Spotcraft pulls the image, waits until it's healthy (the image's health check fetches `/`) and switches traffic to it. The HTTPS certificate arrives on the first request once DNS points at the server.
+4. Check it from outside, then play a note (automation can check everything except the sound):
 
 ```bash
-ssh deploy@<server-ip>
-cd /opt/vinskiano
-nano .env     # paste deploy/.env.example; check VINSKIANO_DOMAIN
+deploy/check-site.sh https://vinskiano.app
+E2E_BASE_URL=https://vinskiano.app pnpm test:e2e
 ```
 
-The deploy workflow copies `compose.yaml` and `Caddyfile` on every deploy and only changes `VINSKIANO_TAG` in `.env`.
+The browser tests save a few presets; behind a real proxy they count against the limit on new guests (30 per address per 10 minutes), which one run stays well under.
 
-## 4. GitHub setup (once)
+## Updates and rollback
 
-In the repository, go to **Settings → Environments → New environment** `production` and, optionally, add yourself as a required reviewer. Then add, in that environment:
+Edit the app in the dashboard and pick the new tag. A tag that fails its health check never gets traffic. To roll back, pick the previous tag; every publish also has an immutable `sha-abc1234` tag on Docker Hub. Redeploys keep the database.
 
-| Kind     | Name                 | Value                                                                         |
-| -------- | -------------------- | ----------------------------------------------------------------------------- |
-| Variable | `DEPLOY_HOST`        | server IP or hostname                                                         |
-| Variable | `VINSKIANO_DOMAIN`   | `vinskiano.app`                                                               |
-| Variable | `DEPLOY_USER`        | `deploy` (optional, this is the default)                                      |
-| Secret   | `DEPLOY_SSH_KEY`     | a **private** key whose public half is in `/home/deploy/.ssh/authorized_keys` |
-| Secret   | `DEPLOY_KNOWN_HOSTS` | the output of `ssh-keyscan -t ed25519 <server-ip>`                            |
+## Rehearsing a deploy locally
 
-Generate a dedicated key for CI instead of reusing your own:
+Spotcraft's local stack only runs Postgres, so a rehearsal recreates the rest of the apps server as its docs describe it: the production image with a read-only filesystem, no capabilities and a memory limit, behind Caddy over HTTPS.
 
-```bash
-ssh-keygen -t ed25519 -f vinskiano-deploy -N "" -C "github-actions-deploy"
-ssh deploy@<server-ip> 'cat >> ~/.ssh/authorized_keys' < vinskiano-deploy.pub
-# paste the contents of vinskiano-deploy into DEPLOY_SSH_KEY, then delete both local files
-```
+1. `pnpm exec spotcraft dev start`
+2. `docker build --target production -t vinskiano:rehearsal .`
+3. In a temp dir, a `Caddyfile`:
 
-Run `ssh-keyscan` from a network you trust and compare it with the server's fingerprint (shown in the boot log, or `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub` on the server). Pinning the host key is what stops a man-in-the-middle from impersonating the server. **When you replace the server**, update `DEPLOY_HOST` and `DEPLOY_KNOWN_HOSTS`.
+   ```caddyfile
+   localhost:8443 {
+   	encode zstd gzip
+   	reverse_proxy app:3000
+   }
+   ```
 
-Images are published by CI (see "Releases" in [AGENTS.md](../AGENTS.md)); that needs the variable `DOCKERHUB_USERNAME` and the secret `DOCKERHUB_TOKEN` at the repository level.
+   and a `compose.yaml` (the Caddy image as pinned in `deploy/compose.yaml`):
 
-## 5. Deploy
+   ```yaml
+   name: vinskiano-rehearsal
+   services:
+     app:
+       image: vinskiano:rehearsal
+       read_only: true
+       tmpfs: ["/tmp:size=16m"]
+       cap_drop: [ALL]
+       security_opt: ["no-new-privileges:true"]
+       mem_limit: 256m
+       pids_limit: 128
+       environment:
+         DATABASE_URL: postgres://app_vinskiano:local-vinskiano-password@postgres:5432/app_vinskiano
+         AUTH_SECRET: ${AUTH_SECRET:?}
+         PUBLIC_URL: https://localhost:8443
+       networks: [default, spotcraft]
+     caddy:
+       image: caddy:2.11.7
+       ports: ["8443:8443"]
+       volumes: ["./Caddyfile:/etc/caddy/Caddyfile:ro"]
+       depends_on: { app: { condition: service_healthy } }
+   networks:
+     spotcraft: { name: spotcraft-dev_default, external: true }
+   ```
 
-Go to **Actions → Deploy → Run workflow** and enter a tag (for example `1.0.0`). The workflow:
+4. `AUTH_SECRET=$(openssl rand -hex 32) docker compose up -d --wait`
+5. `E2E_BASE_URL=https://localhost:8443 pnpm test:e2e`
+6. The failure path: `docker run --rm -e PUBLIC_URL=https://vinskiano.app vinskiano:rehearsal` must exit at once, naming the missing variable.
+7. Clean up: `AUTH_SECRET=x docker compose down`, and `pnpm exec spotcraft dev reset --yes` for an empty database.
 
-1. checks that the tag exists on Docker Hub
-2. uploads `compose.yaml` and `Caddyfile`
-3. runs `remote-deploy.sh`, which sets the tag, pulls, runs `docker compose up --wait`, and fails if the app or Caddy isn't healthy. **A failed deploy rolls back by itself** to the tag that was running, and a tag that can't be pulled changes nothing.
-4. runs `check-site.sh` **from outside**: the home page, a brotli-compressed stylesheet, the synth at `/app`, and the `www` redirect
-
-The first deploy also issues the HTTPS certificate, which can take up to a minute. Then open the site and play a note: automation can check everything except the sound.
-
-## Rollback
-
-Run the Deploy workflow with the previous tag. Every publish also has an immutable `sha-abc1234` tag on Docker Hub. On the server, `grep VINSKIANO_TAG /opt/vinskiano/.env.bak` shows the tag that ran before the last deploy.
-
-## Day to day
-
-```bash
-ssh deploy@<server-ip>
-cd /opt/vinskiano
-docker compose ps                 # both services should be "healthy"
-docker compose logs -f app        # the app's logs
-docker compose logs -f caddy      # HTTPS / certificate issues
-TAG=1.0.0 bash remote-deploy.sh   # manual deploy (copy the script over first)
-```
-
-From your own machine, `deploy/check-site.sh https://vinskiano.app` checks the live site, and `E2E_BASE_URL=https://vinskiano.app pnpm test:e2e` runs the whole browser suite against it.
-
-- **Updates:** security updates install automatically, and the server reboots at 04:00 when one needs it. The containers come back by themselves (`restart: unless-stopped`).
-- **Restarts are harmless:** the server keeps no state. A visitor mid-session keeps playing; the synth runs in their browser.
-
-## Rehearsing changes to the deploy files
-
-Before relying on a change to `deploy/`, rehearse it locally (needs ports 80 and 443 free):
-
-1. Run a local registry: `docker run -d --name registry -p 5001:5000 registry:2`
-2. Build and push: `docker build --target production -t localhost:5001/vinskiano:test . && docker push localhost:5001/vinskiano:test`
-3. Copy `deploy/compose.yaml` and `deploy/Caddyfile` to a temp dir, with an `.env` of `VINSKIANO_DOMAIN=localhost`, `VINSKIANO_IMAGE=localhost:5001/vinskiano` and `VINSKIANO_TAG=old`
-4. `VINSKIANO_DIR=<temp dir> TAG=test bash deploy/remote-deploy.sh`
-5. `CURL_OPTS=-k deploy/check-site.sh https://localhost`, then `E2E_BASE_URL=https://localhost pnpm test:e2e`
-6. Clean up: `docker compose down -v` in the temp dir, and remove the registry
+What a rehearsal can't show: Spotcraft's own Caddy configuration, its health check and its deploy switch. Those are checked on the first real deploy.

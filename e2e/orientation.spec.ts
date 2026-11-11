@@ -1,5 +1,5 @@
 import type { Locator, Page } from '@playwright/test'
-import { audioLog, expect, openApp, resetAudioLog, test } from './fixtures'
+import { asNewVisitor, audioLog, expect, openApp, resetAudioLog, test } from './fixtures'
 
 // Runs on phones held upright and sideways. Upright, the app rotates itself 90° so the
 // keyboard keeps its landscape shape; everything must still work by touch.
@@ -91,6 +91,26 @@ test('the waveform dropdown opens next to its trigger and works', async ({ page 
   await resetAudioLog(page)
   await page.locator('.piano-key').first().tap()
   expect((await audioLog(page)).started.map((s) => s.type)).toEqual(['square', 'sine', 'sine'])
+})
+
+test('the presets popover opens on screen, turned with the app, and saves', async ({ page }) => {
+  await asNewVisitor(page)
+  await page.getByRole('button', { name: 'Presets' }).tap()
+  const dialog = page.getByRole('dialog', { name: 'Presets' })
+  await expect(dialog).toBeVisible()
+  expect(await dialog.evaluate((box) => !!box.closest('[data-app-frame]'))).toBe(true)
+  const box = await dialog.boundingBox()
+  const viewport = page.viewportSize()
+  if (!box || !viewport) throw new Error('not visible')
+  expect(box.x).toBeGreaterThanOrEqual(0)
+  expect(box.y).toBeGreaterThanOrEqual(0)
+  expect(box.x + box.width).toBeLessThanOrEqual(viewport.width)
+  expect(box.y + box.height).toBeLessThanOrEqual(viewport.height)
+
+  await dialog.getByRole('textbox', { name: 'Save this sound as' }).fill('Pocket')
+  await dialog.getByRole('button', { name: 'Save' }).tap()
+  await expect(dialog.getByRole('status')).toHaveText('Saved “Pocket”')
+  await expect(dialog.getByRole('button', { name: 'Load Pocket' })).toBeVisible()
 })
 
 test('the app bar is one row and nothing scrolls sideways', async ({ page }) => {

@@ -115,6 +115,7 @@ function placeInRotatedContainer(
   container: HTMLElement | null | undefined,
   trigger: Element | null | undefined,
   offset: number,
+  width: number,
 ): React.CSSProperties | undefined {
   if (!container || !(trigger instanceof HTMLElement)) return undefined
   const { rotate, transform } = getComputedStyle(container)
@@ -131,7 +132,7 @@ function placeInRotatedContainer(
   const top = y + trigger.offsetHeight + offset
   return {
     '--rotated-top': `${top}px`,
-    '--rotated-left': `${Math.max(0, Math.min(x, container.clientWidth - 160))}px`,
+    '--rotated-left': `${Math.max(0, Math.min(x, container.clientWidth - width))}px`,
     '--rotated-max-height': `${container.clientHeight - top - 8}px`,
     // React Aria measures the trigger on screen, where its width is its height when rotated.
     '--trigger-width': `${trigger.offsetWidth}px`,
@@ -144,15 +145,23 @@ function SelectPopover({
   placement = 'bottom start',
   offset = 4,
   crossOffset = 0,
+  rotatedWidth = 160,
   ...props
 }: Omit<React.ComponentProps<typeof PopoverPrimitive>, 'className' | 'children'> & {
   className?: string | undefined
   children?: React.ReactNode
+  /** The popover's width in a rotated container, to keep it inside the right edge. */
+  rotatedWidth?: number
 }) {
   const { getContainer } = usePortalContext()
   const triggerRef = useSlottedContext(PopoverContext)?.triggerRef
   // Computed while rendering the open popover, when both elements exist.
-  const rotated = placeInRotatedContainer(getContainer?.(), triggerRef?.current, offset)
+  const rotated = placeInRotatedContainer(
+    getContainer?.(),
+    triggerRef?.current,
+    offset,
+    rotatedWidth,
+  )
   return (
     <PopoverPrimitive
       data-slot="select-content"

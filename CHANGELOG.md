@@ -8,6 +8,17 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 
 ## [Unreleased]
 
+### Added
+
+- Presets: save the current sound under a name, then load or delete it, from the bookmark button in the app bar. They're kept on the server in a guest account, with no sign-up: your first save sets a cookie that lasts a year. Clearing cookies or switching browsers starts a new, empty list
+
+### Changed
+
+- Vinskiano now deploys on [Spotcraft](https://spotcraft.dev), with a Postgres database for the presets. The server needs `DATABASE_URL`, `AUTH_SECRET` and `PUBLIC_URL`, and stops at start, naming the one that's missing or wrong. See [docs/deploy.md](docs/deploy.md)
+- Running locally needs Postgres too: `pnpm exec spotcraft dev start` runs it in Docker, and `pnpm exec spotcraft dev env --write` adds its settings to `.env`. Without it, `pnpm dev` still plays (only presets fail), but `pnpm start` and the Docker image won't start
+- The Docker image applies Debian's security updates when it's built, instead of waiting for a new Node base image
+- The single-server deploy kit is retired: it has no database, so it can't run images with presets. It stays until the first Spotcraft deploy, then goes
+
 ## [1.0.0] - 2026-11-07
 
 Vinskiano, back after six years: rebuilt on a current stack, redesigned as a single screen, and ready to deploy. The sound engine and the music are the same three oscillators as 0.1.0.
@@ -20,7 +31,7 @@ Vinskiano, back after six years: rebuilt on a current stack, redesigned as a sin
 - Every control has an accessible name, the page area is a `main` landmark, and the site has a "Skip to content" link
 - Piano keys dip slightly when pressed, knobs glide to values set by keyboard or click, and pages crossfade between the site and the synth. Sound and values change instantly; reduced motion is respected
 - Docker images on Docker Hub (`vindotski/vinskiano`, amd64 and arm64, with provenance and an SBOM): `latest` from `main`, and `X.Y.Z`, `X.Y` and `X` for each release
-- A deploy kit for a single server (Hetzner or any cloud-init provider): first-boot setup, Caddy with automatic HTTPS, and a manual GitHub deploy that rolls back by itself if the new version isn't healthy. See [docs/deploy.md](docs/deploy.md)
+- A deploy kit for a single server (Hetzner or any cloud-init provider): first-boot setup, Caddy with automatic HTTPS, and a manual GitHub deploy that rolls back by itself if the new version isn't healthy. See [docs/deploy-single-server.md](docs/deploy-single-server.md)
 - Continuous integration: lint, typecheck, unit tests, build, browser tests in Chromium, Firefox and WebKit (desktop, and phones held both ways), and a test and vulnerability scan of the Docker image. Dependabot keeps dependencies, actions and images up to date
 
 ### Changed

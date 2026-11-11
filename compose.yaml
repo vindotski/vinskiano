@@ -1,8 +1,25 @@
 # pnpm docker       production image (Node + Nitro) on http://localhost:${PORT:-3000}
 # pnpm docker:dev   Vite dev server with hot reload, source bind-mounted
 # pnpm docker:test  lint + typecheck + unit tests in the dev container
+#
+# All of them need the local Spotcraft Postgres first: `pnpm exec spotcraft dev start`, and
+# `pnpm exec spotcraft dev env --write` for AUTH_SECRET in .env.
+
+# The guest accounts' settings. AUTH_SECRET comes from .env; the database is the local stack's
+# Postgres, reached by its service name on the stack's network (the 127.0.0.1 URL in .env only
+# works from the host). The password is the fixed local one `spotcraft dev` gives the app.
+x-spotcraft: &spotcraft
+  env_file:
+    - path: .env
+      required: false
+  environment:
+    DATABASE_URL: postgres://app_vinskiano:local-vinskiano-password@postgres:5432/app_vinskiano
+    PUBLIC_URL: http://localhost:${PORT:-3000}
+  networks: [default, spotcraft]
+
 services:
   app:
+    <<: *spotcraft
     build:
       context: .
       target: production
@@ -10,6 +27,7 @@ services:
       - "${PORT:-3000}:3000"
 
   dev:
+    <<: *spotcraft
     build:
       context: .
       target: dev
@@ -23,6 +41,7 @@ services:
     command: sh -c "pnpm install --frozen-lockfile && pnpm dev --host 0.0.0.0"
 
   test:
+    <<: *spotcraft
     profiles: [test]
     build:
       context: .
@@ -34,3 +53,9 @@ services:
 
 volumes:
   node_modules:
+
+networks:
+  # Created by `pnpm exec spotcraft dev start`.
+  spotcraft:
+    name: spotcraft-dev_default
+    external: true
