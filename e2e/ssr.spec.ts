@@ -12,9 +12,18 @@ test('the server renders the piano', async ({ request }) => {
 
 test('the server renders the synth controls', async ({ request }) => {
   const html = await (await request.get('/app')).text()
-  for (const name of ['Oscillator 1 volume', 'Oscillator 2 pitch', 'Oscillator 3 waveform']) {
+  for (const name of ['Shown oscillator', 'Oscillator 1 volume', 'Oscillator 1 pitch']) {
     expect(html).toContain(name)
   }
+  expect(html).not.toContain('Oscillator 2 pitch')
+})
+
+test('the server renders the oscillator the URL asks for', async ({ request }) => {
+  const html = await (await request.get('/app?osc=3')).text()
+  expect(html).toContain('Oscillator 3 waveform')
+  expect(html).not.toContain('Oscillator 1 pitch')
+  // Anything else shows oscillator 1.
+  expect(await (await request.get('/app?osc=7')).text()).toContain('Oscillator 1 pitch')
 })
 
 test('unknown paths get a real 404', async ({ request }) => {

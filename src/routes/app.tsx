@@ -1,10 +1,11 @@
-import { createFileRoute, Link, Outlet } from '@tanstack/react-router'
+import { createFileRoute, Link, Outlet, useNavigate, useSearch } from '@tanstack/react-router'
 import { LazyMotion, MotionConfig } from 'motion/react'
 import { useRef } from 'react'
 import { UNSAFE_PortalProvider as PortalProvider } from 'react-aria'
 import AppBar from '../components/AppBar'
 import Logo from '../components/icons/Logo'
 import PresetsMenu from '../components/PresetsMenu'
+import { type OscillatorId, toOscillatorId } from '../synth/oscillators'
 import { SynthProvider, useSynth } from '../synth/SynthProvider'
 import { usePresets } from '../synth/usePresets'
 
@@ -48,10 +49,21 @@ function AppLayout() {
   )
 }
 
-/** The app bar, wired to the synth and the visitor's presets. */
+/** The app bar, wired to the synth, the visitor's presets and the URL (which oscillator it shows). */
 function SynthBar() {
   const synth = useSynth()
   const presets = usePresets()
+  const navigate = useNavigate()
+  const shown = toOscillatorId(useSearch({ strict: false }).osc) ?? 1
+  // Switching only changes the bar: no crossfade of the page, no history entry per switch.
+  const show = (osc: OscillatorId) =>
+    navigate({
+      to: '/app',
+      search: osc === 1 ? {} : { osc },
+      replace: true,
+      resetScroll: false,
+      viewTransition: false,
+    })
   return (
     <AppBar
       start={
@@ -79,7 +91,9 @@ function SynthBar() {
           onDelete={presets.remove}
         />
       }
-      oscillators={synth.oscillators}
+      shownOscillator={shown}
+      onShowOscillator={show}
+      oscillator={synth.oscillators.find((o) => o.id === shown)}
       onOscillatorChange={synth.updateOscillator}
       master={synth.master}
       onMasterChange={synth.updateMaster}

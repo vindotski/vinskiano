@@ -7,6 +7,8 @@ interface OscillatorProps extends OscillatorSettings {
   id: number
   label: string
   onChange: (id: number, settings: OscillatorSettings) => void
+  /** Show the number badge; off when something next to the strip already shows it. */
+  numbered?: boolean
 }
 
 /** A small caption under a knob. Visual only: each knob already has an accessible name. */
@@ -20,7 +22,15 @@ const Caption = ({ children }: { children: string }) => (
 )
 
 /** One oscillator as a compact strip: number, volume, waveform, pitch. */
-const Oscillator = ({ id, label, waveform, pitch, volume, onChange }: OscillatorProps) => {
+const Oscillator = ({
+  id,
+  label,
+  waveform,
+  pitch,
+  volume,
+  onChange,
+  numbered = true,
+}: OscillatorProps) => {
   const name = `Oscillator ${label}`
   const update = (changes: Partial<OscillatorSettings>) => {
     const next = { waveform, pitch, volume, ...changes }
@@ -30,12 +40,14 @@ const Oscillator = ({ id, label, waveform, pitch, volume, onChange }: Oscillator
   return (
     // `oscillator` is a hook for tests.
     <fieldset aria-label={name} className="oscillator flex items-center gap-1 md:gap-1.5 xl:gap-2">
-      <span
-        aria-hidden="true"
-        className="grid size-5 place-items-center rounded-full bg-foreground text-[11px] font-semibold text-background xl:size-6 xl:text-xs"
-      >
-        {label}
-      </span>
+      {numbered ? (
+        <span
+          aria-hidden="true"
+          className="grid size-5 place-items-center rounded-full bg-foreground text-[11px] font-semibold text-background xl:size-6 xl:text-xs"
+        >
+          {label}
+        </span>
+      ) : null}
       <div className="flex flex-col items-center">
         <VolumeKnob
           label={`${name} volume`}

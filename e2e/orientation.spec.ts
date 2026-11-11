@@ -1,5 +1,13 @@
 import type { Locator, Page } from '@playwright/test'
-import { asNewVisitor, audioLog, expect, openApp, resetAudioLog, test } from './fixtures'
+import {
+  asNewVisitor,
+  audioLog,
+  expect,
+  openApp,
+  resetAudioLog,
+  showOscillator,
+  test,
+} from './fixtures'
 
 // Runs on phones held upright and sideways. Upright, the app rotates itself 90° so the
 // keyboard keeps its landscape shape; everything must still work by touch.
@@ -44,6 +52,7 @@ test('a tapped key plays once and stops on release', async ({ page }) => {
 test('tapping a knob turns it to that point of the dial', async ({ page }) => {
   // The dial's 3 o'clock, as the user sees it (in the knob's own coordinates, so it also holds
   // when the whole app is rotated): 90° of the 270° sweep from the middle, i.e. +16 semitones.
+  await showOscillator(page, 2)
   const slider = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
   const dial = page.locator('.knob').filter({ has: slider }).locator('svg.knob-dial')
   const view = await dial.evaluate((svg: SVGSVGElement) => {
@@ -91,6 +100,21 @@ test('the waveform dropdown opens next to its trigger and works', async ({ page 
   await resetAudioLog(page)
   await page.locator('.piano-key').first().tap()
   expect((await audioLog(page)).started.map((s) => s.type)).toEqual(['square', 'sine', 'sine'])
+})
+
+test('the oscillator select opens on screen and switches the bar', async ({ page }) => {
+  await page.getByRole('button', { name: /Shown oscillator/ }).tap()
+  const listbox = page.getByRole('listbox')
+  await expect(listbox).toBeVisible()
+  const box = await listbox.boundingBox()
+  const viewport = page.viewportSize()
+  if (!box || !viewport) throw new Error('not visible')
+  expect(box.x).toBeGreaterThanOrEqual(0)
+  expect(box.y).toBeGreaterThanOrEqual(0)
+  expect(box.x + box.width).toBeLessThanOrEqual(viewport.width)
+  expect(box.y + box.height).toBeLessThanOrEqual(viewport.height)
+  await page.getByRole('option', { name: 'Oscillator 3' }).tap()
+  await expect(page.getByRole('slider', { name: 'Oscillator 3 pitch' })).toBeVisible()
 })
 
 test('the presets popover opens on screen, turned with the app, and saves', async ({ page }) => {

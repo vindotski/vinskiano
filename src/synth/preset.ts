@@ -1,5 +1,6 @@
 import type { Waveform } from '../audio'
 import type { MasterSettings, OscillatorState } from '../types/synth'
+import { OSCILLATOR_IDS } from './oscillators'
 
 /** What a preset keeps: the whole sound, as the synth's state holds it. */
 export interface PresetSettings {
@@ -19,8 +20,6 @@ export const PRESET_NAME_MAX = 40
 export const PRESETS_MAX = 100
 
 const WAVEFORMS: readonly Waveform[] = ['sine', 'square', 'sawtooth', 'triangle']
-/** The synth has three oscillators, ids 1 to 3; a preset sets all of them. */
-const OSCILLATOR_IDS = [1, 2, 3]
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)

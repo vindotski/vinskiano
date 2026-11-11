@@ -5,6 +5,7 @@ import {
   openApp,
   pageTransitionDone,
   resetAudioLog,
+  showOscillator,
   test,
 } from './fixtures'
 
@@ -62,6 +63,7 @@ test('waveform and pitch changes reach the audio graph', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Oscillator 1 waveform' })).toHaveAccessibleName(
     /^Square/,
   )
+  await showOscillator(page, 2)
   const pitch2 = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
   await pitch2.focus()
   await page.keyboard.press('End')
@@ -148,6 +150,7 @@ test('pressing at the very edge of a key keeps the note playing while held', asy
 
 test('the waveform dropdown works with the keyboard', async ({ page }) => {
   await openApp(page)
+  await showOscillator(page, 3)
   const trigger = page.getByRole('button', { name: 'Oscillator 3 waveform' })
   await trigger.focus()
   await page.keyboard.press('Enter') // open
