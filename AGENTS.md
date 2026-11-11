@@ -236,7 +236,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - **The agent commits after the user confirms the message** (since 2026-11-08). It finishes a step, verifies it, proposes the message (see the `commit-message` skill), and runs `git commit` only once the user says so, with a `Co-Authored-By` trailer. It never runs `git push`, `git tag` or anything that rewrites history.
 - **One step = one commit.** The next step starts only when the user says so.
 - Messages follow [Conventional Commits](https://www.conventionalcommits.org/).
-- Branches: agent feature work happens on `claude/…` branches, merged into `dev`; `main` is what's released.
+- **Branches:** `dev` is the default branch, where development happens; `main` is production (what's released and published). Pull requests target `dev`, and `dev` is merged into `main` to ship. Agent feature work happens on `claude/…` branches.
 
 ## Verifying work
 
