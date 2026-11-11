@@ -4,6 +4,7 @@ import {
   audioLog,
   expect,
   openApp,
+  pageTransitionDone,
   resetAudioLog,
   showOscillator,
   test,
@@ -115,6 +116,32 @@ test('the oscillator select opens on screen and switches the bar', async ({ page
   expect(box.y + box.height).toBeLessThanOrEqual(viewport.height)
   await page.getByRole('option', { name: 'Oscillator 3' }).tap()
   await expect(page.getByRole('slider', { name: 'Oscillator 3 pitch' })).toBeVisible()
+})
+
+test('an oscillator’s page fits on screen and works by touch', async ({ page }) => {
+  await page.getByRole('link', { name: 'Oscillator 1 in detail' }).tap()
+  await expect(page.getByRole('heading', { name: 'Oscillator 1' })).toBeVisible()
+  const viewport = page.viewportSize()
+  if (!viewport) throw new Error('no viewport')
+  for (const control of [
+    page
+      .getByRole('slider', { name: 'Oscillator 1 volume' })
+      .locator('xpath=ancestor::div[contains(@class, "knob")]'),
+    page.getByRole('radiogroup', { name: 'Oscillator 1 waveform' }),
+    page
+      .getByRole('slider', { name: 'Oscillator 1 pitch' })
+      .locator('xpath=ancestor::div[contains(@class, "knob")]'),
+  ]) {
+    const box = await control.boundingBox()
+    if (!box) throw new Error('not visible')
+    expect(box.x).toBeGreaterThanOrEqual(0)
+    expect(box.y).toBeGreaterThanOrEqual(0)
+    expect(box.x + box.width).toBeLessThanOrEqual(viewport.width)
+    expect(box.y + box.height).toBeLessThanOrEqual(viewport.height)
+  }
+  await page.getByRole('radiogroup').getByText('Triangle').tap()
+  await expect(page.getByRole('radio', { name: 'Triangle' })).toBeChecked()
+  await pageTransitionDone(page)
 })
 
 test('the presets popover opens on screen, turned with the app, and saves', async ({ page }) => {

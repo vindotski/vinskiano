@@ -14,6 +14,8 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as OscillatorsRouteImport } from './routes/oscillators'
 import { Route as SiteIndexRouteImport } from './routes/_site/index'
 import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AppOscillatorsIndexRouteImport } from './routes/app/oscillators.index'
+import { Route as AppOscillatorsIdRouteImport } from './routes/app/oscillators.$id'
 
 const SiteRoute = SiteRouteImport.update({
   id: '/_site',
@@ -39,17 +41,31 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppOscillatorsIndexRoute = AppOscillatorsIndexRouteImport.update({
+  id: '/oscillators/',
+  path: '/oscillators/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOscillatorsIdRoute = AppOscillatorsIdRouteImport.update({
+  id: '/oscillators/$id',
+  path: '/oscillators/$id',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof SiteIndexRoute
   '/app': typeof AppRouteWithChildren
   '/oscillators': typeof OscillatorsRoute
   '/app/': typeof AppIndexRoute
+  '/app/oscillators/$id': typeof AppOscillatorsIdRoute
+  '/app/oscillators/': typeof AppOscillatorsIndexRoute
 }
 export interface FileRoutesByTo {
   '/oscillators': typeof OscillatorsRoute
   '/': typeof SiteIndexRoute
   '/app': typeof AppIndexRoute
+  '/app/oscillators/$id': typeof AppOscillatorsIdRoute
+  '/app/oscillators': typeof AppOscillatorsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -58,13 +74,30 @@ export interface FileRoutesById {
   '/oscillators': typeof OscillatorsRoute
   '/_site/': typeof SiteIndexRoute
   '/app/': typeof AppIndexRoute
+  '/app/oscillators/$id': typeof AppOscillatorsIdRoute
+  '/app/oscillators/': typeof AppOscillatorsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app' | '/oscillators' | '/app/'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/oscillators'
+    | '/app/'
+    | '/app/oscillators/$id'
+    | '/app/oscillators/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/oscillators' | '/' | '/app'
-  id: '__root__' | '/_site' | '/app' | '/oscillators' | '/_site/' | '/app/'
+  to:
+    '/oscillators' | '/' | '/app' | '/app/oscillators/$id' | '/app/oscillators'
+  id:
+    | '__root__'
+    | '/_site'
+    | '/app'
+    | '/oscillators'
+    | '/_site/'
+    | '/app/'
+    | '/app/oscillators/$id'
+    | '/app/oscillators/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -110,6 +143,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/oscillators/': {
+      id: '/app/oscillators/'
+      path: '/oscillators'
+      fullPath: '/app/oscillators/'
+      preLoaderRoute: typeof AppOscillatorsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/oscillators/$id': {
+      id: '/app/oscillators/$id'
+      path: '/oscillators/$id'
+      fullPath: '/app/oscillators/$id'
+      preLoaderRoute: typeof AppOscillatorsIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -125,10 +172,14 @@ const SiteRouteWithChildren = SiteRoute._addFileChildren(SiteRouteChildren)
 
 interface AppRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
+  AppOscillatorsIdRoute: typeof AppOscillatorsIdRoute
+  AppOscillatorsIndexRoute: typeof AppOscillatorsIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppIndexRoute: AppIndexRoute,
+  AppOscillatorsIdRoute: AppOscillatorsIdRoute,
+  AppOscillatorsIndexRoute: AppOscillatorsIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
