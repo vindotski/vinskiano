@@ -128,3 +128,26 @@ test('a save while the list is still loading stays in the list', async ({ page }
   await expect(presets.getByRole('button', { name: 'Load Quick' })).toBeVisible()
   await expect(presets.getByRole('status')).toHaveText('Saved “Quick”')
 })
+
+test('a list that loads on a retry clears the earlier error', async ({ browser }) => {
+  // Its own page: the failed request logs a console error, which the shared fixture would fail.
+  const page = await browser.newPage()
+  await page.addInitScript(instrumentWebAudio)
+  await asNewVisitor(page)
+  let failed = false
+  await page.route('**/_serverFn/**', (route) => {
+    if (failed || route.request().method() !== 'GET') return route.continue()
+    failed = true
+    return route.abort()
+  })
+  await openApp(page)
+
+  let presets = await openPresets(page)
+  await expect(presets.getByRole('status')).not.toBeEmpty()
+  await page.keyboard.press('Escape')
+
+  presets = await openPresets(page)
+  await expect(presets.getByText('No saved sounds yet.')).toBeVisible()
+  await expect(presets.getByRole('status')).toBeHidden() // hidden while empty
+  await page.close()
+})

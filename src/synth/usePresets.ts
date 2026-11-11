@@ -30,6 +30,8 @@ export function usePresets(): Presets {
   const [requests, setRequests] = useState(0)
   const [message, setMessage] = useState<string | null>(null)
   const listed = useRef(false)
+  /** Why the list last failed to load; a retry takes the message back. */
+  const listError = useRef<string | null>(null)
   /** Changes saved while the list loads: the list may have been read before them. */
   const unlisted = useRef<Change[] | null>(null)
 
@@ -66,6 +68,9 @@ export function usePresets(): Presets {
   const load = useCallback(() => {
     if (listed.current) return
     listed.current = true
+    const failure = listError.current
+    if (failure) setMessage((current) => (current === failure ? null : current))
+    listError.current = null
     const changes: Change[] = []
     unlisted.current = changes
     void track(async () => {
@@ -74,7 +79,8 @@ export function usePresets(): Presets {
         setPresets(changes.reduce((result, apply) => apply(result), list))
       } catch (error) {
         listed.current = false // let the next open try again
-        setMessage(reason(error))
+        listError.current = reason(error)
+        setMessage(listError.current)
       } finally {
         unlisted.current = null
       }
