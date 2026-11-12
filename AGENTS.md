@@ -71,7 +71,7 @@ tsconfig.json
 Dockerfile     Stages: base (Node + pinned pnpm), deps, dev, build, production (Node running .output/)
 compose.yaml   app / dev / test services (all on the local Spotcraft Postgres's network)
 .env.example   The server's settings (DATABASE_URL, AUTH_SECRET, PUBLIC_URL); .env is gitignored
-docs/          deploy.md (Spotcraft), deploy-single-server.md (retired), parity.md (every 3x Osc and channel parameter: status and how), roadmap.md (technology, preset format, milestones)
+docs/          decisions/ (architecture decision records, see Decisions), deploy.md (Spotcraft), deploy-single-server.md (retired), parity.md (every 3x Osc and channel parameter: status and how), roadmap.md (technology, preset format, milestones)
 ```
 
 ## Commands
@@ -122,7 +122,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - **Static files are compressed at build time** (Nitro `compressPublicAssets`: gzip and brotli, chosen by `Accept-Encoding`). Hashed `/assets/` are cached for a year. Pages rendered per request (`/app`) are not compressed by Nitro; a reverse proxy or CDN in front can do that.
 - **Measure before optimizing:** Lighthouse (mobile) on `/` and `/app`, median of several runs, and the gzip size of each page's initial JS (the scripts its HTML loads). Install Lighthouse pinned in a scratch directory, never as a project dependency. A change that doesn't measurably help is reverted (lazy-loading the presets popover saved 3 kB on `/app` and cost a delay on a phone's first tap, so it isn't done).
 - **Render cost:** the keyboard (88 keys) must not re-render on knob turns, scrolls or state it doesn't show. Read only `useSynthActions()` where the sound itself isn't shown; `Piano`, `PianoKey`, the minimap's keys and the oscillator rows are `memo`ized, so callbacks passed to them must be stable (`useCallback`, or a ref for the latest). Anything per frame (the oscilloscope) reads layout and styles only when they change and allocates nothing.
-- **Web Audio stays hand-written; no Tone.js (decided 2026-11).** Tone.js is good at scheduling, envelopes, effects and polyphony, but it would add a large bundle and an unmaintained shim (`standardized-audio-context`), replace a small tested `Engine`, and needs care with SSR. The planned features map to native nodes: envelopes to `GainNode` automation, filters to `BiquadFilterNode`, LFOs to an `OscillatorNode` driving an `AudioParam`. Revisit if sequencing or many effects arrive. Re-checked (2026-11-12) against the whole 3x Osc parity list: still no; see `docs/roadmap.md`.
+- **Web Audio stays hand-written; no Tone.js** ([ADR 0006](docs/decisions/0006-web-audio-by-hand.md)). Tone.js is good at scheduling, envelopes, effects and polyphony, but it would add a large bundle and an unmaintained shim (`standardized-audio-context`), replace a small tested `Engine`, and needs care with SSR. The planned features map to native nodes: envelopes to `GainNode` automation, filters to `BiquadFilterNode`, LFOs to an `OscillatorNode` driving an `AudioParam`. Revisit if sequencing or many effects arrive. Re-checked (2026-11-12) against the whole 3x Osc parity list: still no; see `docs/roadmap.md`.
 - **Parity target: FL Studio's 3x Osc plus the channel settings around it** (`docs/parity.md`). A new sound feature takes FL's behaviour and ranges from there; update its row when it lands.
 
 ## Routing
@@ -163,7 +163,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 
 ## Deploy (`docs/deploy.md`)
 
-- **Target: [Spotcraft](https://spotcraft.dev)** (decided 2026-11): the published image on Spotcraft's apps server, added and updated in its dashboard (image, tag, domain, container port 3000, Database ticked, `AUTH_SECRET`, `PUBLIC_URL`). Spotcraft runs Caddy (HTTPS, `www`, `X-Forwarded-*`), the health check and the deploy switch; a deploy that isn't healthy keeps the previous version. Keep `@spotcraft/kit` at the version of the Spotcraft it deploys to.
+- **Target: [Spotcraft](https://spotcraft.dev)** ([ADR 0015](docs/decisions/0015-deploy-on-spotcraft.md)): the published image on Spotcraft's apps server, added and updated in its dashboard (image, tag, domain, container port 3000, Database ticked, `AUTH_SECRET`, `PUBLIC_URL`). Spotcraft runs Caddy (HTTPS, `www`, `X-Forwarded-*`), the health check and the deploy switch; a deploy that isn't healthy keeps the previous version. Keep `@spotcraft/kit` at the version of the Spotcraft it deploys to.
 - **The server checks its settings, connects and migrates at start** (`src/server/startup.ts`, a Nitro plugin; Nitro holds requests until it's done) and exits naming what failed, so a bad deploy fails its health check instead of failing on the first save. It closes the database pool on Nitro's `close` hook. The image caps Node's heap (`--max-old-space-size=160`) below the container's memory limit.
 - **Rehearse deploy changes locally** (steps in `docs/deploy.md`): the production image read-only, without capabilities and memory-limited, behind Caddy over HTTPS on the local Spotcraft network, then `E2E_BASE_URL=https://localhost:8443 pnpm test:e2e` and the failure path (a missing `AUTH_SECRET`).
 - **Deploys need a published image** (`sha-…` from `main`, or a release tag), and only the user starts them.
@@ -256,6 +256,13 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - When fixing a bug, first write a test that fails without the fix.
 - Before calling a step done, run `pnpm verify`.
 - When dependencies change, compare the gzip sizes `pnpm build` prints with the previous commit and report the difference.
+
+## Decisions
+
+- **Architecture decisions are recorded in `docs/decisions/`**, one file each, numbered in order (`NNNN-short-slug.md`), in Spotcraft's format: front matter (`title`, `number`, `status`, `implementation`, `date`, `supersedes`, `superseded_by`, `notes`), then Context, Decision and Consequences. `docs/decisions/README.md` indexes them.
+- **A decision that changes gets a new record that supersedes the old one.** The old record is never rewritten: only its `status` (`superseded`) and `superseded_by` change, and its row in the index.
+- **Write the record in the same step as the change it decides**, and link it from here where a rule comes from it. Record what constrains later work (stack, rendering, data, deploy, security, the audio approach, formats, CI), not feature details: those go in the changelog.
+- Records 0001–0023 were written retroactively on 2026-11-12 for 1.0.0 and the work since.
 
 ## Git rules
 

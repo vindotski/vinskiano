@@ -4,7 +4,7 @@ Where Vinskiano is going after the release of what's now under `[Unreleased]`: p
 
 ## Technology
 
-We re-checked the stack against the whole parity list. Decisions:
+We re-checked the stack against the whole parity list. Decisions (recorded in [ADR 0006](decisions/0006-web-audio-by-hand.md), [0016](decisions/0016-3x-osc-parity.md) and, for the preset format below, [0017](decisions/0017-preset-format.md)):
 
 - **Web Audio stays hand-written; still no Tone.js.** Every parameter in [parity.md](parity.md) maps to a native node or an `AudioParam` automation. Tone.js would add bundle size and an unmaintained shim for things we'd use a fraction of. The trigger to revisit stays the same: real sequencing or many effects. The arpeggiator alone isn't that.
 - **A `Voice` per note** in `audio/`. Today each oscillator owns a gain and each note gets its own fade gain. Envelopes, filters, AM and stereo need the whole chain per note:
