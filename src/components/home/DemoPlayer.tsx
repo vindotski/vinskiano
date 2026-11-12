@@ -1,4 +1,3 @@
-import { LazyMotion, MotionConfig } from 'motion/react'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Engine } from '../../audio'
 import { Frequency, isWhite, KEYBOARD_NOTES, type Note, typingHints } from '../../music'
@@ -8,12 +7,9 @@ import Piano from '../Piano'
 
 /*
  * The home page's playable keyboard. Loaded lazily (see PlaySection), so the site's first load
- * carries no audio code and no Motion; and the audio engine itself only starts with the first
+ * carries no audio code; and the audio engine itself only starts with the first
  * note, inside that key press (which is also what iOS needs to let it make sound).
  */
-
-const loadMotionFeatures = () =>
-  import('../../lib/motion-features').then((module) => module.default)
 
 const notesFrom = (first: string, last: string) => {
   const start = KEYBOARD_NOTES.findIndex((note) => note.toString() === first)
@@ -89,23 +85,21 @@ const DemoPlayer = ({ settings }: DemoPlayerProps) => {
   const hints = useMemo(() => (base ? typingHints(base) : undefined), [base])
 
   return (
-    <LazyMotion features={loadMotionFeatures} strict>
-      <MotionConfig reducedMotion="user">
-        {/* Centred, and scrollable if even the narrowest range doesn't fit (a phone under
+    <>
+      {/* Centred, and scrollable if even the narrowest range doesn't fit (a phone under
             336 px): auto margins centre without cutting off the ends, as justify-center would. */}
-        <div ref={frame} className="h-full overflow-x-auto overflow-y-hidden">
-          <div className="mx-auto h-full w-max">
-            <Piano
-              notes={notes}
-              onTrigger={trigger}
-              onRelease={release}
-              typingBase={base}
-              {...(hints ? { hints } : {})}
-            />
-          </div>
+      <div ref={frame} className="h-full overflow-x-auto overflow-y-hidden">
+        <div className="mx-auto h-full w-max">
+          <Piano
+            notes={notes}
+            onTrigger={trigger}
+            onRelease={release}
+            typingBase={base}
+            {...(hints ? { hints } : {})}
+          />
         </div>
-      </MotionConfig>
-    </LazyMotion>
+      </div>
+    </>
   )
 }
 

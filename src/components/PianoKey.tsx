@@ -1,4 +1,3 @@
-import * as m from 'motion/react-m'
 import { type KeyboardEvent, memo } from 'react'
 import { cn } from '@/lib/utils'
 import { isWhite, MIDDLE_C, type Note } from '../music'
@@ -16,9 +15,6 @@ interface PianoKeyProps {
 }
 
 const PLAY_KEYS = [' ', 'Enter']
-
-/** A pressed key dips a little (shortened from the top, like a real key tilting down). */
-const PRESS = { type: 'spring', stiffness: 900, damping: 32 } as const
 
 /**
  * One key. Presentational: the keyboard (`Piano`) handles pointers for all keys at once, so a
@@ -51,21 +47,18 @@ const PianoKey = ({ note, active, tabIndex, hint, onPlayKey }: PianoKeyProps) =>
       onKeyDown={play(true)}
       onKeyUp={play(false)}
     >
-      {/* The face carries the visuals and is what moves. The button (the hit area) never
+      {/* The face carries the visuals and is what moves: a pressed key dips a little (shortened
+          from the top, like a real key tilting down), in CSS. The button (the hit area) never
           moves, so pressing near an edge can't slide the key out from under the pointer. */}
-      <m.span
+      <span
         aria-hidden="true"
         className={cn(
-          'absolute inset-0 -z-10 flex flex-col items-center justify-end gap-1 pb-4 text-sm font-medium short:pb-2',
+          'absolute inset-0 -z-10 flex origin-top flex-col items-center justify-end gap-1 pb-4 text-sm font-medium transition-transform duration-75 ease-out short:pb-2 motion-reduce:transition-none',
           white
             ? 'rounded-b-xl border border-t-0 border-r-0 border-key-black/20 bg-key-white text-key-white-foreground group-last/key:border-r'
             : 'rounded-b-lg bg-key-black text-key-black-foreground shadow-md',
-          active && 'bg-primary text-primary-foreground',
+          active && 'scale-y-[0.985] bg-primary text-primary-foreground',
         )}
-        initial={false}
-        animate={{ scaleY: active ? 0.985 : 1 }}
-        transition={PRESS}
-        style={{ originY: 0 }}
       >
         {hint ? (
           <span
@@ -80,7 +73,7 @@ const PianoKey = ({ note, active, tabIndex, hint, onPlayKey }: PianoKeyProps) =>
         ) : null}
         {/* Like a DAW's piano roll: only the Cs are labelled, with their octave. */}
         {note.name === 'C' ? <span data-label>{note.toString()}</span> : null}
-      </m.span>
+      </span>
     </button>
   )
 }

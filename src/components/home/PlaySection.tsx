@@ -14,7 +14,7 @@ interface PlaySectionProps {
 
 /**
  * "Play it here": sound chips and a keyboard on the home page. The page is prerendered and the
- * keyboard needs audio code and Motion, so it shows a placeholder first and loads the player
+ * keyboard needs audio code, so it shows a placeholder first and loads the player
  * once the page is idle or the section is about to scroll into view, whichever comes first.
  */
 const PlaySection = ({ footer }: PlaySectionProps) => {

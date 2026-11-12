@@ -26,7 +26,7 @@ Before editing files for a substantial task:
 - Vitest for unit tests (config in `vite.config.ts`), Playwright for browser tests (`playwright.config.ts`: Chromium, Firefox and WebKit, plus phones in both orientations)
 - pnpm (pinned via `packageManager`), Node 26 (`.nvmrc`)
 - React Aria hooks (`react-aria`, `react-stately`) for accessible controls; the rotary `Knob` is built on its slider hooks
-- Motion (motion.dev) for animations, loaded lazily (see Animation)
+- Motion (motion.dev) for the knobs' spring, in the app only (see Animation); simple transitions are CSS
 - Guest accounts and the app's Postgres through Spotcraft's backend kit (`@spotcraft/kit`: Better Auth's anonymous plugin, server-only), with Drizzle ORM for queries; Postgres 18, locally from `pnpm exec spotcraft dev start` (see Server data)
 - Tailwind CSS v4 (`@tailwindcss/vite`) with a shadcn/ui theme (`components.json`: style aria-luma, preset b51FfLcNG; tokens in `src/styles.css`). Dark mode follows `prefers-color-scheme` via the `dark:` variant.
 
@@ -40,7 +40,7 @@ src/
   routes/      File-based routes, two sections:
                  __root      HTML document (shellComponent + head()), 404 (NotFound brings the site chrome)
                  _site.tsx   pathless site layout (header, scrolling page, footer); _site/index.tsx = /
-                 app.tsx     /app layout: LazyMotion + SynthProvider + fixed viewport frame + AppBar
+                 app.tsx     /app layout: MotionConfig + SynthProvider + fixed viewport frame + AppBar
                  app/index.tsx = /app: the keyboard
                  app/_sound.tsx  pathless layout of the sound pages: a tab bar (nav "Sound") over the page, no keyboard
                  app/_sound/oscillators.tsx = /app/oscillators: the oscillator rack (all three)
@@ -132,7 +132,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - Route components are thin: read state with `useSynth()` and render a component from `pages/` or `components/`. Components stay presentational (props in, callbacks out); router links are passed in as slots (e.g. `AppBar`'s `start`), so components render without a router in unit tests.
 - After visible UI changes in the app, run `pnpm screenshots` so the home page shows the current app.
 - **Rendering:** the home page (`/`) is **prerendered at build time by Nitro** (`nitro({ prerender: { routes: ['/'] } })` in `vite.config.ts`) and served as a static file; everything else is server-rendered per request. Add a page to `routes` there only if it has no per-request data. Use Nitro's prerender, not Start's `prerender` option: Start writes its HTML after Nitro has listed the public files, so Nitro never served it. `e2e/site.spec.ts` checks `/` has `etag`/`last-modified` and `/app` doesn't.
-- **Two sections:** the site (`_site`) is a normal scrolling website; the app (`/app`) owns the synth (`SynthProvider`) and Motion. The one exception is the home page's demo: `components/home/DemoPlayer` (the keyboard, the `Engine` and Motion) is a lazy chunk that `PlaySection` loads only once the page is idle or the demo is near view, and it creates the `AudioContext` with the first note played, not before. Nothing else on the site imports audio code or Motion. `e2e/site.spec.ts` checks that `/` creates no `AudioContext` until a demo key is played.
+- **Two sections:** the site (`_site`) is a normal scrolling website; the app (`/app`) owns the synth (`SynthProvider`) and Motion. The one exception is the home page's demo: `components/home/DemoPlayer` (the keyboard and the `Engine`) is a lazy chunk that `PlaySection` loads only once the page is idle or the demo is near view, and it creates the `AudioContext` with the first note played, not before. Nothing else on the site imports audio code or Motion. `e2e/site.spec.ts` checks that `/` creates no `AudioContext` until a demo key is played.
 - Use `Link` from `@tanstack/react-router`; it sets the `active` class itself (use `activeOptions={{ exact: true }}` for `/`).
 - TanStack ships version-matched agent skills (`react-router`, `react-start`), linked into `.claude/skills/` by pnpm (see `permissions` in `pnpm-workspace.yaml`). Read them before changing routing or Start setup.
 
@@ -204,13 +204,13 @@ pnpm fix        # Biome: apply formatting and safe fixes
 
 ## Animation
 
-- Motion (`motion`) through `LazyMotion` in the app layout (`routes/app.tsx`; the site doesn't load it): use the small `m.*` components (`import * as m from 'motion/react-m'`); `strict` makes the full `motion.*` components throw. The features (`domAnimation`; `domMax` only if layout animations are ever needed) load lazily from `src/lib/motion-features.ts`, after the page.
+- **CSS first.** A simple state change (the key press dip: a `scale` transition on `.piano-key--active`'s face) is a Tailwind transition with `motion-reduce:transition-none`. Motion (`motion/react`) is for what CSS can't do: the knob's spring (`useSpring`), in the app layout only (the site doesn't load it). No `m.*` components or `LazyMotion`: they cost a lazy features chunk and a component per element (88 keys) for a 1.5% dip.
 - **Never delay sound or state.** Audio starts on pointer-down; animations are purely visual and follow state, never gate it.
-- **Respect reduced motion:** `MotionConfig reducedMotion="user"` is set in the app layout; don't override it per component.
-- **SSR-safe:** nothing animates on first paint (`initial={false}` for server-rendered content), so server HTML and hydration stay identical.
+- **Respect reduced motion:** `MotionConfig reducedMotion="user"` is set in the app layout (the knobs jump instead of springing); CSS transitions use `motion-reduce:`. Don't override either per component.
+- **SSR-safe:** nothing animates on first paint, so server HTML and hydration stay identical.
 - Values, accessible names and focus never depend on an animation's progress.
 - **Page transitions are not Motion:** they use TanStack Router's `defaultViewTransition` (the browser's View Transitions API). Only the `<main>` page area (`view-transition-name: page`) animates; styles live at the end of `styles.css`. Motion can't animate the outgoing page, because the outlet switches to the new route immediately.
-- **Must work without the lazy features.** `m.*` components only animate once `motion-features` has loaded, and motion values bound to them don't render before that. Anything that must always show the right state (like the knob's drawing) uses plain elements updated from a motion value (`useMotionValueEvent`), not `m.*` props. `e2e/knob.spec.ts` blocks the features chunk to check this.
+- **The knob's drawing never waits for an animation:** it's plain SVG updated from the spring's motion value (`useMotionValueEvent`), and its value and name are the range input's.
 
 ## Accessibility
 
