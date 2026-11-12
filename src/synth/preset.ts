@@ -1,5 +1,6 @@
 import type { Waveform } from '../audio'
 import type { MasterSettings, OscillatorState } from '../types/synth'
+import { mixesFromLevels } from './mix'
 import { OSCILLATOR_IDS } from './oscillators'
 
 /** What a preset keeps: the whole sound, as the synth's state holds it. */
@@ -36,12 +37,29 @@ function parseOscillator(value: unknown, id: number): OscillatorState {
     value.id !== id ||
     !isWaveform(value.waveform) ||
     !Number.isInteger(value.pitch) ||
-    !inRange(value.pitch, -24, 24) ||
-    !inRange(value.volume, 0, 1)
+    !inRange(value.pitch, -24, 24)
   ) {
     throw new Error(`Invalid settings for oscillator ${id}`)
   }
-  return { id, waveform: value.waveform, pitch: value.pitch, volume: value.volume }
+  const oscillator: OscillatorState = { id, waveform: value.waveform, pitch: value.pitch }
+  // The first oscillator has no mix of its own (it gets the rest); any other needs one.
+  if (id === OSCILLATOR_IDS[0]) return oscillator
+  if (!inRange(value.mix, 0, 1)) throw new Error(`Invalid mix for oscillator ${id}`)
+  return { ...oscillator, mix: value.mix }
+}
+
+/**
+ * Presets saved before the mix had a volume on each oscillator; read them as the same balance
+ * (the overall level is the mix's, which always adds up to one).
+ */
+function fromVolumes(oscillators: unknown[]): unknown[] {
+  const volumes = oscillators.map((o) => (isRecord(o) ? o.volume : undefined))
+  const old = oscillators.every((o) => isRecord(o) && !('mix' in o))
+  if (!old || !volumes.every((v): v is number => inRange(v, 0, 1))) return oscillators
+  const mixes = mixesFromLevels(volumes)
+  return oscillators.map((o, index) =>
+    index === 0 || !isRecord(o) ? o : { ...o, mix: mixes[index - 1] },
+  )
 }
 
 /**
@@ -56,9 +74,10 @@ export function parsePresetSettings(value: unknown): PresetSettings {
   if (!Array.isArray(oscillators) || oscillators.length !== OSCILLATOR_IDS.length) {
     throw new Error(`A preset needs all ${OSCILLATOR_IDS.length} oscillators`)
   }
+  const current = fromVolumes(oscillators)
   return {
     master: { gain: value.master.gain },
-    oscillators: OSCILLATOR_IDS.map((id, index) => parseOscillator(oscillators[index], id)),
+    oscillators: OSCILLATOR_IDS.map((id, index) => parseOscillator(current[index], id)),
   }
 }
 
@@ -83,7 +102,7 @@ export function sameSettings(a: PresetSettings, b: PresetSettings): boolean {
         oscillator.id === other.id &&
         oscillator.waveform === other.waveform &&
         oscillator.pitch === other.pitch &&
-        oscillator.volume === other.volume
+        oscillator.mix === other.mix
       )
     })
   )

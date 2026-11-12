@@ -12,7 +12,7 @@ test('knobs are named sliders with readable values', async ({ page }) => {
     '50%',
   )
   await openSound(page)
-  await expect(page.getByRole('slider', { name: 'Oscillator 1 volume' })).toHaveAttribute(
+  await expect(page.getByRole('slider', { name: 'Oscillator 2 mix' })).toHaveAttribute(
     'aria-valuetext',
     '50%',
   )
@@ -46,7 +46,7 @@ test('knobs work with the keyboard', async ({ page }) => {
 
 test('the focused knob shows a focus ring when reached by keyboard', async ({ page }) => {
   await openSound(page)
-  await page.getByRole('slider', { name: 'Oscillator 1 volume' }).focus()
+  await page.getByRole('slider', { name: 'Oscillator 2 mix' }).focus()
   await page.keyboard.press('Tab') // the waveform buttons follow; go back with Shift+Tab
   await page.keyboard.press('Shift+Tab')
   await expect(page.locator('.knob--focus-visible')).toHaveCount(1)
@@ -85,9 +85,9 @@ test('dragging turns the knob by angle over a 270° sweep', async ({ page }) => 
 
 test('dragging through the bottom dead zone does not jump to the other end', async ({ page }) => {
   await openSound(page)
-  const volume = page.getByRole('slider', { name: 'Oscillator 1 volume' })
+  const volume = page.getByRole('slider', { name: 'Oscillator 2 mix' })
   // Turn clockwise past 4:30 (135°) into the dead zone and beyond 6 o'clock.
-  await turnKnob(page, 'Oscillator 1 volume', [90, 135, 170, 190])
+  await turnKnob(page, 'Oscillator 2 mix', [90, 135, 170, 190])
   await expect(volume).toHaveValue('100')
 })
 
@@ -134,7 +134,7 @@ test('knobs still draw their value if Motion’s lazy features never load', asyn
 test('each knob is announced with its name once', async ({ page }) => {
   // Regression: the name used to be read twice ("Oscillator 1 volume Oscillator 1 volume").
   await openSound(page)
-  for (const name of ['Oscillator 2 volume', 'Oscillator 2 pitch', 'Master volume']) {
+  for (const name of ['Oscillator 2 mix', 'Oscillator 2 pitch', 'Master volume']) {
     await expect(page.getByRole('slider', { name, exact: true })).toHaveAccessibleName(name)
   }
 })

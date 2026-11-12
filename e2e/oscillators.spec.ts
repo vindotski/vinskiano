@@ -32,9 +32,40 @@ test('the bar has no oscillator controls; its Sound button opens the oscillators
     const row = oscillatorRow(page, n)
     await expect(row.getByRole('radiogroup', { name: `Oscillator ${n} waveform` })).toBeVisible()
     await expect(row.getByRole('radio')).toHaveCount(4)
-    await expect(row.getByRole('slider', { name: `Oscillator ${n} volume` })).toBeVisible()
     await expect(row.getByRole('slider', { name: `Oscillator ${n} pitch` })).toBeVisible()
   }
+  // 3x Osc's mix: oscillators 2 and 3 have a mix knob; 1 gets the rest, shown as its level.
+  await expect(oscillatorRow(page, 1).getByRole('slider', { name: /mix/ })).toHaveCount(0)
+  await expect(
+    oscillatorRow(page, 2).getByRole('slider', { name: 'Oscillator 2 mix' }),
+  ).toBeVisible()
+  await expect(
+    oscillatorRow(page, 3).getByRole('slider', { name: 'Oscillator 3 mix' }),
+  ).toBeVisible()
+  await expect(
+    oscillatorRow(page, 1).getByRole('meter', { name: 'Oscillator 1 level' }),
+  ).toBeVisible()
+})
+
+test('the mix always adds up to 100%: oscillator 1 gets what 2 and 3 leave', async ({ page }) => {
+  await page.goto('/app/oscillators')
+  await page.waitForFunction(() => window.__audio.analysers > 0)
+  const level = page.getByRole('meter', { name: 'Oscillator 1 level' })
+  const mix = (n: number) => page.getByRole('slider', { name: `Oscillator ${n} mix` })
+  // A new sound is an equal mix: 2 at 50%, 3 at a third, so 1 is a third too.
+  await expect(mix(2)).toHaveAttribute('aria-valuetext', '50%')
+  await expect(mix(3)).toHaveAttribute('aria-valuetext', '33%')
+  await expect(level).toHaveAttribute('aria-valuetext', '33%')
+  // 2 takes its share from 1…
+  await mix(2).fill('100')
+  await expect(level).toHaveAttribute('aria-valuetext', '0%')
+  await mix(2).fill('0')
+  await expect(level).toHaveAttribute('aria-valuetext', '67%')
+  // …and 3 from 1 and 2 together.
+  await mix(3).fill('0')
+  await expect(level).toHaveAttribute('aria-valuetext', '100%')
+  await mix(3).fill('100')
+  await expect(level).toHaveAttribute('aria-valuetext', '0%')
 })
 
 test('a note held on the keyboard stops when you open the sound pages', async ({ page }) => {
@@ -55,17 +86,12 @@ test('a note held on the keyboard stops when you open the sound pages', async ({
 
 test('the rows line up: each control sits in the same column in every row', async ({ page }) => {
   await page.goto('/app/oscillators')
-  const left = async (n: number, part: 'waveform' | 'volume' | 'pitch') => {
-    const row = oscillatorRow(page, n)
-    const target =
-      part === 'waveform'
-        ? row.getByRole('radiogroup')
-        : row.locator('.knob').filter({ has: page.getByRole('slider', { name: new RegExp(part) }) })
-    const box = await target.boundingBox()
+  const left = async (n: number, part: 'waveform' | 'mix' | 'pitch') => {
+    const box = await oscillatorRow(page, n).locator(`[data-column="${part}"]`).boundingBox()
     if (!box) throw new Error(`oscillator ${n} ${part} not visible`)
     return Math.round(box.x)
   }
-  for (const part of ['waveform', 'volume', 'pitch'] as const) {
+  for (const part of ['waveform', 'mix', 'pitch'] as const) {
     const first = await left(1, part)
     expect(await left(2, part)).toBe(first)
     expect(await left(3, part)).toBe(first)

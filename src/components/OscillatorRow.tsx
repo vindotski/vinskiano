@@ -21,15 +21,22 @@ const KNOB = 'size-16 short:size-12 xl:size-20'
 
 interface OscillatorRowProps {
   oscillator: OscillatorState
+  /** Its resulting level in the mix, 0..1 (shown for the oscillator without a mix knob). */
+  level: number
   onChange: (id: number, settings: OscillatorSettings) => void
 }
 
-/** One oscillator as a row of the rack: its number, waveform, volume and pitch. */
-const OscillatorRow = ({ oscillator, onChange }: OscillatorRowProps) => {
-  const { id, waveform, pitch, volume } = oscillator
+/**
+ * One oscillator as a row of the rack: its number, waveform, mix and pitch. Like 3x Osc, the
+ * first oscillator has no mix knob (it gets whatever the others leave), so its row shows the
+ * level that leaves it instead.
+ */
+const OscillatorRow = ({ oscillator, level, onChange }: OscillatorRowProps) => {
+  const { id, waveform, pitch, mix } = oscillator
   const name = `Oscillator ${id}`
   const update = (changes: Partial<OscillatorSettings>) =>
-    onChange(id, { waveform, pitch, volume, ...changes })
+    onChange(id, { waveform, pitch, ...(mix === undefined ? {} : { mix }), ...changes })
+  const percent = Math.round(level * 100)
 
   return (
     // `oscillator` is a hook for tests.
@@ -51,6 +58,7 @@ const OscillatorRow = ({ oscillator, onChange }: OscillatorRowProps) => {
         onChange={(value) => {
           if (isWaveform(value)) update({ waveform: value })
         }}
+        data-column="waveform"
         className={`${COLUMNS.waveform} flex shrink-0 gap-1`}
       >
         {WAVEFORMS.map((option) => (
@@ -65,15 +73,32 @@ const OscillatorRow = ({ oscillator, onChange }: OscillatorRowProps) => {
         ))}
       </RadioGroup>
 
-      <div className={`${COLUMNS.knob} flex shrink-0 justify-center`}>
-        <VolumeKnob
-          label={`${name} volume`}
-          value={volume}
-          onChange={(v) => update({ volume: v })}
-          className={KNOB}
-        />
+      <div data-column="mix" className={`${COLUMNS.knob} flex shrink-0 justify-center`}>
+        {mix === undefined ? (
+          // Read-only: a meter, not a slider. Not a live region either, so turning 2 or 3
+          // doesn't make screen readers announce it on every step.
+          // biome-ignore lint/a11y/useSemanticElements: a <meter> draws a bar; this is a text readout.
+          <div
+            role="meter"
+            aria-label={`${name} level`}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={percent}
+            aria-valuetext={`${percent}%`}
+            className="text-sm font-medium text-muted-foreground tabular-nums"
+          >
+            {percent}%
+          </div>
+        ) : (
+          <VolumeKnob
+            label={`${name} mix`}
+            value={mix}
+            onChange={(value) => update({ mix: value })}
+            className={KNOB}
+          />
+        )}
       </div>
-      <div className={`${COLUMNS.knob} flex shrink-0 justify-center`}>
+      <div data-column="pitch" className={`${COLUMNS.knob} flex shrink-0 justify-center`}>
         <PitchKnob
           label={`${name} pitch`}
           value={pitch}

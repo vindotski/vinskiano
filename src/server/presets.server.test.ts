@@ -12,9 +12,9 @@ const hasDatabase = typeof process.env.DATABASE_URL === 'string' && process.env.
 const sound = (gain: number): PresetSettings => ({
   master: { gain },
   oscillators: [
-    { id: 1, waveform: 'sine', pitch: -12, volume: 0.5 },
-    { id: 2, waveform: 'square', pitch: 0, volume: 0.25 },
-    { id: 3, waveform: 'triangle', pitch: 12, volume: 0.75 },
+    { id: 1, waveform: 'sine', pitch: -12 },
+    { id: 2, waveform: 'square', pitch: 0, mix: 0.5 },
+    { id: 3, waveform: 'triangle', pitch: 12, mix: 0.25 },
   ],
 })
 
