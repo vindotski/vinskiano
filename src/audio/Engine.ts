@@ -18,7 +18,8 @@ class Engine {
   constructor(gain: number, oscillators: readonly OscillatorConfig[]) {
     this.context = Context.make()
     this.context.master.gain.value = gain
-    this.oscilloscope = new Oscilloscope(this.context, this.context.master)
+    // After the limiter: it draws what you hear.
+    this.oscilloscope = new Oscilloscope(this.context, this.context.output)
     this.oscillators = oscillators.map(
       (config) =>
         new Oscillator({ ...config, context: this.context, destination: this.context.master }),

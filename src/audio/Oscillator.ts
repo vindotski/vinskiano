@@ -18,6 +18,14 @@ export interface Sound {
   stop(): void
 }
 
+/**
+ * How fast a note fades in and out (time constants, in seconds). A sound that starts or stops
+ * at full level clicks; a few milliseconds of fade is too short to hear as a fade, but removes
+ * the click. The envelope will take this over.
+ */
+const FADE_IN = 0.002
+const FADE_OUT = 0.006
+
 class Oscillator {
   context: BaseAudioContext
   destination: AudioNode
@@ -57,16 +65,33 @@ class Oscillator {
     signal.detune.value = this.pitch * 100
     signal.frequency.value = hertz
     this.node.gain.value = this.volume
-    signal.connect(this.node)
+    // Each note has its own gain, so it can fade in and out without touching the others.
+    const note = this.context.createGain()
+    signal.connect(note)
+    note.connect(this.node)
 
+    let stopped = false
     const sound: Sound = {
       frequency: hertz,
       start: () => {
+        const now = this.context.currentTime
+        note.gain.setValueAtTime(0, now)
+        note.gain.setTargetAtTime(1, now, FADE_IN)
         signal.start()
         this.sounds.push(sound)
       },
       stop: () => {
-        signal.stop()
+        if (stopped) return
+        stopped = true
+        const now = this.context.currentTime
+        note.gain.cancelScheduledValues(now)
+        note.gain.setTargetAtTime(0, now, FADE_OUT)
+        signal.onended = () => {
+          signal.disconnect()
+          note.disconnect()
+        }
+        // Stop once the fade has died away (about eight time constants: inaudible).
+        signal.stop(now + FADE_OUT * 8)
         this.sounds = this.sounds.filter((s) => sound !== s)
       },
     }

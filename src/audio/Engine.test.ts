@@ -11,6 +11,17 @@ class LeavingPageContext {
   createGain() {
     return { gain: { value: 1 }, connect() {} }
   }
+  createDynamicsCompressor() {
+    const param = { value: 0 }
+    return {
+      threshold: param,
+      knee: param,
+      ratio: param,
+      attack: param,
+      release: param,
+      connect() {},
+    }
+  }
   createAnalyser() {
     return { fftSize: 0, frequencyBinCount: 1024, connect() {} }
   }

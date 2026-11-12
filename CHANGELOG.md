@@ -15,6 +15,9 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 
 ### Changed
 
+- Playing feels like an instrument: every finger plays its own note (as many as you put down), sliding a finger or the mouse across the keys plays each one in turn, and two fingers on one key keep it sounding until both lift. The browser no longer scrolls, zooms or selects text on the keys, and on Android a touch gives a short haptic tick
+- Notes fade in and out over a few milliseconds, so they no longer click, and a limiter on the output keeps many notes at once from distorting
+- A held note always stops: when the finger lifts or leaves the keyboard, the browser cancels the touch, the window loses focus or is hidden, or you leave the page
 - Every button, link and control is at least 44 × 44 px, Apple's minimum for a fingertip, in the app and on the site. The app bar is a little taller, and the menus' rows are easier to hit on a phone
 - The app bar is the same on every page and is about the whole sound: master volume and the oscilloscope on the left, the presets and the button to the Sound page (or back to the keyboard) on the right. The oscillators' controls moved to the Sound page, which leaves room in the bar for the controls to come
 - The old `/oscillators` URL now opens the Oscillators tab instead of the keyboard

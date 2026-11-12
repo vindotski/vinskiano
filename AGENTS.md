@@ -35,7 +35,7 @@ Before editing files for a substantial task:
 ```
 src/
   music/       Pure music theory: Note, Octave, Frequency, Scale, ScaleBuilder, ScaleStrategy, KEYBOARD_NOTES
-  audio/       Web Audio: Engine (context + oscillators + oscilloscope), Context, Oscillator, Oscilloscope
+  audio/       Web Audio: Engine (context + oscillators + oscilloscope), Context (master gain → limiter → speakers), Oscillator (a gain per note, for click-free fades), Oscilloscope
   components/  React UI: AppBar (left: master knob + oscilloscope; right: an `end` slot with the presets dropdown and the Sound/keyboard link), OscillatorRow (one row of the oscillator rack), PresetsMenu, Piano, PianoKey, knobs/, toolbars/, site/ (header, footer)
   routes/      File-based routes, two sections:
                  __root      HTML document (shellComponent + head()), 404 (NotFound brings the site chrome)
@@ -214,6 +214,15 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - Controls work by keyboard and show a visible focus ring. Knobs are native range inputs underneath (arrows, Page Up/Down, Home/End).
 - **Every tap target is at least 44 × 44 px** (Apple's minimum for a fingertip; WCAG 2.5.5), with a mouse too: the button and select sizes in `ui/` start there (`h-11`, `size-11`), knobs are `size-11` or bigger, and text links get a padded hit area (`inline-flex min-h-11 items-center`). `e2e/targets.spec.ts` checks every screen and open popover on desktop, and `e2e/mobile.spec.ts` on phones both ways up.
 - Browser tests find controls by role and name (`getByRole('slider', { name })`), never by DOM position.
+
+## Playing the keyboard
+
+- **`Piano` handles every pointer, not each key.** On pointer-down it captures the pointer and looks up the key under it (`document.elementFromPoint`, screen coordinates, so it holds in the rotated frame); on every move it looks again. That's what lets a finger slide across keys and each finger play its own note. `PianoKey` is presentational (plus Space/Enter while focused).
+- **`HeldNotes` (`synth/held-notes.ts`) decides what starts and stops:** each source (`pointer:<id>`, `focus`, later typing keys) holds one note, and a note sounds while anything holds it. Route any new way of playing through it.
+- **The keyboard opts out of browser gestures** (`touch-none`, `select-none`, no callout or tap highlight) and `preventDefault`s pointer-down (no focus ring from the mouse, no emulated mouse events). Keep new playing surfaces the same.
+- **Never a stuck note:** everything is let go on window `blur`, hidden `visibilitychange`, `pagehide` and when the keyboard unmounts.
+- **Clicks and clipping are handled in `audio/`:** each note fades in and out over a few milliseconds on its own gain, and a limiter sits after the master gain. The oscilloscope reads after the limiter.
+- **Tests:** several fingers at once go through CDP `Input.dispatchTouchEvent` (Chromium only; `e2e/mobile.spec.ts`), where `touchEnd` lifts the fingers it lists.
 
 ## Tests
 
