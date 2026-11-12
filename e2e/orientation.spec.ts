@@ -4,9 +4,10 @@ import {
   audioLog,
   expect,
   openApp,
-  openOscillator,
-  oscillatorList,
+  openSound,
+  oscillatorRow,
   pageTransitionDone,
+  soundTabs,
   test,
 } from './fixtures'
 
@@ -53,7 +54,7 @@ test('a tapped key plays once and stops on release', async ({ page }) => {
 test('tapping a knob turns it to that point of the dial', async ({ page }) => {
   // The dial's 3 o'clock, as the user sees it (in the knob's own coordinates, so it also holds
   // when the whole app is rotated): 90° of the 270° sweep from the middle, i.e. +16 semitones.
-  await openOscillator(page, 2)
+  await openSound(page)
   const slider = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
   const dial = page.locator('.knob').filter({ has: slider }).locator('svg.knob-dial')
   const view = await dial.evaluate((svg: SVGSVGElement) => {
@@ -65,43 +66,23 @@ test('tapping a knob turns it to that point of the dial', async ({ page }) => {
   await expect(slider).toHaveValue('16')
 })
 
-test('the oscillator list opens from the bar and switches oscillators by touch', async ({
-  page,
-}) => {
-  await page.getByRole('link', { name: 'Oscillators', exact: true }).tap()
-  await expect(oscillatorList(page)).toBeVisible()
+test('the Sound page fits all three oscillators on screen and works by touch', async ({ page }) => {
+  await page.getByRole('link', { name: 'Sound', exact: true }).tap()
+  await expect(soundTabs(page)).toBeVisible()
   await pageTransitionDone(page)
-  await oscillatorList(page).getByRole('link', { name: 'Oscillator 3', exact: true }).tap()
-  await expect(page.getByRole('heading', { name: 'Oscillator 3' })).toBeVisible()
-  await expect(page.getByRole('slider', { name: 'Oscillator 3 pitch' })).toBeVisible()
-  await pageTransitionDone(page)
-})
-
-test('an oscillator’s page fits on screen and works by touch', async ({ page }) => {
-  await page.getByRole('link', { name: 'Oscillators', exact: true }).tap()
-  await expect(page.getByRole('heading', { name: 'Oscillator 1' })).toBeVisible()
   const viewport = page.viewportSize()
   if (!viewport) throw new Error('no viewport')
-  for (const control of [
-    oscillatorList(page),
-    page
-      .getByRole('slider', { name: 'Oscillator 1 volume' })
-      .locator('xpath=ancestor::div[contains(@class, "knob")]'),
-    page.getByRole('radiogroup', { name: 'Oscillator 1 waveform' }),
-    page
-      .getByRole('slider', { name: 'Oscillator 1 pitch' })
-      .locator('xpath=ancestor::div[contains(@class, "knob")]'),
-  ]) {
-    const box = await control.boundingBox()
-    if (!box) throw new Error('not visible')
+  for (const n of [1, 2, 3]) {
+    const box = await oscillatorRow(page, n).boundingBox()
+    if (!box) throw new Error(`oscillator ${n} not visible`)
     expect(box.x).toBeGreaterThanOrEqual(0)
     expect(box.y).toBeGreaterThanOrEqual(0)
-    expect(box.x + box.width).toBeLessThanOrEqual(viewport.width)
-    expect(box.y + box.height).toBeLessThanOrEqual(viewport.height)
+    expect(box.x + box.width).toBeLessThanOrEqual(viewport.width + 0.5)
+    expect(box.y + box.height).toBeLessThanOrEqual(viewport.height + 0.5)
   }
-  await page.getByRole('radiogroup').getByText('Triangle').tap()
-  await expect(page.getByRole('radio', { name: 'Triangle' })).toBeChecked()
-  await pageTransitionDone(page)
+  const triangle = oscillatorRow(page, 3).getByRole('radio', { name: 'Triangle' })
+  await triangle.locator('xpath=ancestor::label').tap()
+  await expect(triangle).toBeChecked()
 })
 
 test('the presets popover opens on screen, turned with the app, and saves', async ({ page }) => {

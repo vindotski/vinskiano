@@ -4,7 +4,8 @@ import {
   chooseWaveform,
   expect,
   openApp,
-  openOscillator,
+  openSound,
+  oscillatorRow,
   pageTransitionDone,
   resetAudioLog,
   test,
@@ -61,7 +62,7 @@ test('waveform and pitch changes reach the audio graph', async ({ page }) => {
   await openApp(page)
 
   await chooseWaveform(page, 1, 'Square')
-  await openOscillator(page, 2)
+  await openSound(page)
   const pitch2 = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
   await pitch2.focus()
   await page.keyboard.press('End')
@@ -151,12 +152,13 @@ test('the waveform choices work with the keyboard, and the keyboard plays the re
   page,
 }) => {
   await openApp(page)
-  await openOscillator(page, 3)
-  await page.getByRole('radio', { name: 'Sine' }).focus()
+  await openSound(page)
+  const row = oscillatorRow(page, 3)
+  await row.getByRole('radio', { name: 'Sine' }).focus()
   await page.keyboard.press('ArrowRight')
   await page.keyboard.press('ArrowRight') // Sine → Square → Triangle
-  await expect(page.getByRole('radio', { name: 'Triangle' })).toBeChecked()
-  await expect(page.getByRole('radio', { name: 'Triangle' })).toBeFocused()
+  await expect(row.getByRole('radio', { name: 'Triangle' })).toBeChecked()
+  await expect(row.getByRole('radio', { name: 'Triangle' })).toBeFocused()
   await backToKeyboard(page)
 
   await resetAudioLog(page)

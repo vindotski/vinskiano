@@ -45,9 +45,9 @@ export const screens: { name: string; open: (page: Page) => Promise<void> }[] = 
   },
   { name: 'the keyboard', open: openApp },
   {
-    name: 'an oscillator’s page',
+    name: 'the Oscillators page',
     open: async (page) => {
-      await page.goto('/app/oscillators/2')
+      await page.goto('/app/oscillators')
       await page.waitForFunction(() => window.__audio.analysers > 0)
     },
   },

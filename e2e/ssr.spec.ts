@@ -14,17 +14,15 @@ test('the server renders the bar: master, presets and the oscillators button', a
   request,
 }) => {
   const html = await (await request.get('/app')).text()
-  for (const name of ['Master volume', 'Presets: New sound', 'Oscillators']) {
+  for (const name of ['Master volume', 'Presets: New sound', 'aria-label="Sound"']) {
     expect(html).toContain(name)
   }
   expect(html).not.toContain('Oscillator 1 pitch')
 })
 
-test('the server renders an oscillator’s page with the list of all three', async ({ request }) => {
-  const html = await (await request.get('/app/oscillators/3')).text()
-  expect(html).toContain('Oscillator 3 pitch')
-  expect(html).not.toContain('Oscillator 1 pitch')
-  expect(html.match(/href="\/app\/oscillators\/[123]"/g)).toHaveLength(3)
+test('the server renders all three oscillators on the Oscillators page', async ({ request }) => {
+  const html = await (await request.get('/app/oscillators')).text()
+  for (const n of [1, 2, 3]) expect(html).toContain(`Oscillator ${n} pitch`)
 })
 
 test('unknown paths get a real 404', async ({ request }) => {

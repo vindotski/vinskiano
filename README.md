@@ -11,7 +11,7 @@ A three-oscillator synth that lives in your browser. Free and open source, no in
 
 ## What it does
 
-- **Three oscillators**, each with its own waveform (sine, square, triangle or sawtooth), pitch (up to two octaves up or down, in semitones) and volume. Layer them to build a tone. They're edited on their own page, which lists all three side by side with large controls for the one you pick.
+- **Three oscillators**, each with its own waveform (sine, square, triangle or sawtooth), pitch (up to two octaves up or down, in semitones) and volume. Layer them to build a tone. They're edited together on the Sound page, one row each, with the controls lined up in columns.
 - **A 13-key keyboard**, C4 to C5. Play it with a mouse, by touch, or from the keyboard: Tab to a key and hold Space or Enter.
 - **A master volume knob and an oscilloscope** that draws what you hear.
 - **Presets:** save the sound you made under a name, and load it back later. No sign-up: your first save gives this browser a guest account (a cookie that lasts a year). Clearing cookies or using another browser starts a fresh list.

@@ -1,13 +1,12 @@
-import { createFileRoute, Link, Outlet, useParams } from '@tanstack/react-router'
+import { createFileRoute, Link, Outlet, useMatch } from '@tanstack/react-router'
 import { PianoIcon, SlidersHorizontalIcon } from 'lucide-react'
 import { LazyMotion, MotionConfig } from 'motion/react'
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 import { UNSAFE_PortalProvider as PortalProvider } from 'react-aria'
 import AppBar from '../components/AppBar'
 import Logo from '../components/icons/Logo'
 import PresetsMenu from '../components/PresetsMenu'
 import { buttonVariants } from '../components/ui/button-variants'
-import { type OscillatorId, toOscillatorId } from '../synth/oscillators'
 import { sameSettings } from '../synth/preset'
 import { SynthProvider, useSynth } from '../synth/SynthProvider'
 import { usePresets } from '../synth/usePresets'
@@ -54,16 +53,12 @@ function AppLayout() {
 
 /**
  * The app bar, wired to the synth and the visitor's presets. The same on every page; its last
- * button switches between the keyboard and the oscillators (opening the one viewed last).
+ * button switches between the keyboard and the sound pages (the oscillators, the envelope).
  */
 function SynthBar() {
   const synth = useSynth()
   const presets = usePresets()
-  // On an oscillator's page (/app/oscillators/2); undefined on the keyboard.
-  const detail = toOscillatorId(useParams({ strict: false }).id)
-  // The bar stays mounted across the app's pages, so it remembers the oscillator viewed last.
-  const [lastViewed, setLastViewed] = useState<OscillatorId>(1)
-  if (detail && detail !== lastViewed) setLastViewed(detail)
+  const onSoundPage = useMatch({ from: '/app/_sound', shouldThrow: false }) !== undefined
   const linkStyle = buttonVariants({ variant: 'ghost', size: 'icon-sm' })
   return (
     <AppBar
@@ -101,17 +96,12 @@ function SynthBar() {
             }}
             onDelete={presets.remove}
           />
-          {detail ? (
+          {onSoundPage ? (
             <Link to="/app" aria-label="Back to the keyboard" className={linkStyle}>
               <PianoIcon className="size-5 text-primary" />
             </Link>
           ) : (
-            <Link
-              to="/app/oscillators/$id"
-              params={{ id: String(lastViewed) }}
-              aria-label="Oscillators"
-              className={linkStyle}
-            >
+            <Link to="/app/oscillators" aria-label="Sound" className={linkStyle}>
               <SlidersHorizontalIcon className="size-5 text-primary" />
             </Link>
           )}

@@ -3,57 +3,81 @@ import {
   backToKeyboard,
   expect,
   openApp,
-  openOscillator,
-  oscillatorList,
+  openSound,
+  oscillatorRow,
   pageTransitionDone,
+  pickWaveform,
   resetAudioLog,
+  soundTabs,
   test,
 } from './fixtures'
 
-// The bar is about the whole sound (master, presets). Each oscillator is edited on its own page,
-// /app/oscillators/N, picked from a list that shows all three. All three always sound.
+// The bar is about the whole sound (master, presets). The oscillators are edited together on the
+// Oscillators page (/app/oscillators), one row each, under the sound pages' tab bar.
 
-test('the bar has no oscillator controls; its button opens the oscillators', async ({ page }) => {
+test('the bar has no oscillator controls; its Sound button opens the oscillators', async ({
+  page,
+}) => {
   await openApp(page)
   await expect(page.getByRole('slider', { name: /^Oscillator/ })).toHaveCount(0)
-  await page.getByRole('link', { name: 'Oscillators', exact: true }).click()
-  await expect(page).toHaveURL(/\/app\/oscillators\/1$/)
-  await expect(page.getByRole('heading', { name: 'Oscillator 1' })).toBeVisible()
+  await openSound(page)
+  await expect(page).toHaveURL(/\/app\/oscillators$/)
+  await expect(soundTabs(page).getByRole('link', { name: 'Oscillators' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  )
   await expect(page.locator('.piano-key')).toHaveCount(0)
+  for (const n of [1, 2, 3]) {
+    const row = oscillatorRow(page, n)
+    await expect(row.getByRole('radiogroup', { name: `Oscillator ${n} waveform` })).toBeVisible()
+    await expect(row.getByRole('radio')).toHaveCount(4)
+    await expect(row.getByRole('slider', { name: `Oscillator ${n} volume` })).toBeVisible()
+    await expect(row.getByRole('slider', { name: `Oscillator ${n} pitch` })).toBeVisible()
+  }
+})
+
+test('a note held on the keyboard stops when you open the sound pages', async ({ page }) => {
+  await openApp(page)
+  // Hold a key with Space, then follow the bar's Sound link with the mouse: the key goes away
+  // while it's held, so its own key-up never comes.
+  await page.locator('.piano-key').first().focus()
+  await resetAudioLog(page)
+  await page.keyboard.down(' ')
+  await expect.poll(async () => (await audioLog(page)).started.length).toBe(3)
+  await page.getByRole('link', { name: 'Sound', exact: true }).click()
+  await expect(page).toHaveURL(/\/app\/oscillators$/)
+  await expect(page.locator('.piano-key')).toHaveCount(0)
+  await expect.poll(async () => (await audioLog(page)).stopped).toBe(3)
+  await page.keyboard.up(' ')
   await pageTransitionDone(page)
 })
 
-test('the list shows every oscillator’s settings and marks the open one', async ({ page }) => {
-  await openApp(page)
-  await openOscillator(page, 2)
-  const list = oscillatorList(page)
-  const link = (n: number) => list.getByRole('link', { name: `Oscillator ${n}`, exact: true })
-  await expect(link(1)).toHaveAccessibleDescription('Sine, volume 50%, pitch -12')
-  await expect(link(2)).toHaveAccessibleDescription('Sine, volume 25%, pitch 0')
-  await expect(link(3)).toHaveAccessibleDescription('Sine, volume 75%, pitch +12')
-  await expect(link(2)).toHaveAttribute('aria-current', 'page')
-  await expect(link(1)).not.toHaveAttribute('aria-current', 'page')
-
-  // It follows the controls as they change.
-  await page.getByRole('radiogroup').getByText('Sawtooth', { exact: true }).click()
-  const pitch = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
-  await pitch.focus()
-  await page.keyboard.press('Home')
-  await expect(link(2)).toHaveAccessibleDescription('Sawtooth, volume 25%, pitch -24')
+test('the rows line up: each control sits in the same column in every row', async ({ page }) => {
+  await page.goto('/app/oscillators')
+  const left = async (n: number, part: 'waveform' | 'volume' | 'pitch') => {
+    const row = oscillatorRow(page, n)
+    const target =
+      part === 'waveform'
+        ? row.getByRole('radiogroup')
+        : row.locator('.knob').filter({ has: page.getByRole('slider', { name: new RegExp(part) }) })
+    const box = await target.boundingBox()
+    if (!box) throw new Error(`oscillator ${n} ${part} not visible`)
+    return Math.round(box.x)
+  }
+  for (const part of ['waveform', 'volume', 'pitch'] as const) {
+    const first = await left(1, part)
+    expect(await left(2, part)).toBe(first)
+    expect(await left(3, part)).toBe(first)
+  }
 })
 
-test('switching oscillators keeps every setting, and all three sound', async ({ page }) => {
+test('changes apply right away, and all three sound back on the keyboard', async ({ page }) => {
   await openApp(page)
-  await openOscillator(page, 3)
-  await page.getByRole('radiogroup').getByText('Triangle', { exact: true }).click()
-  await openOscillator(page, 2)
+  await openSound(page)
+  await pickWaveform(page, 3, 'Triangle')
   const pitch = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
   await pitch.focus()
   await page.keyboard.press('End')
-  await expect(pitch).toHaveValue('24')
-  await openOscillator(page, 3)
-  await expect(page.getByRole('radio', { name: 'Triangle' })).toBeChecked()
-  await openOscillator(page, 2)
   await expect(pitch).toHaveValue('24')
 
   await backToKeyboard(page)
@@ -64,62 +88,30 @@ test('switching oscillators keeps every setting, and all three sound', async ({ 
   await page.mouse.up()
   expect(started.map((s) => s.type)).toEqual(['sine', 'sine', 'triangle'])
   expect(started.map((s) => s.detune)).toEqual([-1200, 2400, 1200])
-})
 
-test('the bar’s button reopens the oscillator you last viewed', async ({ page }) => {
-  await openApp(page)
-  await openOscillator(page, 3)
-  await backToKeyboard(page)
-  await page.getByRole('link', { name: 'Oscillators', exact: true }).click()
-  await expect(page).toHaveURL(/\/app\/oscillators\/3$/)
+  // Back on the page, everything is as it was left.
+  await openSound(page)
+  await expect(oscillatorRow(page, 3).getByRole('radio', { name: 'Triangle' })).toBeChecked()
+  await expect(pitch).toHaveValue('24')
   await pageTransitionDone(page)
 })
 
-test('a note held on the keyboard stops when you open the oscillators', async ({ page }) => {
-  await openApp(page)
-  // Hold a key with Space, then follow the bar's link with the mouse: the key goes away while
-  // it's held, so its own key-up never comes.
-  await page.locator('.piano-key').first().focus()
-  await resetAudioLog(page)
-  await page.keyboard.down(' ')
-  await expect.poll(async () => (await audioLog(page)).started.length).toBe(3)
-  await page.getByRole('link', { name: 'Oscillators', exact: true }).click()
-  await expect(page).toHaveURL(/\/app\/oscillators\/1$/)
-  await expect(page.locator('.piano-key')).toHaveCount(0)
-  await expect.poll(async () => (await audioLog(page)).stopped).toBe(3)
-  await page.keyboard.up(' ')
-  await pageTransitionDone(page)
-})
-
-test('switching oscillators doesn’t add history', async ({ page }) => {
-  await openApp(page)
-  await openOscillator(page, 1)
-  await openOscillator(page, 2)
-  await openOscillator(page, 3)
-  await page.goBack()
-  await expect(page).toHaveURL(/\/app$/)
-  await pageTransitionDone(page)
-})
-
-test('the waveform choices work with arrow keys', async ({ page }) => {
-  await page.goto('/app/oscillators/1')
+test('each row’s waveforms work with arrow keys, on their own', async ({ page }) => {
+  await page.goto('/app/oscillators')
   await page.waitForFunction(() => window.__audio.analysers > 0)
-  await page.getByRole('radio', { name: 'Sine' }).focus()
-  await page.keyboard.press('ArrowDown')
-  await expect(page.getByRole('radio', { name: 'Square' })).toBeChecked()
-  await expect(page.getByRole('radio', { name: 'Square' })).toBeFocused()
+  const row = oscillatorRow(page, 1)
+  await row.getByRole('radio', { name: 'Sine' }).focus()
+  await page.keyboard.press('ArrowRight')
+  await expect(row.getByRole('radio', { name: 'Square' })).toBeChecked()
+  await expect(row.getByRole('radio', { name: 'Square' })).toBeFocused()
+  await expect(oscillatorRow(page, 2).getByRole('radio', { name: 'Sine' })).toBeChecked()
 })
 
-test('oscillator pages answer the right status', async ({ request }) => {
-  const page = await request.get('/app/oscillators/3')
+test('the Oscillators page answers the right status', async ({ request }) => {
+  const page = await request.get('/app/oscillators')
   expect(page.status()).toBe(200)
-  expect(await page.text()).toContain('Oscillator 3 pitch')
-  expect((await request.get('/app/oscillators/4')).status()).toBe(404)
-  expect((await request.get('/app/oscillators/x')).status()).toBe(404)
-
-  const bare = await request.get('/app/oscillators', { maxRedirects: 0 })
-  expect(bare.headers().location).toMatch(/\/app\/oscillators\/1$/)
+  expect((await request.get('/app/oscillators/2')).status()).toBe(404)
   const old = await request.get('/oscillators', { maxRedirects: 0 })
   expect(old.status()).toBe(301)
-  expect(old.headers().location).toMatch(/\/app\/oscillators\/1$/)
+  expect(old.headers().location).toMatch(/\/app\/oscillators$/)
 })

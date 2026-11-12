@@ -4,7 +4,7 @@ test('the bar holds the whole sound; the keyboard fills the rest', async ({ page
   await openApp(page)
   // Oscillator controls live on each oscillator's page, not in the bar.
   await expect(page.getByRole('slider', { name: /^Oscillator/ })).toHaveCount(0)
-  await expect(page.getByRole('link', { name: 'Oscillators', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Sound', exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: /^Presets/ })).toBeVisible()
   await expect(
     page.getByRole('region', { name: 'Master' }).getByRole('slider', { name: 'Master volume' }),
@@ -71,15 +71,13 @@ test.describe('dark mode', () => {
   })
 })
 
-test('the bar puts master on the left, and presets and the oscillators button on the right', async ({
+test('the bar puts master on the left, and presets and the Sound button on the right', async ({
   page,
 }) => {
   await openApp(page)
   const master = await page.getByRole('region', { name: 'Master' }).boundingBox()
   const presets = await page.getByRole('button', { name: /^Presets/ }).boundingBox()
-  const oscillators = await page
-    .getByRole('link', { name: 'Oscillators', exact: true })
-    .boundingBox()
+  const oscillators = await page.getByRole('link', { name: 'Sound', exact: true }).boundingBox()
   if (!master || !presets || !oscillators) throw new Error('not visible')
   expect(master.x + master.width).toBeLessThan(presets.x)
   expect(presets.x + presets.width).toBeLessThanOrEqual(oscillators.x)
