@@ -4,9 +4,9 @@ import {
   audioLog,
   expect,
   openApp,
+  openOscillator,
+  oscillatorList,
   pageTransitionDone,
-  resetAudioLog,
-  showOscillator,
   test,
 } from './fixtures'
 
@@ -53,7 +53,7 @@ test('a tapped key plays once and stops on release', async ({ page }) => {
 test('tapping a knob turns it to that point of the dial', async ({ page }) => {
   // The dial's 3 o'clock, as the user sees it (in the knob's own coordinates, so it also holds
   // when the whole app is rotated): 90° of the 270° sweep from the middle, i.e. +16 semitones.
-  await showOscillator(page, 2)
+  await openOscillator(page, 2)
   const slider = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
   const dial = page.locator('.knob').filter({ has: slider }).locator('svg.knob-dial')
   const view = await dial.evaluate((svg: SVGSVGElement) => {
@@ -65,65 +65,25 @@ test('tapping a knob turns it to that point of the dial', async ({ page }) => {
   await expect(slider).toHaveValue('16')
 })
 
-test('the waveform dropdown opens next to its trigger and works', async ({ page }) => {
-  const trigger = page.getByRole('button', { name: 'Oscillator 1 waveform' })
-  await trigger.tap()
-  const listbox = page.getByRole('listbox')
-  await expect(listbox).toBeVisible()
-
-  // Inside the rotated app, so it turns with it.
-  expect(await listbox.evaluate((box) => !!box.closest('[data-app-frame]'))).toBe(true)
-  const [t, l] = await Promise.all([trigger.boundingBox(), listbox.boundingBox()])
-  const viewport = page.viewportSize()
-  if (!t || !l || !viewport) throw new Error('not visible')
-  // Inside the viewport, and right next to the trigger (whichever side that is on screen).
-  expect(l.x).toBeGreaterThanOrEqual(0)
-  expect(l.y).toBeGreaterThanOrEqual(0)
-  expect(l.x + l.width).toBeLessThanOrEqual(viewport.width)
-  expect(l.y + l.height).toBeLessThanOrEqual(viewport.height)
-  const gapX = Math.max(0, l.x - (t.x + t.width), t.x - (l.x + l.width))
-  const gapY = Math.max(0, l.y - (t.y + t.height), t.y - (l.y + l.height))
-  expect(Math.hypot(gapX, gapY)).toBeLessThan(12)
-
-  // The options must read the same way as the rest of the app: one under the other, i.e.
-  // across the keyboard's direction (left to right unrotated, top to bottom upright).
-  const axis = async (first: Locator, second: Locator) => {
-    const [a, b] = await Promise.all([first.boundingBox(), second.boundingBox()])
-    if (!a || !b) throw new Error('not visible')
-    return Math.abs(b.x - a.x) > Math.abs(b.y - a.y) ? 'x' : 'y'
-  }
-  const keys = page.locator('.piano-key--white')
-  const options = page.getByRole('option')
-  expect(await axis(options.nth(0), options.nth(1))).not.toBe(await axis(keys.nth(0), keys.nth(1)))
-
-  await page.getByRole('option', { name: 'Square' }).tap()
-  await expect(trigger).toHaveAccessibleName(/^Square/)
-  await resetAudioLog(page)
-  await page.locator('.piano-key').first().tap()
-  expect((await audioLog(page)).started.map((s) => s.type)).toEqual(['square', 'sine', 'sine'])
-})
-
-test('the oscillator select opens on screen and switches the bar', async ({ page }) => {
-  await page.getByRole('button', { name: /Shown oscillator/ }).tap()
-  const listbox = page.getByRole('listbox')
-  await expect(listbox).toBeVisible()
-  const box = await listbox.boundingBox()
-  const viewport = page.viewportSize()
-  if (!box || !viewport) throw new Error('not visible')
-  expect(box.x).toBeGreaterThanOrEqual(0)
-  expect(box.y).toBeGreaterThanOrEqual(0)
-  expect(box.x + box.width).toBeLessThanOrEqual(viewport.width)
-  expect(box.y + box.height).toBeLessThanOrEqual(viewport.height)
-  await page.getByRole('option', { name: 'Oscillator 3' }).tap()
+test('the oscillator list opens from the bar and switches oscillators by touch', async ({
+  page,
+}) => {
+  await page.getByRole('link', { name: 'Oscillators', exact: true }).tap()
+  await expect(oscillatorList(page)).toBeVisible()
+  await pageTransitionDone(page)
+  await oscillatorList(page).getByRole('link', { name: 'Oscillator 3', exact: true }).tap()
+  await expect(page.getByRole('heading', { name: 'Oscillator 3' })).toBeVisible()
   await expect(page.getByRole('slider', { name: 'Oscillator 3 pitch' })).toBeVisible()
+  await pageTransitionDone(page)
 })
 
 test('an oscillator’s page fits on screen and works by touch', async ({ page }) => {
-  await page.getByRole('link', { name: 'Oscillator 1 in detail' }).tap()
+  await page.getByRole('link', { name: 'Oscillators', exact: true }).tap()
   await expect(page.getByRole('heading', { name: 'Oscillator 1' })).toBeVisible()
   const viewport = page.viewportSize()
   if (!viewport) throw new Error('no viewport')
   for (const control of [
+    oscillatorList(page),
     page
       .getByRole('slider', { name: 'Oscillator 1 volume' })
       .locator('xpath=ancestor::div[contains(@class, "knob")]'),
@@ -146,10 +106,20 @@ test('an oscillator’s page fits on screen and works by touch', async ({ page }
 
 test('the presets popover opens on screen, turned with the app, and saves', async ({ page }) => {
   await asNewVisitor(page)
-  await page.getByRole('button', { name: 'Presets' }).tap()
+  const trigger = page.getByRole('button', { name: /^Presets/ })
+  await trigger.tap()
   const dialog = page.getByRole('dialog', { name: 'Presets' })
   await expect(dialog).toBeVisible()
   expect(await dialog.evaluate((box) => !!box.closest('[data-app-frame]'))).toBe(true)
+  // Right next to its trigger, whichever side that is on screen (once React Aria has placed it).
+  const gap = async () => {
+    const [d, t] = await Promise.all([dialog.boundingBox(), trigger.boundingBox()])
+    if (!d || !t) throw new Error('not visible')
+    const x = Math.max(0, d.x - (t.x + t.width), t.x - (d.x + d.width))
+    const y = Math.max(0, d.y - (t.y + t.height), t.y - (d.y + d.height))
+    return Math.hypot(x, y)
+  }
+  await expect.poll(gap).toBeLessThan(12)
   const box = await dialog.boundingBox()
   const viewport = page.viewportSize()
   if (!box || !viewport) throw new Error('not visible')
@@ -166,7 +136,9 @@ test('the presets popover opens on screen, turned with the app, and saves', asyn
 
 test('the app bar is one row and nothing scrolls sideways', async ({ page }) => {
   const rows = await page.evaluate(() => {
-    const parts = document.querySelectorAll('header fieldset, header section[aria-label="Master"]')
+    const parts = document.querySelectorAll(
+      'header a, header button, header section[aria-label="Master"]',
+    )
     // Compare positions along the bar's own axis, which is vertical on screen when rotated.
     const frame = document.querySelector('[data-app-frame]')
     const rotated = !!frame && getComputedStyle(frame).rotate !== 'none'

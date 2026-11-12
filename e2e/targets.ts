@@ -52,22 +52,6 @@ export const screens: { name: string; open: (page: Page) => Promise<void> }[] = 
     },
   },
   {
-    name: 'the oscillator list',
-    open: async (page) => {
-      await openApp(page)
-      await page.getByRole('button', { name: /Shown oscillator/ }).click()
-      await expect(page.getByRole('listbox')).toBeVisible()
-    },
-  },
-  {
-    name: 'the waveform list',
-    open: async (page) => {
-      await openApp(page)
-      await page.getByRole('button', { name: 'Oscillator 1 waveform' }).click()
-      await expect(page.getByRole('listbox')).toBeVisible()
-    },
-  },
-  {
     name: 'the presets popover, with a saved sound',
     open: async (page) => {
       await asNewVisitor(page)

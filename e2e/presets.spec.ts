@@ -58,9 +58,6 @@ test('saves the sound, loads it back, keeps it across visits, and deletes it', a
   await expect(presets.getByRole('status')).toHaveText('Loaded “Bright lead”')
   await page.keyboard.press('Escape')
   await expect(masterVolume(page)).toHaveAttribute('aria-valuetext', '100%')
-  await expect(page.getByRole('button', { name: 'Oscillator 1 waveform' })).toHaveAccessibleName(
-    /^Square/,
-  )
   await resetAudioLog(page)
   await page.locator('.piano-key').first().click()
   expect((await audioLog(page)).started.map((s) => s.type)).toEqual(['square', 'sine', 'sine'])

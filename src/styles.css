@@ -8,8 +8,16 @@
 /* Dark mode follows the OS setting: no script, no flash. */
 @custom-variant dark (@media (prefers-color-scheme: dark));
 
-/* Short viewports, e.g. a phone in landscape: tighten spacing so everything fits. */
-@custom-variant short (@media (max-height: 500px));
+/* Short screens: a phone in landscape, or held upright (the app turns sideways then, so its
+   height is the phone's width). Tightens spacing so everything fits. */
+@custom-variant short {
+  @media (max-height: 500px) {
+    @slot;
+  }
+  @media (orientation: portrait) and (max-width: 500px) {
+    @slot;
+  }
+}
 
 /* shadcn/ui theme: preset b51FfLcNG (style aria-luma, base color mauve). */
 @theme inline {

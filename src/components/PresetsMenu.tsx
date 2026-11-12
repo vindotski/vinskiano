@@ -90,11 +90,7 @@ const PresetsMenu = ({
         ) : null}
         <ChevronDownIcon className="size-4 text-muted-foreground" />
       </Button>
-      <SelectPopover
-        placement="bottom start"
-        rotatedWidth={WIDTH + 8}
-        className="w-72 bg-popover/90"
-      >
+      <SelectPopover placement="bottom end" rotatedWidth={WIDTH + 8} className="w-72 bg-popover/90">
         <Dialog
           aria-label="Presets"
           className="flex max-h-[inherit] flex-col gap-3 p-3 outline-hidden"

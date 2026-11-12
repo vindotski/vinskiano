@@ -32,19 +32,9 @@ describe('server rendering', () => {
 
   test('the app bar renders without an audio engine', () => {
     const html = renderToString(
-      <AppBar
-        shownOscillator={2}
-        onShowOscillator={noop}
-        oscillator={{ id: 2, waveform: 'square', pitch: 0, volume: 0.25 }}
-        onOscillatorChange={noop}
-        master={{ gain: 0.5 }}
-        onMasterChange={noop}
-        oscilloscope={null}
-      />,
+      <AppBar master={{ gain: 0.5 }} onMasterChange={noop} oscilloscope={null} />,
     )
-    expect(html).toContain('Oscillator 2 pitch')
     expect(html).not.toContain('Oscillator 1 pitch')
-    expect(html).toContain('Shown oscillator')
     expect(html).toContain('Master volume')
     expect(html).toContain('canvas')
   })
