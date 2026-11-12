@@ -13,6 +13,17 @@ import { usePresets } from '../synth/usePresets'
 
 /** The synth: owns the audio engine, so it only exists under /app (the site never creates one). */
 export const Route = createFileRoute('/app')({
+  head: () => ({
+    meta: [
+      // An instrument, not a page: a pinch or double-tap on the keys must play, not zoom.
+      {
+        name: 'viewport',
+        content:
+          'width=device-width, initial-scale=1, user-scalable=0, maximum-scale=1, minimum-scale=1',
+      },
+    ],
+    links: [{ rel: 'canonical', href: 'https://vinskiano.app/app' }],
+  }),
   component: AppLayout,
 })
 

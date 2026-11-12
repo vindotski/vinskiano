@@ -10,12 +10,14 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 
 ### Added
 
+- Links to the home page show a title, description and a picture of the app in chat apps and social sites; crawlers find a `favicon.ico` and a sitemap. Installed as an app, Vinskiano opens on the synth
 - Play from the computer keyboard, in FL Studio's layout: Z S X D C V G B H N J M , is an octave from the first C in view, and Q 2 W 3 E R 5 T 6 Y 7 U I 9 O 0 P the octave above and on. It goes by key position, so it's the same keys on AZERTY or QWERTZ, and follows the view as you move along the keyboard. Where there's a mouse, each key shows its letter. Typing into a field or using a control's own keys plays nothing
 - A Sound page for editing the sound, opened from the sliders button in the app bar. Its first tab, Oscillators (`/app/oscillators`), shows all three as a rack: one row each, with the waveform, mix and pitch lined up in columns. There's no keyboard there; changes apply right away and are heard back on the keyboard
 - Presets: save the current sound under a name, then load or delete it, from the presets dropdown in the app bar. It names the current sound ("New sound" until you save or load one) and shows a dot once you've changed it; saving again offers the same name, which updates it. They're kept on the server in a guest account, with no sign-up: your first save sets a cookie that lasts a year. Clearing cookies or switching browsers starts a new, empty list
 
 ### Changed
 
+- The site can be zoomed (only the synth itself keeps pinch-zoom off, so a pinch plays the keys). Pages load less: about 10 kB less JavaScript on every page, only the Latin letters of the Inter font, preloaded, with a fallback sized like it so the text doesn't jump when it arrives
 - Turning a knob or scrolling the keyboard no longer redraws its 88 keys; holding a note redraws only that key. The oscilloscope draws silence once instead of every frame, and stops while it's off screen
 - The home page is a product page you can play on: a keyboard with four sounds right below the headline (tap, click or type), then what the synth does, what FL Studio users will recognise, what's coming next, and answers to common questions. The keyboard loads after the page, and no sound is made until you press a key
 - The oscillators' volumes are now a mix, as in FL Studio's 3x Osc: oscillators 2 and 3 have a mix knob, oscillator 1 gets what they leave (its level is shown in place of a knob), and the levels always add up to 100%, so changing the balance never changes the overall volume. A new sound is an equal mix of the three. Presets saved with volumes load as the same balance

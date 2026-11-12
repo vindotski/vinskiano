@@ -187,6 +187,7 @@ const Home = () => (
           srcSet={LIGHT}
           sizes={SIZES}
           loading="lazy"
+          decoding="async"
           alt="The Vinskiano synth: a bar with a master volume knob, an oscilloscope, the presets menu and a button to the oscillators, above a scrolling 88-key keyboard and its minimap with the E key pressed"
           width={2560}
           height={1440}
