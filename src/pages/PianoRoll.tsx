@@ -46,6 +46,8 @@ const PianoRoll = ({
   const [view, setView] = useState<KeyboardView>({ start: MIDDLE_C_WHITE - 2, size: 8 })
   const [positioned, setPositioned] = useState(false)
   const [held, setHeld] = useState<readonly string[]>([])
+  /** Where the octave buttons are scrolling to, while they are (the view lags behind it). */
+  const heading = useRef<number | null>(null)
   const base = firstCInView(view)
   // biome-ignore lint/correctness/useExhaustiveDependencies: notes compare by value; the name is the key.
   const hints = useMemo(() => typingHints(base), [base.toString()])
@@ -58,12 +60,16 @@ const PianoRoll = ({
     const width = element ? element.scrollWidth / WHITES : 0
     if (!element || !width) return
     const next = { start: element.scrollLeft / width, size: element.clientWidth / width }
+    if (heading.current !== null && Math.abs(next.start - heading.current) < 0.05) {
+      heading.current = null // arrived
+    }
     setView(next)
     onPositionChange?.(next.start)
   }, [onPositionChange])
 
   /** Show the keyboard from this white key on (clamped to the ends). */
   const moveTo = (start: number, behavior: ScrollBehavior = 'auto') => {
+    if (behavior === 'auto') heading.current = null // a direct move ends any octave scroll
     scroller.current?.scrollTo({ left: start * whiteWidth(), behavior })
   }
 
@@ -89,6 +95,7 @@ const PianoRoll = ({
     const wheel = (event: WheelEvent) => {
       if (event.shiftKey || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return
       const lines = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? 16 : 1
+      heading.current = null // the wheel takes over from any octave scroll
       element.scrollLeft += event.deltaY * lines
       event.preventDefault()
     }
@@ -99,9 +106,14 @@ const PianoRoll = ({
     }
   }, [measure])
 
+  // Each click moves an octave from where the last one was heading, not from where the smooth
+  // scroll has got to so far: two quick clicks move two octaves.
   const octave = (direction: -1 | 1) => {
+    const from = heading.current ?? Math.round(view.start)
+    const target = Math.max(0, Math.min(WHITES - view.size, from + direction * 7))
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    moveTo(Math.round(view.start) + direction * 7, reduced ? 'auto' : 'smooth')
+    moveTo(target, reduced ? 'auto' : 'smooth')
+    if (!reduced) heading.current = target
   }
 
   return (

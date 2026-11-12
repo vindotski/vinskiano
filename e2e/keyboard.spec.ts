@@ -104,3 +104,18 @@ test('the view is kept while you visit the Sound page', async ({ page }) => {
   await expect(minimap(page)).toHaveAttribute('aria-valuenow', before)
   await pageTransitionDone(page)
 })
+
+// BUG (Bugbot on #42): each click aimed at the view's current place + 7, and the view only
+// moves as the smooth scroll does, so a second click mid-scroll aimed at the same octave.
+test('two quick clicks on an octave button move two octaves', async ({ page }) => {
+  await openApp(page)
+  const start = Number(await minimap(page).getAttribute('aria-valuenow'))
+  const up = page.getByRole('button', { name: 'Octave up' })
+  await up.click()
+  await up.click()
+  await expect(minimap(page)).toHaveAttribute('aria-valuenow', String(start + 14))
+  const down = page.getByRole('button', { name: 'Octave down' })
+  await down.click()
+  await down.click()
+  await expect(minimap(page)).toHaveAttribute('aria-valuenow', String(start))
+})
