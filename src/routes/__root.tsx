@@ -15,7 +15,11 @@ export const Route = createRootRoute({
           'width=device-width, initial-scale=1, user-scalable=0, maximum-scale=1, minimum-scale=1',
       },
       { title: 'Vinskiano' },
-      { name: 'description', content: 'Browser-based subtractive synthesizer' },
+      {
+        name: 'description',
+        content:
+          'A free synth that plays in your browser: three oscillators mixed like FL Studio’s 3x Osc, 88 keys, and your computer keyboard as a piano.',
+      },
       { name: 'color-scheme', content: 'light dark' },
     ],
     links: [

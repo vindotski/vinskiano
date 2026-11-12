@@ -16,6 +16,7 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 
 ### Changed
 
+- The home page is a product page you can play on: a keyboard with four sounds right below the headline (tap, click or type), then what the synth does, what FL Studio users will recognise, what's coming next, and answers to common questions. The keyboard loads after the page, and no sound is made until you press a key
 - The oscillators' volumes are now a mix, as in FL Studio's 3x Osc: oscillators 2 and 3 have a mix knob, oscillator 1 gets what they leave (its level is shown in place of a knob), and the levels always add up to 100%, so changing the balance never changes the overall volume. A new sound is an equal mix of the three. Presets saved with volumes load as the same balance
 - The keyboard has a piano's 88 keys, from A0 to C8, and scrolls sideways. A minimap above it shows the whole range, where you are and the notes you're holding; tap or drag it (or use the octave buttons) to move. Only the C keys are labelled, with their octave, and middle C has a dot. By keyboard, Tab reaches the keys once and the arrows move along them
 - Playing feels like an instrument: every finger plays its own note (as many as you put down), sliding a finger or the mouse across the keys plays each one in turn, and two fingers on one key keep it sounding until both lift. The browser no longer scrolls, zooms or selects text on the keys, and on Android a touch gives a short haptic tick

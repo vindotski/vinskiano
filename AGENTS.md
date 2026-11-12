@@ -36,7 +36,7 @@ Before editing files for a substantial task:
 src/
   music/       Pure music theory: Note, Octave, Frequency, Scale, ScaleBuilder, ScaleStrategy, KEYBOARD_NOTES (88, A0–C8), WHITE_NOTES, MIDDLE_C
   audio/       Web Audio: Engine (context + oscillators + oscilloscope), Context (master gain → limiter → speakers), Oscillator (a gain per note, for click-free fades), Oscilloscope
-  components/  React UI: AppBar (left: master knob + oscilloscope; right: an `end` slot with the presets dropdown and the Sound/keyboard link), OscillatorRow (one row of the oscillator rack), PresetsMenu, Piano, PianoKey, KeyboardMinimap, knobs/, toolbars/, site/ (header, footer)
+  components/  React UI: AppBar (left: master knob + oscilloscope; right: an `end` slot with the presets dropdown and the Sound/keyboard link), OscillatorRow (one row of the oscillator rack), PresetsMenu, Piano, PianoKey, KeyboardMinimap, knobs/, toolbars/, site/ (header, footer), home/ (the home page's demo: PlaySection, and DemoPlayer, its lazily loaded keyboard)
   routes/      File-based routes, two sections:
                  __root      HTML document (shellComponent + head()), 404 (NotFound brings the site chrome)
                  _site.tsx   pathless site layout (header, scrolling page, footer); _site/index.tsx = /
@@ -49,6 +49,7 @@ src/
   synth/       SynthProvider: owns the synth settings (state) and the audio Engine (created after mount); useSynth() for routes
                preset.ts (checks a preset's settings and name; shared by browser and server),
                presets.functions.ts (the server functions), usePresets (the browser side),
+               factory.ts (sounds that come with the app; INIT is a new sound), engine-settings.ts (settings → what the engine plays),
                oscillators.ts (the oscillator ids), mix.ts (the mix: oscillators 2 and 3 have a mix,
                1 gets the rest, levels always add up to one; the engine plays levels)
   server/      Server-only: backend.server.ts (the kit, created on first use; database() runs migrations),
@@ -131,7 +132,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - Route components are thin: read state with `useSynth()` and render a component from `pages/` or `components/`. Components stay presentational (props in, callbacks out); router links are passed in as slots (e.g. `AppBar`'s `start`), so components render without a router in unit tests.
 - After visible UI changes in the app, run `pnpm screenshots` so the home page shows the current app.
 - **Rendering:** the home page (`/`) is **prerendered at build time by Nitro** (`nitro({ prerender: { routes: ['/'] } })` in `vite.config.ts`) and served as a static file; everything else is server-rendered per request. Add a page to `routes` there only if it has no per-request data. Use Nitro's prerender, not Start's `prerender` option: Start writes its HTML after Nitro has listed the public files, so Nitro never served it. `e2e/site.spec.ts` checks `/` has `etag`/`last-modified` and `/app` doesn't.
-- **Two sections:** the site (`_site`) is a normal scrolling website and must not load synth code (no `SynthProvider`, no Motion); the app (`/app`) owns the audio engine and Motion. `e2e/site.spec.ts` checks that `/` creates no `AudioContext`.
+- **Two sections:** the site (`_site`) is a normal scrolling website; the app (`/app`) owns the synth (`SynthProvider`) and Motion. The one exception is the home page's demo: `components/home/DemoPlayer` (the keyboard, the `Engine` and Motion) is a lazy chunk that `PlaySection` loads only once the page is idle or the demo is near view, and it creates the `AudioContext` with the first note played, not before. Nothing else on the site imports audio code or Motion. `e2e/site.spec.ts` checks that `/` creates no `AudioContext` until a demo key is played.
 - Use `Link` from `@tanstack/react-router`; it sets the `active` class itself (use `activeOptions={{ exact: true }}` for `/`).
 - TanStack ships version-matched agent skills (`react-router`, `react-start`), linked into `.claude/skills/` by pnpm (see `permissions` in `pnpm-workspace.yaml`). Read them before changing routing or Start setup.
 
