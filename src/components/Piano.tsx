@@ -1,4 +1,4 @@
-import { type PointerEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { memo, type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MIDDLE_C, type Note, TYPING_KEYS, typedNote } from '../music'
 import HeldNotes, { type Change } from '../synth/held-notes'
 import PianoKey from './PianoKey'
@@ -47,23 +47,33 @@ const Piano = ({
   const held = useRef(new HeldNotes())
   /** Pointers that went down on the keyboard and haven't come up. */
   const pointers = useRef(new Set<number>())
-  const [active, setActive] = useState<readonly string[]>([])
+  const [active, setActive] = useState<ReadonlySet<string>>(NOTHING_HELD)
   // The keyboard is one tab stop (middle C, or the key last moved to); arrows move along it.
   const [focusable, setFocusable] = useState(MIDDLE_C.toString())
 
   const heldChanged = useRef(onHeldChange)
   heldChanged.current = onHeldChange
-  useEffect(() => heldChanged.current?.(active), [active])
+  /** Notes by name, for finding the key under a pointer without building names on every move. */
+  const byName = useMemo(() => new Map(notes.map((note) => [note.toString(), note])), [notes])
+
+  /** Show what's held now, and tell the parent in the same render (not one render later). */
+  const show = useCallback((names: readonly string[]) => {
+    setActive(names.length === 0 ? NOTHING_HELD : new Set(names))
+    heldChanged.current?.(names)
+  }, [])
 
   // The latest callbacks, for listeners that outlive a render (window events, unmount).
   const callbacks = useRef({ onTrigger, onRelease })
   callbacks.current = { onTrigger, onRelease }
 
-  const apply = useCallback(({ start, stop }: Change) => {
-    if (stop) callbacks.current.onRelease(stop)
-    if (start) callbacks.current.onTrigger(start)
-    if (start || stop) setActive(held.current.notes().map(String))
-  }, [])
+  const apply = useCallback(
+    ({ start, stop }: Change) => {
+      if (stop) callbacks.current.onRelease(stop)
+      if (start) callbacks.current.onTrigger(start)
+      if (start || stop) show(held.current.notes().map(String))
+    },
+    [show],
+  )
 
   const release = useCallback(
     (source: string) => apply({ start: null, stop: held.current.release(source) }),
@@ -72,9 +82,11 @@ const Piano = ({
 
   const releaseAll = useCallback(() => {
     pointers.current.clear()
-    for (const note of held.current.releaseAll()) callbacks.current.onRelease(note)
-    setActive([])
-  }, [])
+    const released = held.current.releaseAll()
+    if (released.length === 0) return // nothing held: nothing to render
+    for (const note of released) callbacks.current.onRelease(note)
+    show([])
+  }, [show])
 
   // Never a stuck note: let go of everything when the page loses focus or is hidden (a pointer
   // or key-up may never arrive then), and when the keyboard goes away (a note held while
@@ -122,7 +134,7 @@ const Piano = ({
   const noteAt = (x: number, y: number) => {
     const element = document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-note]')
     if (!element || !keyboard.current?.contains(element)) return null
-    return notes.find((note) => note.toString() === element.dataset.note) ?? null
+    return byName.get(element.dataset.note ?? '') ?? null
   }
 
   /** A pointer is over `note` (or over no key): hold that note, letting go of the one before. */
@@ -139,6 +151,13 @@ const Piano = ({
     if (!pointers.current.delete(event.pointerId)) return
     release(`pointer:${event.pointerId}`)
   }
+
+  /** Space or Enter on the focused key (one callback for all keys, so they can skip renders). */
+  const playKey = useCallback(
+    (played: Note, down: boolean) =>
+      down ? apply(held.current.press('focus', played)) : release('focus'),
+    [apply, release],
+  )
 
   return (
     // A fieldset: a named group of the keys (which are buttons and play with Space/Enter).
@@ -180,16 +199,18 @@ const Piano = ({
         <PianoKey
           key={note.toString()}
           note={note}
-          active={active.includes(note.toString())}
+          active={active.has(note.toString())}
           tabIndex={note.toString() === focusable ? 0 : -1}
           hint={hints?.get(note.toString())}
-          onPlayKey={(played, down) =>
-            down ? apply(held.current.press('focus', played)) : release('focus')
-          }
+          onPlayKey={playKey}
         />
       ))}
     </fieldset>
   )
 }
 
-export default Piano
+const NOTHING_HELD: ReadonlySet<string> = new Set()
+
+// Memoized, like each key: the keyboard renders only when its props or the held notes change,
+// not on every scroll or knob turn around it.
+export default memo(Piano)

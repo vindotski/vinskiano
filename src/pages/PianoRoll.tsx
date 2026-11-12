@@ -48,9 +48,12 @@ const PianoRoll = ({
   const [held, setHeld] = useState<readonly string[]>([])
   /** Where the octave buttons are scrolling to, while they are (the view lags behind it). */
   const heading = useRef<number | null>(null)
+  // firstCInView returns the same WHITE_NOTES entry while the view stays near it, so this only
+  // recomputes when the base C really changes.
   const base = firstCInView(view)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: notes compare by value; the name is the key.
-  const hints = useMemo(() => typingHints(base), [base.toString()])
+  const hints = useMemo(() => typingHints(base), [base])
+  const positionChanged = useRef(onPositionChange)
+  positionChanged.current = onPositionChange
 
   /** One white key's width on screen right now (it changes with the breakpoints). */
   const whiteWidth = () => (scroller.current ? scroller.current.scrollWidth / WHITES : 0)
@@ -63,9 +66,14 @@ const PianoRoll = ({
     if (heading.current !== null && Math.abs(next.start - heading.current) < 0.05) {
       heading.current = null // arrived
     }
-    setView(next)
-    onPositionChange?.(next.start)
-  }, [onPositionChange])
+    // Scrolling calls this every frame: only re-render when the view really moved.
+    setView((view) =>
+      Math.abs(view.start - next.start) < 1e-3 && Math.abs(view.size - next.size) < 1e-3
+        ? view
+        : next,
+    )
+    positionChanged.current?.(next.start)
+  }, [])
 
   /** Show the keyboard from this white key on (clamped to the ends). */
   const moveTo = (start: number, behavior: ScrollBehavior = 'auto') => {

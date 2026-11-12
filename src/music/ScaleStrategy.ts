@@ -24,16 +24,10 @@ class ChromaticScaleStrategy extends ScaleStrategy {
     let rootOctave = rootNote.octave
 
     for (let i = start; i < end; i++) {
-      const note = new Note({
-        name: this.octave.get(i).name,
-        octave: rootOctave,
-      })
-
-      if (note.name === 'C') {
-        note.octave = ++rootOctave
-      }
-
-      notes.push(note)
+      const name = this.octave.get(i).name
+      // A C starts the next octave.
+      if (name === 'C') rootOctave++
+      notes.push(new Note({ name, octave: rootOctave }))
     }
 
     return notes

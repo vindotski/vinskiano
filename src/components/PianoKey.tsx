@@ -1,5 +1,5 @@
 import * as m from 'motion/react-m'
-import type { KeyboardEvent } from 'react'
+import { type KeyboardEvent, memo } from 'react'
 import { cn } from '@/lib/utils'
 import { isWhite, MIDDLE_C, type Note } from '../music'
 
@@ -85,4 +85,5 @@ const PianoKey = ({ note, active, tabIndex, hint, onPlayKey }: PianoKeyProps) =>
   )
 }
 
-export default PianoKey
+// Memoized: holding a note re-renders only the keys whose props changed.
+export default memo(PianoKey)

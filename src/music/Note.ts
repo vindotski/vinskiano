@@ -6,8 +6,10 @@ export interface NoteOptions {
 }
 
 class Note {
-  name: string
-  octave: number
+  readonly name: string
+  readonly octave: number
+  /** Its name, e.g. "C#4": computed once (keys look notes up by it all the time). */
+  private readonly label: string
 
   constructor(options: NoteOptions = {}) {
     const name = options.name || 'A'
@@ -18,6 +20,7 @@ class Note {
 
     this.name = name
     this.octave = options.octave ?? 4
+    this.label = `${name.replace('{sharp}', '#').replace('{flat}', 'b')}${this.octave}`
   }
 
   /** Same pitch: equal name and octave (notes are compared by value, not identity). */
@@ -26,10 +29,7 @@ class Note {
   }
 
   toString(): string {
-    let name = this.name
-    name = name.replace('{sharp}', '#')
-    name = name.replace('{flat}', ' b')
-    return `${name}${this.octave}`
+    return this.label
   }
 }
 
