@@ -70,7 +70,7 @@ tsconfig.json
 Dockerfile     Stages: base (Node + pinned pnpm), deps, dev, build, production (Node running .output/)
 compose.yaml   app / dev / test services (all on the local Spotcraft Postgres's network)
 .env.example   The server's settings (DATABASE_URL, AUTH_SECRET, PUBLIC_URL); .env is gitignored
-docs/          deploy.md (Spotcraft), deploy-single-server.md (retired)
+docs/          deploy.md (Spotcraft), deploy-single-server.md (retired), parity.md (every 3x Osc and channel parameter: status and how), roadmap.md (technology, preset format, milestones)
 ```
 
 ## Commands
@@ -120,7 +120,8 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - **Browser tests run in Chromium, Firefox and WebKit** (see Tests); that's the check that a change works beyond Chrome.
 - **Static files are compressed at build time** (Nitro `compressPublicAssets`: gzip and brotli, chosen by `Accept-Encoding`). Hashed `/assets/` are cached for a year. Pages rendered per request (`/app`) are not compressed by Nitro; a reverse proxy or CDN in front can do that.
 - **Measure before optimizing:** Lighthouse (mobile) on `/` and `/app`, median of several runs. Install it pinned in a scratch directory, never as a project dependency.
-- **Web Audio stays hand-written; no Tone.js (decided 2026-11).** Tone.js is good at scheduling, envelopes, effects and polyphony, but it would add a large bundle and an unmaintained shim (`standardized-audio-context`), replace a small tested `Engine`, and needs care with SSR. The planned features map to native nodes: envelopes to `GainNode` automation, filters to `BiquadFilterNode`, LFOs to an `OscillatorNode` driving an `AudioParam`. Revisit if sequencing or many effects arrive.
+- **Web Audio stays hand-written; no Tone.js (decided 2026-11).** Tone.js is good at scheduling, envelopes, effects and polyphony, but it would add a large bundle and an unmaintained shim (`standardized-audio-context`), replace a small tested `Engine`, and needs care with SSR. The planned features map to native nodes: envelopes to `GainNode` automation, filters to `BiquadFilterNode`, LFOs to an `OscillatorNode` driving an `AudioParam`. Revisit if sequencing or many effects arrive. Re-checked (2026-11-12) against the whole 3x Osc parity list: still no; see `docs/roadmap.md`.
+- **Parity target: FL Studio's 3x Osc plus the channel settings around it** (`docs/parity.md`). A new sound feature takes FL's behaviour and ranges from there; update its row when it lands.
 
 ## Routing
 
@@ -148,6 +149,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - **Server-only code lives in `src/server/`** (`*.server.ts`, which Start keeps out of the browser bundle). The browser reaches it only through server functions (`createServerFn` in `*.functions.ts`), whose handlers import the server modules; the build strips them from the client. The kit's browser export throws, so a leak fails loudly.
 - **Read with `currentGuestId()`, which never creates a guest; write with `guestId()`, which does.** Creating guests on reads would make one per first request, favicon and crawler. `guestId()` answers 429 with `retry-after` past the kit's limit on new guests (30 per client address per 10 minutes). The client address is the **last** `X-Forwarded-For` entry, the one Spotcraft's Caddy adds; it replaces whatever the client sent.
 - **The user id comes from the session, never from the request,** and every query filters by it. Check all input on the server (`parsePresetSettings`, `parsePresetName` in `synth/preset.ts`), and keep only known fields. Responses that depend on the visitor are `cache-control: private, no-store`.
+- **Preset settings must keep loading forever** (full rules in `docs/roadmap.md#preset-format`): physical units, never knob positions; a new field is optional with a default that sounds like before; `version` changes only on a breaking change, which needs a migration and a fixture that keeps loading; keep existing names.
 - **Start's CSRF middleware** guards server functions (it checks `Sec-Fetch-Site`, which every browser at our floor sends), so no `X-Forwarded-Proto` handling is needed behind the proxy.
 - **Migrations:** numbered SQL files in `src/server/migrations/` (`0002_….sql`), for tables in `public` only. They **only add** (never drop or rename) and run once per server process on first use (`database()`), in one transaction under an advisory lock. Vite inlines them (`import.meta.glob` with `?raw`), so nothing is read from disk. Keep `schema.ts` matching them. Never change `auth.*`: Spotcraft owns it.
 - **Bundling gotchas:** the kit reads its own migrations from files next to it at import, so a Nitro `compiled` hook in `vite.config.ts` copies them next to the bundled kit (unbundling it makes Nitro copy all of `node_modules`). Nitro plugins (`startup.ts`) are bundled by Nitro, not Vite: no `import.meta.glob` or other Vite features there.

@@ -18,7 +18,7 @@ A three-oscillator synth that lives in your browser. Free and open source, no in
 - **One screen, any device.** The controls fit in a single bar above the keyboard, down to a small phone held sideways. Held upright, a phone turns the synth sideways so the keyboard stays wide.
 - **Accessible:** every control has a name for screen readers and works by keyboard (knobs take arrows, Page Up/Down, Home/End). Animations respect reduced motion, and dark mode follows your system.
 
-Not there yet: envelopes, filters and modulation. Vinskiano is meant to grow into a full subtractive synth.
+Not there yet: envelopes, filters and modulation. Vinskiano is growing into a full subtractive synth that does what FL Studio's 3x Osc does: see the [roadmap](docs/roadmap.md) and the [parity list](docs/parity.md).
 
 ### Browsers
 
