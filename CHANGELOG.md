@@ -8,6 +8,12 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-11-12
+
+Presets, a full piano and a Sound page. You can save sounds as presets (a guest account, no sign-up), play 88 keys with the mouse, your fingers or the computer keyboard, and edit the three oscillators together, mixed the way FL Studio's 3x Osc mixes them. Notes no longer click, and the server sends its own security headers.
+
+**Breaking:** the server now needs Postgres. It won't start without `DATABASE_URL`, `AUTH_SECRET` and `PUBLIC_URL`, so 1.x deploys need a database before they can run this image. Deploys move to Spotcraft, and the single-server kit is retired (see [docs/deploy.md](docs/deploy.md)).
+
 ### Added
 
 - Links to the home page show a title, description and a picture of the app in chat apps and social sites; crawlers find a `favicon.ico` and a sitemap. Installed as an app, Vinskiano opens on the synth
