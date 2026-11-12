@@ -6,6 +6,7 @@ import {
   instrumentWebAudio,
   openApp,
   openPresets,
+  pianoKey,
   resetAudioLog,
   test,
 } from './fixtures'
@@ -59,7 +60,7 @@ test('saves the sound, loads it back, keeps it across visits, and deletes it', a
   await page.keyboard.press('Escape')
   await expect(masterVolume(page)).toHaveAttribute('aria-valuetext', '100%')
   await resetAudioLog(page)
-  await page.locator('.piano-key').first().click()
+  await pianoKey(page, 'C4').click()
   expect((await audioLog(page)).started.map((s) => s.type)).toEqual(['square', 'sine', 'sine'])
 
   // A later visit (same browser) still has it.

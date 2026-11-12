@@ -1,5 +1,5 @@
 import { type PointerEvent, useCallback, useEffect, useRef, useState } from 'react'
-import type { Note } from '../music'
+import { MIDDLE_C, type Note } from '../music'
 import HeldNotes, { type Change } from '../synth/held-notes'
 import PianoKey from './PianoKey'
 
@@ -7,7 +7,11 @@ interface PianoProps {
   notes: readonly Note[]
   onTrigger: (note: Note) => void
   onRelease: (note: Note) => void
+  /** The held notes changed (their names), e.g. for the minimap. */
+  onHeldChange?: (notes: readonly string[]) => void
 }
+
+const MOVE_KEYS = ['ArrowLeft', 'ArrowRight', 'Home', 'End']
 
 /** A short tick when a finger starts a note, where the browser can vibrate (Android, not iOS). */
 const tick = () => {
@@ -20,12 +24,18 @@ const tick = () => {
  * key to key (a glissando), and each finger plays its own note. `HeldNotes` decides what starts
  * and stops. The browser's own touch gestures (scroll, zoom, callout) are off on the keys.
  */
-const Piano = ({ notes, onTrigger, onRelease }: PianoProps) => {
+const Piano = ({ notes, onTrigger, onRelease, onHeldChange }: PianoProps) => {
   const keyboard = useRef<HTMLFieldSetElement>(null)
   const held = useRef(new HeldNotes())
   /** Pointers that went down on the keyboard and haven't come up. */
   const pointers = useRef(new Set<number>())
   const [active, setActive] = useState<readonly string[]>([])
+  // The keyboard is one tab stop (middle C, or the key last moved to); arrows move along it.
+  const [focusable, setFocusable] = useState(MIDDLE_C.toString())
+
+  const heldChanged = useRef(onHeldChange)
+  heldChanged.current = onHeldChange
+  useEffect(() => heldChanged.current?.(active), [active])
 
   // The latest callbacks, for listeners that outlive a render (window events, unmount).
   const callbacks = useRef({ onTrigger, onRelease })
@@ -93,7 +103,7 @@ const Piano = ({ notes, onTrigger, onRelease }: PianoProps) => {
     <fieldset
       ref={keyboard}
       aria-label="Keyboard"
-      className="flex min-h-0 min-w-0 flex-1 touch-none px-4 pb-4 select-none [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none]"
+      className="flex h-full w-max touch-none select-none [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none]"
       onPointerDown={(event) => {
         if (event.pointerType === 'mouse' && event.button !== 0) return
         // No focus moving to the key, no text selection, no emulated mouse events.
@@ -108,12 +118,28 @@ const Piano = ({ notes, onTrigger, onRelease }: PianoProps) => {
       onPointerUp={up}
       onPointerCancel={up}
       onLostPointerCapture={up}
+      onKeyDown={(event) => {
+        if (!MOVE_KEYS.includes(event.key)) return
+        const from = notes.findIndex((note) => note.toString() === focusable)
+        const to =
+          event.key === 'Home'
+            ? 0
+            : event.key === 'End'
+              ? notes.length - 1
+              : from + (event.key === 'ArrowLeft' ? -1 : 1)
+        const next = notes[Math.max(0, Math.min(notes.length - 1, to))]
+        if (!next) return
+        event.preventDefault() // the arrows move focus, not the scroller
+        setFocusable(next.toString())
+        keyboard.current?.querySelector<HTMLElement>(`[data-note="${next.toString()}"]`)?.focus() // focusing scrolls the key into view
+      }}
     >
       {notes.map((note) => (
         <PianoKey
           key={note.toString()}
           note={note}
           active={active.includes(note.toString())}
+          tabIndex={note.toString() === focusable ? 0 : -1}
           onPlayKey={(played, down) =>
             down ? apply(held.current.press('focus', played)) : release('focus')
           }

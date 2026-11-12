@@ -1,6 +1,7 @@
 import {
   createContext,
   type ReactNode,
+  type RefObject,
   useCallback,
   useContext,
   useEffect,
@@ -26,6 +27,12 @@ export interface Synth {
   updateOscillator: (id: number, settings: OscillatorSettings) => void
   /** Replaces the whole sound at once, e.g. with a preset. */
   loadSettings: (settings: PresetSettings) => void
+  /**
+   * Where the keyboard was scrolled to (its first white key), so it comes back there after a
+   * visit to the Sound pages. A ref, not state: it changes on every scroll, and nothing renders
+   * from it while it does. Kept while the page is open, not across reloads.
+   */
+  keyboardPosition: RefObject<number | null>
 }
 
 /** A sound that is currently playing, tagged with the note that started it. */
@@ -51,6 +58,7 @@ export function SynthProvider({ children }: { children: ReactNode }) {
   const [oscillators, setOscillators] = useState(INITIAL_OSCILLATORS)
   const [engine, setEngine] = useState<Engine | null>(null)
   const sounds = useRef<PlayingSound[]>([])
+  const keyboardPosition = useRef<number | null>(null)
 
   // Browser-only setup. Settings are read once at creation and kept in sync by the effects below.
   // biome-ignore lint/correctness/useExhaustiveDependencies: create the engine once, on mount
@@ -108,6 +116,7 @@ export function SynthProvider({ children }: { children: ReactNode }) {
     updateMaster: setMaster,
     updateOscillator,
     loadSettings,
+    keyboardPosition,
   }
 
   return <SynthContext value={synth}>{children}</SynthContext>

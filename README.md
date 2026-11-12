@@ -6,13 +6,13 @@ A three-oscillator synth that lives in your browser. Free and open source, no in
 
 <picture>
   <source srcset="src/assets/screenshots/app-dark-1280.webp" media="(prefers-color-scheme: dark)">
-  <img src="src/assets/screenshots/app-light-1280.webp" alt="The Vinskiano synth: a bar with a master volume knob, an oscilloscope, the presets menu and a button to the oscillators, above a one-octave keyboard">
+  <img src="src/assets/screenshots/app-light-1280.webp" alt="The Vinskiano synth: a bar with a master volume knob, an oscilloscope, the presets menu and a button to the oscillators, above a scrolling 88-key keyboard and its minimap">
 </picture>
 
 ## What it does
 
 - **Three oscillators**, each with its own waveform (sine, square, triangle or sawtooth), pitch (up to two octaves up or down, in semitones) and volume. Layer them to build a tone. They're edited together on the Sound page, one row each, with the controls lined up in columns.
-- **A 13-key keyboard**, C4 to C5. Play it with a mouse, by touch, or from the keyboard: Tab to a key and hold Space or Enter.
+- **An 88-key keyboard**, A0 to C8, that scrolls sideways, with a minimap above it to see where you are and move along (or the octave buttons). Play it with a mouse, with as many fingers as you like, by sliding across the keys, or from the keyboard: Tab to the keys, move with the arrows, and hold Space or Enter.
 - **A master volume knob and an oscilloscope** that draws what you hear.
 - **Presets:** save the sound you made under a name, and load it back later. No sign-up: your first save gives this browser a guest account (a cookie that lasts a year). Clearing cookies or using another browser starts a fresh list.
 - **One screen, any device.** The controls fit in a single bar above the keyboard, down to a small phone held sideways. Held upright, a phone turns the synth sideways so the keyboard stays wide.

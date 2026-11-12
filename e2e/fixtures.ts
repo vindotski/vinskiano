@@ -106,6 +106,10 @@ export async function pageTransitionDone(page: Page) {
   await page.waitForFunction(() => !document.activeViewTransition)
 }
 
+/** A key of the keyboard by its note, e.g. "C4" or "A#3". */
+export const pianoKey = (page: Page, note: string) =>
+  page.getByRole('button', { name: note, exact: true })
+
 /** The sound pages' tab bar (Oscillators, and later Envelope). */
 export const soundTabs = (page: Page) => page.getByRole('navigation', { name: 'Sound' })
 
@@ -126,7 +130,7 @@ export async function openSound(page: Page) {
 export async function backToKeyboard(page: Page) {
   await pageTransitionDone(page)
   await page.getByRole('link', { name: 'Back to the keyboard' }).click()
-  await expect(page.locator('.piano-key')).toHaveCount(13)
+  await expect(page.locator('.piano-key')).toHaveCount(88)
   await pageTransitionDone(page)
 }
 

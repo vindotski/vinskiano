@@ -7,13 +7,14 @@ import {
   openSound,
   oscillatorRow,
   pageTransitionDone,
+  pianoKey,
   resetAudioLog,
   test,
 } from './fixtures'
 
 test('a key plays all three oscillators at its pitch and stops on release', async ({ page }) => {
   await openApp(page)
-  const a4 = page.locator('.piano-key').nth(9)
+  const a4 = pianoKey(page, 'A4')
 
   await a4.hover()
   await page.mouse.down()
@@ -31,7 +32,7 @@ test('a key plays all three oscillators at its pitch and stops on release', asyn
 
 test('Space and Enter play a focused key', async ({ page }) => {
   await openApp(page)
-  await page.locator('.piano-key').first().focus()
+  await pianoKey(page, 'C4').focus()
 
   await page.keyboard.down(' ')
   expect((await audioLog(page)).started).toHaveLength(3)
@@ -45,7 +46,7 @@ test('Space and Enter play a focused key', async ({ page }) => {
 
 test('dragging off a held key releases the note', async ({ page }) => {
   await openApp(page)
-  const key = page.locator('.piano-key--white').nth(2)
+  const key = pianoKey(page, 'E4')
   const box = await key.boundingBox()
   if (!box) throw new Error('key not visible')
 
@@ -70,7 +71,7 @@ test('waveform and pitch changes reach the audio graph', async ({ page }) => {
   await backToKeyboard(page)
 
   await resetAudioLog(page)
-  await page.locator('.piano-key').first().hover()
+  await pianoKey(page, 'C4').hover()
   await page.mouse.down()
   const { started } = await audioLog(page)
   await page.mouse.up()
@@ -91,7 +92,7 @@ test('master volume can be set to any value (no float truncation)', async ({ pag
 
 test('the oscilloscope draws while playing and stops when you leave the app', async ({ page }) => {
   await openApp(page)
-  await page.locator('.piano-key').nth(9).hover()
+  await pianoKey(page, 'A4').hover()
   await page.mouse.down()
 
   // Count the canvas rows the line covers: pixels that differ from the background (read from
@@ -132,7 +133,7 @@ test('pressing at the very edge of a key keeps the note playing while held', asy
   // a press near the bottom edge would end up outside it and release the note at once.
   await openApp(page)
   await page.waitForTimeout(500) // let Motion's lazily loaded features arrive
-  const key = page.locator('.piano-key--white').nth(1)
+  const key = pianoKey(page, 'D4')
   const box = await key.boundingBox()
   if (!box) throw new Error('key not visible')
 
@@ -162,7 +163,7 @@ test('the waveform choices work with the keyboard, and the keyboard plays the re
   await backToKeyboard(page)
 
   await resetAudioLog(page)
-  await page.locator('.piano-key').first().hover()
+  await pianoKey(page, 'C4').hover()
   await page.mouse.down()
   expect((await audioLog(page)).started.map((s) => s.type)).toEqual(['sine', 'sine', 'triangle'])
   await page.mouse.up()

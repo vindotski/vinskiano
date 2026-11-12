@@ -1,12 +1,14 @@
 import * as m from 'motion/react-m'
 import type { KeyboardEvent } from 'react'
 import { cn } from '@/lib/utils'
-import type { Note } from '../music'
+import { isWhite, MIDDLE_C, type Note } from '../music'
 
 interface PianoKeyProps {
   note: Note
   /** Held: by a finger, the mouse, or Space/Enter. */
   active: boolean
+  /** The keyboard's one tab stop (0), or reached with arrow keys from there (-1). */
+  tabIndex: 0 | -1
   /** Space or Enter went down (or up) on the focused key. */
   onPlayKey: (note: Note, down: boolean) => void
 }
@@ -16,13 +18,11 @@ const PLAY_KEYS = [' ', 'Enter']
 /** A pressed key dips a little (shortened from the top, like a real key tilting down). */
 const PRESS = { type: 'spring', stiffness: 900, damping: 32 } as const
 
-const isWhite = (note: Note) => !note.name.includes('{')
-
 /**
  * One key. Presentational: the keyboard (`Piano`) handles pointers for all keys at once, so a
  * finger can slide from key to key; this only reports Space/Enter while the key has focus.
  */
-const PianoKey = ({ note, active, onPlayKey }: PianoKeyProps) => {
+const PianoKey = ({ note, active, tabIndex, onPlayKey }: PianoKeyProps) => {
   const white = isWhite(note)
   const play = (down: boolean) => (event: KeyboardEvent) => {
     if (!PLAY_KEYS.includes(event.key)) return
@@ -34,12 +34,16 @@ const PianoKey = ({ note, active, onPlayKey }: PianoKeyProps) => {
       type="button"
       aria-label={note.toString()}
       data-note={note.toString()}
+      tabIndex={tabIndex}
       // piano-key* classes are hooks for tests; the rest is layout (hit area) and focus ring.
       className={cn(
-        'piano-key group/key relative isolate flex h-full flex-1 outline-none focus-visible:z-20 focus-visible:ring-3 focus-visible:ring-ring/50',
+        'piano-key group/key relative isolate flex h-full shrink-0 outline-none focus-visible:z-20 focus-visible:ring-3 focus-visible:ring-ring/50',
+        // Fixed, finger-sized widths: the keyboard scrolls rather than squeezing 88 keys in.
+        // Black keys sit over the line between two white ones (negative margins of half their
+        // width), so they take no room of their own.
         white
-          ? 'piano-key--white min-w-[12.5%] rounded-b-xl'
-          : 'piano-key--black -right-[4%] z-10 -ml-[8%] h-[65%] min-w-[8%] rounded-b-lg',
+          ? 'piano-key--white w-12 rounded-b-xl md:w-14 xl:w-16'
+          : 'piano-key--black z-10 -mx-3.5 h-[65%] w-7 rounded-b-lg md:-mx-4 md:w-8 xl:-mx-5 xl:w-10',
         active && 'piano-key--active',
       )}
       onKeyDown={play(true)}
@@ -50,7 +54,7 @@ const PianoKey = ({ note, active, onPlayKey }: PianoKeyProps) => {
       <m.span
         aria-hidden="true"
         className={cn(
-          'absolute inset-0 -z-10 flex items-end justify-center pb-4 text-sm font-medium',
+          'absolute inset-0 -z-10 flex flex-col items-center justify-end gap-1 pb-4 text-sm font-medium short:pb-2',
           white
             ? 'rounded-b-xl border border-t-0 border-r-0 border-key-black/20 bg-key-white text-key-white-foreground group-last/key:border-r'
             : 'rounded-b-lg bg-key-black text-key-black-foreground shadow-md',
@@ -61,7 +65,11 @@ const PianoKey = ({ note, active, onPlayKey }: PianoKeyProps) => {
         transition={PRESS}
         style={{ originY: 0 }}
       >
-        {note.toString().replace(/\d+/g, '')}
+        {note.equals(MIDDLE_C) ? (
+          <span data-middle-c className="size-1.5 rounded-full bg-current opacity-60" />
+        ) : null}
+        {/* Like a DAW's piano roll: only the Cs are labelled, with their octave. */}
+        {note.name === 'C' ? note.toString() : null}
       </m.span>
     </button>
   )

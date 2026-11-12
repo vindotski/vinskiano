@@ -1,6 +1,6 @@
 # Vinskiano
 
-A browser-based subtractive synthesizer built on the Web Audio API. Today it has a 13-key keyboard (C4–C5), three oscillators (waveform, pitch, volume), a master gain and an oscilloscope. A TanStack Start app: pages are server-rendered by a Node server (Nitro), then hydrate; all sound happens in the browser. Visitors can save presets, which the server keeps in Postgres under a guest account (no sign-up).
+A browser-based subtractive synthesizer built on the Web Audio API. Today it has an 88-key keyboard (A0–C8) that scrolls, with a minimap, three oscillators (waveform, pitch, volume), a master gain and an oscilloscope. A TanStack Start app: pages are server-rendered by a Node server (Nitro), then hydrate; all sound happens in the browser. Visitors can save presets, which the server keeps in Postgres under a guest account (no sign-up).
 
 The project is being modernized step by step; see [MODERN_TOOLING.md](MODERN_TOOLING.md) for the playbook. This file describes the **current** state. Update it whenever the stack or a convention changes.
 
@@ -34,9 +34,9 @@ Before editing files for a substantial task:
 
 ```
 src/
-  music/       Pure music theory: Note, Octave, Frequency, Scale, ScaleBuilder, ScaleStrategy, KEYBOARD_NOTES
+  music/       Pure music theory: Note, Octave, Frequency, Scale, ScaleBuilder, ScaleStrategy, KEYBOARD_NOTES (88, A0–C8), WHITE_NOTES, MIDDLE_C
   audio/       Web Audio: Engine (context + oscillators + oscilloscope), Context (master gain → limiter → speakers), Oscillator (a gain per note, for click-free fades), Oscilloscope
-  components/  React UI: AppBar (left: master knob + oscilloscope; right: an `end` slot with the presets dropdown and the Sound/keyboard link), OscillatorRow (one row of the oscillator rack), PresetsMenu, Piano, PianoKey, knobs/, toolbars/, site/ (header, footer)
+  components/  React UI: AppBar (left: master knob + oscilloscope; right: an `end` slot with the presets dropdown and the Sound/keyboard link), OscillatorRow (one row of the oscillator rack), PresetsMenu, Piano, PianoKey, KeyboardMinimap, knobs/, toolbars/, site/ (header, footer)
   routes/      File-based routes, two sections:
                  __root      HTML document (shellComponent + head()), 404 (NotFound brings the site chrome)
                  _site.tsx   pathless site layout (header, scrolling page, footer); _site/index.tsx = /
@@ -45,7 +45,7 @@ src/
                  app/_sound.tsx  pathless layout of the sound pages: a tab bar (nav "Sound") over the page, no keyboard
                  app/_sound/oscillators.tsx = /app/oscillators: the oscillator rack (all three)
                  oscillators.tsx  301 redirect from the old /oscillators URL to /app/oscillators
-  pages/       Presentational pages the routes render: Home (site), PianoRoll (keyboard), Oscillators (the rack), NotFound
+  pages/       Presentational pages the routes render: Home (site), PianoRoll (minimap + scrolling keyboard), Oscillators (the rack), NotFound
   synth/       SynthProvider: owns the synth settings (state) and the audio Engine (created after mount); useSynth() for routes
                preset.ts (checks a preset's settings and name; shared by browser and server),
                presets.functions.ts (the server functions), usePresets (the browser side),
@@ -222,6 +222,10 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - **The keyboard opts out of browser gestures** (`touch-none`, `select-none`, no callout or tap highlight) and `preventDefault`s pointer-down (no focus ring from the mouse, no emulated mouse events). Keep new playing surfaces the same.
 - **Never a stuck note:** everything is let go on window `blur`, hidden `visibilitychange`, `pagehide` and when the keyboard unmounts.
 - **Clicks and clipping are handled in `audio/`:** each note fades in and out over a few milliseconds on its own gain, and a limiter sits after the master gain. The oscilloscope reads after the limiter.
+- **88 keys that scroll** (`PianoRoll`): keys have fixed widths, so the keyboard scrolls sideways (hidden scrollbar; a mouse wheel scrolls it sideways). Touching keys plays, so on touch screens the view moves only through the minimap (`KeyboardMinimap`, a `role="slider"` measured in white keys) and the octave buttons. The view opens with middle C a third in, set before paint; `SynthProvider.keyboardPosition` (a ref) brings it back after the Sound pages. Only C keys are labelled; middle C has a dot.
+- **One tab stop for the keyboard** (roving tabindex: middle C, or the last key moved to); arrows, Home and End move along the keys.
+- **Black keys keep piano proportions** (at least 28 × 44 px): the 44 px check in `e2e/targets.ts` allows that for `.piano-key--black` only.
+- **Tests find keys by note** (`pianoKey(page, 'C4')` in `e2e/fixtures.ts`), never by position: there are 88 and most are scrolled out of view.
 - **Tests:** several fingers at once go through CDP `Input.dispatchTouchEvent` (Chromium only; `e2e/mobile.spec.ts`), where `touchEnd` lifts the fingers it lists.
 
 ## Tests

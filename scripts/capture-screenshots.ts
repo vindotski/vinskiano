@@ -24,7 +24,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
   await page.waitForTimeout(800) // fonts and Motion's lazy features
 
   // Hold a note so the key lights up and the oscilloscope shows a waveform.
-  await page.locator('.piano-key').nth(4).hover()
+  await page.getByRole('button', { name: 'E4', exact: true }).hover()
   await page.mouse.down()
   await page.waitForTimeout(400)
   const png = await page.screenshot({ type: 'png' })

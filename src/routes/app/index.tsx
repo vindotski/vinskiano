@@ -7,6 +7,16 @@ export const Route = createFileRoute('/app/')({
 })
 
 function PianoRollRoute() {
-  const { scale, trigger, release } = useSynth()
-  return <PianoRoll notes={scale} onTrigger={trigger} onRelease={release} />
+  const { scale, trigger, release, keyboardPosition } = useSynth()
+  return (
+    <PianoRoll
+      notes={scale}
+      onTrigger={trigger}
+      onRelease={release}
+      position={keyboardPosition.current}
+      onPositionChange={(start) => {
+        keyboardPosition.current = start
+      }}
+    />
+  )
 }

@@ -15,6 +15,7 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 
 ### Changed
 
+- The keyboard has a piano's 88 keys, from A0 to C8, and scrolls sideways. A minimap above it shows the whole range, where you are and the notes you're holding; tap or drag it (or use the octave buttons) to move. Only the C keys are labelled, with their octave, and middle C has a dot. By keyboard, Tab reaches the keys once and the arrows move along them
 - Playing feels like an instrument: every finger plays its own note (as many as you put down), sliding a finger or the mouse across the keys plays each one in turn, and two fingers on one key keep it sounding until both lift. The browser no longer scrolls, zooms or selects text on the keys, and on Android a touch gives a short haptic tick
 - Notes fade in and out over a few milliseconds, so they no longer click, and a limiter on the output keeps many notes at once from distorting
 - A held note always stops: when the finger lifts or leaves the keyboard, the browser cancels the touch, the window loses focus or is hidden, or you leave the page

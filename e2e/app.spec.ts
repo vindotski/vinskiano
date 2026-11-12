@@ -10,26 +10,7 @@ test('the bar holds the whole sound; the keyboard fills the rest', async ({ page
     page.getByRole('region', { name: 'Master' }).getByRole('slider', { name: 'Master volume' }),
   ).toHaveAttribute('aria-valuetext', '50%')
   await expect(page.getByRole('img', { name: /oscilloscope/i })).toBeVisible()
-  await expect(page.locator('.piano-key')).toHaveCount(13)
-})
-
-test('renders the 13-key piano from C4 to C5', async ({ page }) => {
-  await openApp(page)
-  await expect(page.locator('.piano-key')).toHaveText([
-    'C',
-    'C#',
-    'D',
-    'D#',
-    'E',
-    'F',
-    'F#',
-    'G',
-    'G#',
-    'A',
-    'A#',
-    'B',
-    'C',
-  ])
+  await expect(page.locator('.piano-key')).toHaveCount(88)
 })
 
 test('moves between the site and the app, and shows a 404 for unknown routes', async ({
@@ -41,7 +22,7 @@ test('moves between the site and the app, and shows a 404 for unknown routes', a
   await page.getByRole('link', { name: 'Vinskiano home' }).click()
   await expect(page).toHaveURL('/')
   await page.getByRole('main').getByRole('link', { name: 'Open the synth' }).first().click()
-  await expect(page.locator('.piano-key')).toHaveCount(13)
+  await expect(page.locator('.piano-key')).toHaveCount(88)
   await pageTransitionDone(page)
 
   const response = await page.goto('/does-not-exist')

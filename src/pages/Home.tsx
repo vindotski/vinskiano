@@ -33,7 +33,7 @@ const STEPS: Step[] = [
     icon: KeyboardMusic,
     title: 'Play the keyboard',
     description:
-      'Thirteen keys, from C4 to the C above. Click, tap, or use your keyboard: Tab to a key and hold Space.',
+      'All 88 keys of a piano, from A0 to C8: the minimap above them shows where you are and moves you along. Click, tap with as many fingers as you like, slide across the keys, or Tab to a key and hold Space.',
   },
   {
     icon: AudioWaveform,
@@ -79,7 +79,7 @@ const Home = () => (
           sizes={SIZES}
           // The largest thing on the page: fetch it first.
           fetchPriority="high"
-          alt="The Vinskiano synth: a bar with a master volume knob, an oscilloscope, the presets menu and a button to the oscillators, above a one-octave keyboard with the E key pressed"
+          alt="The Vinskiano synth: a bar with a master volume knob, an oscilloscope, the presets menu and a button to the oscillators, above a scrolling 88-key keyboard and its minimap with the E key pressed"
           width={2560}
           height={1440}
           className="w-full rounded-2xl border shadow-xl"
