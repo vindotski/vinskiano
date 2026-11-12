@@ -1,14 +1,19 @@
 name: Deploy
 
-# Deploys a published image tag to the server described in docs/deploy.md.
-# Manual on purpose: pick the tag (a release like 1.0.0, or sha-abc1234 to roll back), and
-# optionally require approval on the `production` environment.
+# RETIRED: deploys a published image tag to the single server described in
+# docs/deploy-single-server.md. That server has no database, so it can't run images with guest
+# accounts; Vinskiano deploys on Spotcraft now (docs/deploy.md). Kept until the first Spotcraft
+# deploy has worked, then removed with deploy/.
+#
+# It has no manual trigger any more, so nobody starts a deploy that can't work. workflow_call
+# keeps the file valid without a trigger anyone uses (no workflow calls it).
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       tag:
         description: Image tag of vindotski/vinskiano to deploy (e.g. 1.0.0 or sha-abc1234)
         required: true
+        type: string
 
 permissions:
   contents: read
