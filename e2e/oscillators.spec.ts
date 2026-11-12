@@ -115,6 +115,22 @@ test('the bar links to the shown oscillator’s page, which edits it without a k
   await pageTransitionDone(page)
 })
 
+test('a note held on the keyboard stops when you open an oscillator’s page', async ({ page }) => {
+  await openApp(page)
+  // Hold a key with Space, then follow the bar's link with the mouse: the key goes away while
+  // it's held, so its own key-up never comes.
+  await page.locator('.piano-key').first().focus()
+  await resetAudioLog(page)
+  await page.keyboard.down(' ')
+  await expect.poll(async () => (await audioLog(page)).started.length).toBe(3)
+  await page.getByRole('link', { name: 'Oscillator 1 in detail' }).click()
+  await expect(page).toHaveURL(/\/app\/oscillators\/1$/)
+  await expect(page.locator('.piano-key')).toHaveCount(0)
+  await expect.poll(async () => (await audioLog(page)).stopped).toBe(3)
+  await page.keyboard.up(' ')
+  await pageTransitionDone(page)
+})
+
 test('on an oscillator’s page, the select goes to another one', async ({ page }) => {
   await page.goto('/app/oscillators/1')
   await page.waitForFunction(() => window.__audio.analysers > 0)

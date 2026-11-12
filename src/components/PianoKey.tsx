@@ -28,6 +28,14 @@ class PianoKey extends React.Component<PianoKeyProps, PianoKeyState> {
     active: false,
   }
 
+  // Leaving the keyboard while a key is held (Space down, then a link) unmounts it before its
+  // key-up or pointer-up arrives; the synth outlives the keyboard, so release the note here.
+  override componentWillUnmount() {
+    if (this.state.active) {
+      this.props.onRelease(this.props.note)
+    }
+  }
+
   override render() {
     return (
       <button
