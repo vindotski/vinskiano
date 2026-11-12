@@ -1,4 +1,3 @@
-import { GuestLimitError } from '@spotcraft/kit'
 import {
   appendResponseHeader,
   getRequest,
@@ -7,7 +6,7 @@ import {
   setResponseHeader,
 } from '@tanstack/react-start/server'
 import { backend } from './backend.server'
-import { clientAddress } from './client-address'
+import { clientAddress, guestLimitWait } from './client-address'
 import { PublicError } from './public-error'
 
 /*
@@ -38,8 +37,9 @@ export async function guestId(): Promise<string> {
     sendCookies(headers)
     return guest.id
   } catch (error) {
-    if (error instanceof GuestLimitError) {
-      setResponseHeader('retry-after', String(error.retryAfterSeconds))
+    const wait = guestLimitWait(error)
+    if (wait !== null) {
+      setResponseHeader('retry-after', String(wait))
       throw new PublicError(
         'Too many new visitors from your network; try again in a few minutes',
         429,

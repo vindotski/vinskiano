@@ -36,3 +36,15 @@ export function network(address: string): string {
   const prefix = groups.slice(0, 4).map((group) => Number.parseInt(group, 16).toString(16))
   return `${prefix.join(':')}::/64`
 }
+
+/**
+ * The seconds to wait if this is the kit's guest limit (its `GuestLimitError`), else null.
+ * Checked by shape, not `instanceof`: the server is bundled more than once (the app by Vite, the
+ * startup plugin by Nitro), and an error from another bundle's copy of the kit would fail an
+ * `instanceof` against this one's, turning the 429 into a 500.
+ */
+export function guestLimitWait(error: unknown): number | null {
+  if (!(error instanceof Error) || !('status' in error) || error.status !== 429) return null
+  const wait = 'retryAfterSeconds' in error ? error.retryAfterSeconds : undefined
+  return typeof wait === 'number' && Number.isFinite(wait) ? wait : null
+}

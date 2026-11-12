@@ -1,5 +1,6 @@
+import { GuestLimitError } from '@spotcraft/kit'
 import { describe, expect, test } from 'vitest'
-import { clientAddress, network } from './client-address'
+import { clientAddress, guestLimitWait, network } from './client-address'
 
 test('trusts the address the proxy added (the last one)', () => {
   expect(clientAddress('203.0.113.7', '172.18.0.2')).toBe('203.0.113.7')
@@ -43,5 +44,25 @@ describe('network', () => {
     for (const odd of ['unknown', '1::2::3', 'zz::1', '1:2:3:4:5:6:7:8:9', '1:2:3', '12345::1']) {
       expect(network(odd)).toBe(odd)
     }
+  })
+})
+
+describe('guestLimitWait', () => {
+  test("reads the kit's guest limit", () => {
+    expect(guestLimitWait(new GuestLimitError(120))).toBe(120)
+  })
+
+  test('recognises it from another copy of the kit (a separate bundle)', () => {
+    class GuestLimitError extends Error {
+      status = 429
+      retryAfterSeconds = 60
+    }
+    expect(guestLimitWait(new GuestLimitError())).toBe(60)
+  })
+
+  test('ignores every other error', () => {
+    expect(guestLimitWait(new Error('connect ECONNREFUSED'))).toBeNull()
+    expect(guestLimitWait(Object.assign(new Error('x'), { status: 409 }))).toBeNull()
+    expect(guestLimitWait({ status: 429, retryAfterSeconds: 5 })).toBeNull() // not an Error
   })
 })
