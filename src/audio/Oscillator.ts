@@ -67,6 +67,9 @@ class Oscillator {
     this.node.gain.value = this.volume
     // Each note has its own gain, so it can fade in and out without touching the others.
     const note = this.context.createGain()
+    // Silent until it starts: anything that ever falls back to the gain's own value (rather
+    // than its scheduled fades) falls back to silence, not to full volume.
+    note.gain.value = 0
     signal.connect(note)
     note.connect(this.node)
 
@@ -84,7 +87,9 @@ class Oscillator {
         if (stopped) return
         stopped = true
         const now = this.context.currentTime
-        note.gain.cancelScheduledValues(now)
+        // No cancelScheduledValues first: if the note started in this same instant, that would
+        // cancel its fade-in too and the gain would jump. A new target simply takes over from
+        // wherever the gain is.
         note.gain.setTargetAtTime(0, now, FADE_OUT)
         signal.onended = () => {
           signal.disconnect()
