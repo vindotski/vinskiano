@@ -169,11 +169,12 @@ pnpm fix        # Biome: apply formatting and safe fixes
 ## CI
 
 - `.github/workflows/ci.yml` runs on pushes to `dev`/`main` and on PRs, in three kinds of jobs:
-  - lint (`biome ci`), typecheck, unit tests and build;
+  - lint (`biome ci`), typecheck and build (before Postgres starts), then unit tests. This is the run's only app build: `.output/` goes up as an artifact;
   - every job that runs tests first starts the local Spotcraft Postgres (`spotcraft dev start`, `dev env --write`), like a laptop;
-  - the browser tests, one job per engine (Chromium with the Pixel projects, Firefox, WebKit with the iPhone projects);
-  - the production Docker image: browser tests against it, then a Trivy scan that fails on fixable HIGH/CRITICAL vulnerabilities;
-  - on `main` and `v*` tags only, after all of the above: publishing the image (see Releases).
+  - the browser tests, one job per engine (Chromium with the Pixel projects, Firefox, WebKit with the iPhone projects), on check's build (`E2E_PREBUILT=1`: `pnpm start` without `pnpm build`). Browsers are cached per Playwright version. Failed tests are retried once, so a flaky one is reported, not failing the run; on failure the HTML report and traces are uploaded;
+  - the production Docker image (built amd64 with the layer cache publish shares, production stage always fresh): browser tests against it, then a Trivy scan that fails on fixable HIGH/CRITICAL vulnerabilities;
+  - on `main` and `v*` tags only, after all of the above: publishing the image (see Releases). It pushes by digest, scans both platforms with Trivy, and only then tags (`latest` on `main`).
+- Only PRs and `dev` cancel a run still going; `main` and tags never do, so a quick second merge can't stop a publish.
 - Actions are pinned to commit SHAs with the version in a comment; the Trivy and actionlint images are pinned by digest. Permissions are `contents: read`, and checkout uses `persist-credentials: false`. Run `pnpm lint:actions` after editing a workflow.
 - When pinning a new version (action, image, package), pick one at least about a week old, like Dependabot's cooldown and pnpm's `minimumReleaseAge`.
 - Dependabot (`.github/dependabot.yml`) opens weekly PRs against `dev` for npm, GitHub Actions, the Docker base image and the deploy kit's Caddy image, with a 7-day cooldown.
