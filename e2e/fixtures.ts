@@ -106,23 +106,43 @@ export async function pageTransitionDone(page: Page) {
   await page.waitForFunction(() => !document.activeViewTransition)
 }
 
-/**
- * Make the app bar show an oscillator's controls (it shows one at a time), with its select, as a
- * person would. Does nothing if that oscillator is already shown.
- */
-export async function showOscillator(page: Page, oscillator: number) {
-  const strip = page.getByRole('group', { name: `Oscillator ${oscillator}`, exact: true })
-  if (await strip.isVisible()) return
-  await page.getByRole('button', { name: /Shown oscillator/ }).click()
-  await page.getByRole('option', { name: `Oscillator ${oscillator}` }).click()
-  await expect(strip).toBeVisible()
+/** The sound pages' tab bar (Oscillators, and later Envelope). */
+export const soundTabs = (page: Page) => page.getByRole('navigation', { name: 'Sound' })
+
+/** An oscillator's row on the Oscillators page. */
+export const oscillatorRow = (page: Page, oscillator: number) =>
+  page.getByRole('group', { name: `Oscillator ${oscillator}`, exact: true })
+
+/** Open the sound pages (the oscillators) with the bar's Sound button, as a person would. */
+export async function openSound(page: Page) {
+  if (await soundTabs(page).isVisible()) return
+  await pageTransitionDone(page)
+  await page.getByRole('link', { name: 'Sound', exact: true }).click()
+  await expect(soundTabs(page)).toBeVisible()
+  await pageTransitionDone(page)
 }
 
-/** Pick a waveform from an oscillator's waveform dropdown. */
+/** From a sound page, back to the keyboard. */
+export async function backToKeyboard(page: Page) {
+  await pageTransitionDone(page)
+  await page.getByRole('link', { name: 'Back to the keyboard' }).click()
+  await expect(page.locator('.piano-key')).toHaveCount(13)
+  await pageTransitionDone(page)
+}
+
+/** Pick an oscillator's waveform on the Oscillators page, then go back to the keyboard. */
 export async function chooseWaveform(page: Page, oscillator: number, waveform: string) {
-  await showOscillator(page, oscillator)
-  await page.getByRole('button', { name: `Oscillator ${oscillator} waveform` }).click()
-  await page.getByRole('option', { name: waveform }).click()
+  await openSound(page)
+  await pickWaveform(page, oscillator, waveform)
+  await backToKeyboard(page)
+}
+
+/** On the Oscillators page, pick an oscillator's waveform (its icon button). */
+export async function pickWaveform(page: Page, oscillator: number, waveform: string) {
+  const radio = oscillatorRow(page, oscillator).getByRole('radio', { name: waveform })
+  // The radio input itself is visually hidden; people click (or tap) its icon, the label.
+  await radio.locator('xpath=ancestor::label').click()
+  await expect(radio).toBeChecked()
 }
 
 export { expect }

@@ -79,7 +79,7 @@ const Home = () => (
           sizes={SIZES}
           // The largest thing on the page: fetch it first.
           fetchPriority="high"
-          alt="The Vinskiano synth: a bar with an oscillator select, that oscillator's volume, waveform and pitch controls, a master volume knob and an oscilloscope, above a one-octave keyboard with the E key pressed"
+          alt="The Vinskiano synth: a bar with a master volume knob, an oscilloscope, the presets menu and a button to the oscillators, above a one-octave keyboard with the E key pressed"
           width={2560}
           height={1440}
           className="w-full rounded-2xl border shadow-xl"

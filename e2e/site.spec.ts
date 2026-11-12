@@ -41,8 +41,8 @@ test('old /oscillators links redirect into the app', async ({ page, request }) =
   const response = await request.get('/oscillators', { maxRedirects: 0 })
   expect(response.status()).toBe(301)
   await page.goto('/oscillators')
-  // The old oscillators page is now oscillator 1's own page.
-  await expect(page).toHaveURL('/app/oscillators/1')
+  // The old oscillators page is now the app's Oscillators page.
+  await expect(page).toHaveURL('/app/oscillators')
 })
 
 test('the home page has a hero, a screenshot and three steps', async ({ page }) => {

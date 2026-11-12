@@ -1,11 +1,13 @@
 import {
   audioLog,
+  backToKeyboard,
   chooseWaveform,
   expect,
   openApp,
+  openSound,
+  oscillatorRow,
   pageTransitionDone,
   resetAudioLog,
-  showOscillator,
   test,
 } from './fixtures'
 
@@ -60,14 +62,12 @@ test('waveform and pitch changes reach the audio graph', async ({ page }) => {
   await openApp(page)
 
   await chooseWaveform(page, 1, 'Square')
-  await expect(page.getByRole('button', { name: 'Oscillator 1 waveform' })).toHaveAccessibleName(
-    /^Square/,
-  )
-  await showOscillator(page, 2)
+  await openSound(page)
   const pitch2 = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
   await pitch2.focus()
   await page.keyboard.press('End')
   await expect(pitch2).toHaveValue('24')
+  await backToKeyboard(page)
 
   await resetAudioLog(page)
   await page.locator('.piano-key').first().hover()
@@ -148,19 +148,18 @@ test('pressing at the very edge of a key keeps the note playing while held', asy
   expect((await audioLog(page)).stopped).toBe(3)
 })
 
-test('the waveform dropdown works with the keyboard', async ({ page }) => {
+test('the waveform choices work with the keyboard, and the keyboard plays the result', async ({
+  page,
+}) => {
   await openApp(page)
-  await showOscillator(page, 3)
-  const trigger = page.getByRole('button', { name: 'Oscillator 3 waveform' })
-  await trigger.focus()
-  await page.keyboard.press('Enter') // open
-  await expect(page.getByRole('listbox')).toBeVisible()
-  await page.keyboard.press('ArrowDown')
-  await page.keyboard.press('ArrowDown')
-  await page.keyboard.press('Enter') // Sine → Square → Triangle
-  await expect(page.getByRole('listbox')).toBeHidden()
-  await expect(trigger).toHaveAccessibleName(/^Triangle/)
-  await expect(trigger).toBeFocused()
+  await openSound(page)
+  const row = oscillatorRow(page, 3)
+  await row.getByRole('radio', { name: 'Sine' }).focus()
+  await page.keyboard.press('ArrowRight')
+  await page.keyboard.press('ArrowRight') // Sine → Square → Triangle
+  await expect(row.getByRole('radio', { name: 'Triangle' })).toBeChecked()
+  await expect(row.getByRole('radio', { name: 'Triangle' })).toBeFocused()
+  await backToKeyboard(page)
 
   await resetAudioLog(page)
   await page.locator('.piano-key').first().hover()

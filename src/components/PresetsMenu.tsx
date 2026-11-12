@@ -1,4 +1,4 @@
-import { BookmarkIcon, Trash2Icon } from 'lucide-react'
+import { CheckIcon, ChevronDownIcon, Trash2Icon } from 'lucide-react'
 import { type FormEvent, useRef, useState } from 'react'
 import {
   Dialog,
@@ -16,6 +16,10 @@ import { PRESET_NAME_MAX, type Preset } from '@/synth/preset'
 interface PresetsMenuProps {
   /** null until loaded. */
   presets: Preset[] | null
+  /** The name of the preset the sound was loaded from or saved as; null for a new sound. */
+  current: string | null
+  /** The sound has changed since that preset was loaded or saved. */
+  edited: boolean
   pending: boolean
   /** The outcome of the last action (errors included), announced to screen readers. */
   message: string | null
@@ -32,11 +36,15 @@ interface PresetsMenuProps {
 const WIDTH = 288
 
 /**
- * Saved sounds in one compact button: opens a popover to save the current sound under a name
- * and to load or delete saved ones. Presentational: the list and the actions come from props.
+ * Saved sounds in one dropdown that names the current one ("New sound" before any), with a dot
+ * once it's been changed. It opens a popover to save the sound under a name (offering the
+ * current one, so saving updates it) and to load or delete saved ones. Long names are cut off
+ * with an ellipsis; hovering shows them whole. Presentational: everything comes from props.
  */
 const PresetsMenu = ({
   presets,
+  current,
+  edited,
   pending,
   message,
   onOpen,
@@ -45,6 +53,7 @@ const PresetsMenu = ({
   onDelete,
 }: PresetsMenuProps) => {
   const [name, setName] = useState('')
+  const shown = current ?? 'New sound'
   const input = useRef<HTMLInputElement>(null)
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -60,14 +69,26 @@ const PresetsMenu = ({
   }
 
   return (
-    <DialogTrigger onOpenChange={(open) => open && onOpen()}>
+    <DialogTrigger
+      onOpenChange={(open) => {
+        if (!open) return
+        setName(current ?? '')
+        onOpen()
+      }}
+    >
       <Button
         variant="ghost"
-        size="icon-sm"
-        aria-label="Presets"
-        className="size-7 md:size-8 xl:size-9"
+        size="sm"
+        aria-label={`Presets: ${shown}${edited ? ', edited' : ''}`}
+        className="gap-1 bg-input/50 pr-2 pl-3 hover:bg-input/80"
       >
-        <BookmarkIcon className="size-5 text-primary" />
+        <span title={shown} className="max-w-24 truncate md:max-w-40 xl:max-w-56">
+          {shown}
+        </span>
+        {edited ? (
+          <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-primary" />
+        ) : null}
+        <ChevronDownIcon className="size-4 text-muted-foreground" />
       </Button>
       <SelectPopover placement="bottom end" rotatedWidth={WIDTH + 8} className="w-72 bg-popover/90">
         <Dialog
@@ -90,7 +111,7 @@ const PresetsMenu = ({
               <Input
                 ref={input}
                 placeholder="Name"
-                className="h-8 rounded-3xl border border-transparent bg-input/50 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+                className="h-11 rounded-3xl border border-transparent bg-input/50 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
               />
             </TextField>
             <Button type="submit" size="sm" isPending={pending}>
@@ -110,10 +131,14 @@ const PresetsMenu = ({
                     variant="ghost"
                     size="sm"
                     aria-label={`Load ${preset.name}`}
+                    aria-current={preset.name === current}
                     onPress={() => onLoad(preset)}
                     className="min-w-0 flex-1 justify-start"
                   >
                     <span className="truncate">{preset.name}</span>
+                    {preset.name === current ? (
+                      <CheckIcon aria-hidden="true" className="ml-auto text-primary" />
+                    ) : null}
                   </Button>
                   <Button
                     variant="ghost"

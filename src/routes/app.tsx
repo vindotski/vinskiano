@@ -1,11 +1,4 @@
-import {
-  createFileRoute,
-  Link,
-  Outlet,
-  useNavigate,
-  useParams,
-  useSearch,
-} from '@tanstack/react-router'
+import { createFileRoute, Link, Outlet, useMatch } from '@tanstack/react-router'
 import { PianoIcon, SlidersHorizontalIcon } from 'lucide-react'
 import { LazyMotion, MotionConfig } from 'motion/react'
 import { useRef } from 'react'
@@ -14,7 +7,7 @@ import AppBar from '../components/AppBar'
 import Logo from '../components/icons/Logo'
 import PresetsMenu from '../components/PresetsMenu'
 import { buttonVariants } from '../components/ui/button-variants'
-import { type OscillatorId, toOscillatorId } from '../synth/oscillators'
+import { sameSettings } from '../synth/preset'
 import { SynthProvider, useSynth } from '../synth/SynthProvider'
 import { usePresets } from '../synth/usePresets'
 
@@ -58,90 +51,61 @@ function AppLayout() {
   )
 }
 
-/** The app bar, wired to the synth, the visitor's presets and the URL (which oscillator it shows). */
+/**
+ * The app bar, wired to the synth and the visitor's presets. The same on every page; its last
+ * button switches between the keyboard and the sound pages (the oscillators, the envelope).
+ */
 function SynthBar() {
   const synth = useSynth()
   const presets = usePresets()
-  const navigate = useNavigate()
-  // On an oscillator's own page (/app/oscillators/2) the bar is about that one; on the keyboard,
-  // `?osc=2` says which it shows.
-  const detail = toOscillatorId(useParams({ strict: false }).id)
-  const search = toOscillatorId(useSearch({ strict: false }).osc)
-  const shown = detail ?? search ?? 1
-  // Switching only changes the bar (or which oscillator the page shows): no crossfade, and no
-  // history entry per switch.
-  const show = (osc: OscillatorId) =>
-    detail
-      ? navigate({
-          to: '/app/oscillators/$id',
-          params: { id: String(osc) },
-          replace: true,
-          viewTransition: false,
-        })
-      : navigate({
-          to: '/app',
-          search: osc === 1 ? {} : { osc },
-          replace: true,
-          resetScroll: false,
-          viewTransition: false,
-        })
-  const linkStyle = buttonVariants({
-    variant: 'ghost',
-    size: 'icon-sm',
-    className: 'size-7 md:size-8',
-  })
+  const onSoundPage = useMatch({ from: '/app/_sound', shouldThrow: false }) !== undefined
+  const linkStyle = buttonVariants({ variant: 'ghost', size: 'icon-sm' })
   return (
     <AppBar
       start={
         <Link
           to="/"
           aria-label="Vinskiano home"
-          className="rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+          className="grid size-11 place-items-center rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
         >
           <Logo className="size-7" />
         </Link>
       }
       end={
-        <PresetsMenu
-          presets={presets.presets}
-          pending={presets.pending}
-          message={presets.message}
-          onOpen={presets.load}
-          onSave={(name) =>
-            presets.save(name, { master: synth.master, oscillators: synth.oscillators })
-          }
-          onLoad={(preset) => {
-            synth.loadSettings(preset.settings)
-            presets.announce(`Loaded “${preset.name}”`)
-          }}
-          onDelete={presets.remove}
-        />
-      }
-      shownOscillator={shown}
-      onShowOscillator={show}
-      // Its own page shows the oscillator in detail, so the bar leaves its strip out.
-      oscillator={detail ? undefined : synth.oscillators.find((o) => o.id === shown)}
-      onOscillatorChange={synth.updateOscillator}
-      nav={
-        detail ? (
-          <Link
-            to="/app"
-            search={shown === 1 ? {} : { osc: shown }}
-            aria-label="Back to the keyboard"
-            className={linkStyle}
-          >
-            <PianoIcon className="size-5 text-primary" />
-          </Link>
-        ) : (
-          <Link
-            to="/app/oscillators/$id"
-            params={{ id: String(shown) }}
-            aria-label={`Oscillator ${shown} in detail`}
-            className={linkStyle}
-          >
-            <SlidersHorizontalIcon className="size-5 text-primary" />
-          </Link>
-        )
+        <>
+          <PresetsMenu
+            presets={presets.presets}
+            current={presets.current?.name ?? null}
+            edited={
+              presets.current !== null &&
+              !sameSettings(presets.current.settings, {
+                master: synth.master,
+                oscillators: synth.oscillators,
+              })
+            }
+            pending={presets.pending}
+            message={presets.message}
+            onOpen={presets.load}
+            onSave={(name) =>
+              presets.save(name, { master: synth.master, oscillators: synth.oscillators })
+            }
+            onLoad={(preset) => {
+              synth.loadSettings(preset.settings)
+              presets.choose(preset)
+              presets.announce(`Loaded “${preset.name}”`)
+            }}
+            onDelete={presets.remove}
+          />
+          {onSoundPage ? (
+            <Link to="/app" aria-label="Back to the keyboard" className={linkStyle}>
+              <PianoIcon className="size-5 text-primary" />
+            </Link>
+          ) : (
+            <Link to="/app/oscillators" aria-label="Sound" className={linkStyle}>
+              <SlidersHorizontalIcon className="size-5 text-primary" />
+            </Link>
+          )}
+        </>
       }
       master={synth.master}
       onMasterChange={synth.updateMaster}

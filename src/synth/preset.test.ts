@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { PRESET_NAME_MAX, parsePresetName, parsePresetSettings } from './preset'
+import { PRESET_NAME_MAX, parsePresetName, parsePresetSettings, sameSettings } from './preset'
 
 const settings = {
   master: { gain: 0.5 },
@@ -63,5 +63,28 @@ describe('parsePresetName', () => {
     ['not a string', 42],
   ])('rejects %s', (_, value) => {
     expect(() => parsePresetName(value)).toThrow()
+  })
+})
+
+describe('sameSettings', () => {
+  const parsed = parsePresetSettings(settings)
+
+  test('is true for the same sound', () => {
+    expect(sameSettings(parsed, structuredClone(parsed))).toBe(true)
+  })
+
+  test.each([
+    ['master gain', { ...parsed, master: { gain: 0.4 } }],
+    [
+      'a waveform',
+      { ...parsed, oscillators: parsed.oscillators.map((o) => ({ ...o, waveform: 'square' })) },
+    ],
+    ['a pitch', { ...parsed, oscillators: parsed.oscillators.map((o) => ({ ...o, pitch: 1 })) }],
+    [
+      'a volume',
+      { ...parsed, oscillators: parsed.oscillators.map((o) => ({ ...o, volume: 0.3 })) },
+    ],
+  ])('is false when %s differs', (_, other) => {
+    expect(sameSettings(parsed, parsePresetSettings(other))).toBe(false)
   })
 })

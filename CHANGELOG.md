@@ -10,13 +10,14 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 
 ### Added
 
-- Each oscillator has its own page (`/app/oscillators/1` to `3`), with large volume and pitch knobs and the four waveforms as large buttons. Open it from the icon next to the oscillator select. There's no keyboard there; changes apply right away and are heard back on the keyboard
-- Presets: save the current sound under a name, then load or delete it, from the bookmark button in the app bar. They're kept on the server in a guest account, with no sign-up: your first save sets a cookie that lasts a year. Clearing cookies or switching browsers starts a new, empty list
+- A Sound page for editing the sound, opened from the sliders button in the app bar. Its first tab, Oscillators (`/app/oscillators`), shows all three as a rack: one row each, with the waveform, volume and pitch lined up in columns. There's no keyboard there; changes apply right away and are heard back on the keyboard
+- Presets: save the current sound under a name, then load or delete it, from the presets dropdown in the app bar. It names the current sound ("New sound" until you save or load one) and shows a dot once you've changed it; saving again offers the same name, which updates it. They're kept on the server in a guest account, with no sign-up: your first save sets a cookie that lasts a year. Clearing cookies or switching browsers starts a new, empty list
 
 ### Changed
 
-- The app bar shows one oscillator at a time, with a select for the other two. All three keep sounding; only the view changes, and the URL remembers the choice (`/app?osc=2`). This leaves room in the bar for the controls to come
-- The old `/oscillators` URL now opens oscillator 1's page instead of the keyboard
+- Every button, link and control is at least 44 × 44 px, Apple's minimum for a fingertip, in the app and on the site. The app bar is a little taller, and the menus' rows are easier to hit on a phone
+- The app bar is the same on every page and is about the whole sound: master volume and the oscilloscope on the left, the presets and the button to the Sound page (or back to the keyboard) on the right. The oscillators' controls moved to the Sound page, which leaves room in the bar for the controls to come
+- The old `/oscillators` URL now opens the Oscillators tab instead of the keyboard
 - Vinskiano now deploys on [Spotcraft](https://spotcraft.dev), with a Postgres database for the presets. The server needs `DATABASE_URL`, `AUTH_SECRET` and `PUBLIC_URL`, and stops at start, naming the one that's missing or wrong. See [docs/deploy.md](docs/deploy.md)
 - Running locally needs Postgres too: `pnpm exec spotcraft dev start` runs it in Docker, and `pnpm exec spotcraft dev env --write` adds its settings to `.env`. Without it, `pnpm dev` still plays (only presets fail), but `pnpm start` and the Docker image won't start
 - The Docker image applies Debian's security updates when it's built, instead of waiting for a new Node base image

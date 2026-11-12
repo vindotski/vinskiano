@@ -6,12 +6,12 @@ A three-oscillator synth that lives in your browser. Free and open source, no in
 
 <picture>
   <source srcset="src/assets/screenshots/app-dark-1280.webp" media="(prefers-color-scheme: dark)">
-  <img src="src/assets/screenshots/app-light-1280.webp" alt="The Vinskiano synth: a bar with an oscillator select, that oscillator's volume, waveform and pitch controls, a master volume knob and an oscilloscope, above a one-octave keyboard">
+  <img src="src/assets/screenshots/app-light-1280.webp" alt="The Vinskiano synth: a bar with a master volume knob, an oscilloscope, the presets menu and a button to the oscillators, above a one-octave keyboard">
 </picture>
 
 ## What it does
 
-- **Three oscillators**, each with its own waveform (sine, square, triangle or sawtooth), pitch (up to two octaves up or down, in semitones) and volume. Layer them to build a tone. The bar shows one at a time (a select picks which), and each has its own page with larger controls.
+- **Three oscillators**, each with its own waveform (sine, square, triangle or sawtooth), pitch (up to two octaves up or down, in semitones) and volume. Layer them to build a tone. They're edited together on the Sound page, one row each, with the controls lined up in columns.
 - **A 13-key keyboard**, C4 to C5. Play it with a mouse, by touch, or from the keyboard: Tab to a key and hold Space or Enter.
 - **A master volume knob and an oscilloscope** that draws what you hear.
 - **Presets:** save the sound you made under a name, and load it back later. No sign-up: your first save gives this browser a guest account (a cookie that lasts a year). Clearing cookies or using another browser starts a fresh list.

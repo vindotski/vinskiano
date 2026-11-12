@@ -36,20 +36,20 @@ Before editing files for a substantial task:
 src/
   music/       Pure music theory: Note, Octave, Frequency, Scale, ScaleBuilder, ScaleStrategy, KEYBOARD_NOTES
   audio/       Web Audio: Engine (context + oscillators + oscilloscope), Context, Oscillator, Oscilloscope
-  components/  React UI: AppBar (oscillator select + the shown oscillator's strip + presets + master knob + oscilloscope), Oscillator, OscillatorSelect, WaveformSelect, PresetsMenu, Piano, PianoKey, knobs/, toolbars/, site/ (header, footer)
+  components/  React UI: AppBar (left: master knob + oscilloscope; right: an `end` slot with the presets dropdown and the Sound/keyboard link), OscillatorRow (one row of the oscillator rack), PresetsMenu, Piano, PianoKey, knobs/, toolbars/, site/ (header, footer)
   routes/      File-based routes, two sections:
                  __root      HTML document (shellComponent + head()), 404 (NotFound brings the site chrome)
                  _site.tsx   pathless site layout (header, scrolling page, footer); _site/index.tsx = /
                  app.tsx     /app layout: LazyMotion + SynthProvider + fixed viewport frame + AppBar
-                 app/index.tsx = /app: the keyboard; `?osc=2` says which oscillator the bar shows
-                 app/oscillators.$id.tsx = /app/oscillators/1..3: one oscillator in detail, no keyboard
-                 app/oscillators.index.tsx  /app/oscillators → /app/oscillators/1
-                 oscillators.tsx  301 redirect from the old /oscillators URL to /app/oscillators/1
-  pages/       Presentational pages the routes render: Home (site), PianoRoll (keyboard), OscillatorDetail, NotFound
+                 app/index.tsx = /app: the keyboard
+                 app/_sound.tsx  pathless layout of the sound pages: a tab bar (nav "Sound") over the page, no keyboard
+                 app/_sound/oscillators.tsx = /app/oscillators: the oscillator rack (all three)
+                 oscillators.tsx  301 redirect from the old /oscillators URL to /app/oscillators
+  pages/       Presentational pages the routes render: Home (site), PianoRoll (keyboard), Oscillators (the rack), NotFound
   synth/       SynthProvider: owns the synth settings (state) and the audio Engine (created after mount); useSynth() for routes
                preset.ts (checks a preset's settings and name; shared by browser and server),
                presets.functions.ts (the server functions), usePresets (the browser side),
-               oscillators.ts (the oscillator ids; reads one from a URL)
+               oscillators.ts (the oscillator ids)
   server/      Server-only: backend.server.ts (the kit, created on first use; database() runs migrations),
                guest.server.ts (the visitor's guest from the request), presets.server.ts (queries),
                schema.ts (Drizzle tables), migrations/ (numbered SQL), migrate.server.ts,
@@ -125,7 +125,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 
 - Add a page by adding a file in `src/routes/` (`createFileRoute('/path')`); `pnpm dev`/`pnpm build` regenerate `routeTree.gen.ts`. Commit the regenerated file with the route.
 - Document-level tags go in `__root.tsx`'s `head()`. `HeadContent` keeps one meta per `name`, so tags that share a name (the light/dark `theme-color` pair) are written directly in `RootDocument`.
-- **Which oscillator is shown lives in the URL**, not in state: `?osc=N` on the keyboard (none for 1), the `$id` on its own page. `SynthBar` in `routes/app.tsx` reads both; switching navigates with `replace: true` and `viewTransition: false` (no history entry, no crossfade). Only the view changes: all three oscillators always sound. UI choices worth keeping on reload or in a link belong in the URL the same way.
+- **The bar is the same on every page of the app** and holds the whole sound (master, presets). Everything else about the sound is edited on the **sound pages**: tabs under the pathless `app/_sound.tsx` layout, each its own URL (Oscillators now; the envelope and a filter come as new tabs, i.e. new files in `app/_sound/` plus a link in the tab bar). The bar's last button opens them, or goes back to the keyboard (`useMatch` on `/app/_sound`). All three oscillators always sound. UI choices worth keeping on reload or in a link belong in the URL.
 - Route components are thin: read state with `useSynth()` and render a component from `pages/` or `components/`. Components stay presentational (props in, callbacks out); router links are passed in as slots (e.g. `AppBar`'s `start`), so components render without a router in unit tests.
 - After visible UI changes in the app, run `pnpm screenshots` so the home page shows the current app.
 - **Rendering:** the home page (`/`) is **prerendered at build time by Nitro** (`nitro({ prerender: { routes: ['/'] } })` in `vite.config.ts`) and served as a static file; everything else is server-rendered per request. Add a page to `routes` there only if it has no per-request data. Use Nitro's prerender, not Start's `prerender` option: Start writes its HTML after Nitro has listed the public files, so Nitro never served it. `e2e/site.spec.ts` checks `/` has `etag`/`last-modified` and `/app` doesn't.
@@ -192,9 +192,9 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - `@/` is an alias for `src/`. Merge classes with `cn()` from `@/lib/utils`.
 - Tailwind only scans `src/` for class names (`source(".")` in `styles.css`). Classes written anywhere else (docs, skills, tests) are not generated; keep class names in `src/` as complete literal strings.
 - Piano keys use their own tokens (`bg-key-white`, `bg-key-black`, …) so they stay ivory/ebony in dark mode.
-- `short:` is a custom variant for short viewports (≤ 500px tall, e.g. a phone in landscape): use it to tighten spacing so pages fit without scrolling.
+- `short:` is a custom variant for short screens: ≤ 500px tall (a phone in landscape), or a phone held upright (≤ 500px wide in portrait, where the app is rotated, so its height is the phone's width). Use it to tighten spacing so pages fit without scrolling.
 - **Upright phones get the app rotated** (`data-app-frame` in `routes/app.tsx`). Anything that reads screen coordinates must convert them: popovers render inside the frame (React Aria's `PortalProvider`) and the select places its popover from layout offsets when the frame is rotated (`placeInRotatedContainer` in `ui/select.tsx`); the knob maps the pointer into its own SVG coordinates (`getScreenCTM()`). New overlays or pointer math need the same care; `e2e/orientation.spec.ts` covers both orientations.
-- **The app bar must stay on one row** down to 667 px wide (a small phone in landscape); `e2e/app.spec.ts` checks four sizes. Compact sizing is the default, `md:` and `xl:` add room. Prefer single compact controls (like the waveform and oscillator dropdowns) over rows of buttons; the bar shows one oscillator at a time, so new per-oscillator controls go on its page first.
+- **The app bar must stay on one row** down to 667 px wide (a small phone in landscape); `e2e/app.spec.ts` checks four sizes. Compact sizing is the default, `md:` and `xl:` add room. Prefer single compact controls (like the presets dropdown) over rows of buttons. The bar is for the whole sound; a new per-oscillator control is a new column of the rack (`COLUMNS` in `OscillatorRow.tsx`, so every row and the header line up).
 - Some elements keep plain class names as test hooks (`piano-key`, `piano-key--active`, `oscillator`, `oscilloscope`, `knob`…). Keep them when restyling; prefer roles and names for new tests.
 - Import `buttonVariants` from `@/components/ui/button-variants` when you only need the look (e.g. on a `Link`): importing `button.tsx` pulls React Aria's Button into the bundle.
 
@@ -212,6 +212,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 
 - Every control needs an accessible name: knobs take a `label` ("Oscillator 2 pitch", "Master volume"); groups of controls get one too (each oscillator is a `fieldset` named "Oscillator 1", the master section a region named "Master").
 - Controls work by keyboard and show a visible focus ring. Knobs are native range inputs underneath (arrows, Page Up/Down, Home/End).
+- **Every tap target is at least 44 × 44 px** (Apple's minimum for a fingertip; WCAG 2.5.5), with a mouse too: the button and select sizes in `ui/` start there (`h-11`, `size-11`), knobs are `size-11` or bigger, and text links get a padded hit area (`inline-flex min-h-11 items-center`). `e2e/targets.spec.ts` checks every screen and open popover on desktop, and `e2e/mobile.spec.ts` on phones both ways up.
 - Browser tests find controls by role and name (`getByRole('slider', { name })`), never by DOM position.
 
 ## Tests

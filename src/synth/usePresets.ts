@@ -6,6 +6,13 @@ import { deletePreset, listPresets, savePreset } from './presets.functions'
 export interface Presets {
   /** null until loaded. */
   presets: Preset[] | null
+  /**
+   * The preset the sound was last loaded from or saved as; null for a new sound (and after that
+   * preset is deleted). Kept in the browser only, like the sound itself.
+   */
+  current: Preset | null
+  /** Makes a preset the current one, after it's loaded into the synth. */
+  choose: (preset: Preset) => void
   /** A request is running. */
   pending: boolean
   /** The outcome of the last action, for a live region (errors included). */
@@ -27,6 +34,7 @@ const reason = (error: unknown) =>
 
 export function usePresets(): Presets {
   const [presets, setPresets] = useState<Preset[] | null>(null)
+  const [current, setCurrent] = useState<Preset | null>(null)
   const [requests, setRequests] = useState(0)
   const [message, setMessage] = useState<string | null>(null)
   const listed = useRef(false)
@@ -93,6 +101,7 @@ export function usePresets(): Presets {
         const saved = await savePreset({ data: { name, settings } })
         const replaced = presets?.some((p) => p.id === saved.id) ?? false
         change((list) => [...list.filter((p) => p.id !== saved.id), saved].sort(byName))
+        setCurrent(saved)
         return `${replaced ? 'Updated' : 'Saved'} “${saved.name}”`
       }),
     [run, change, presets],
@@ -103,11 +112,22 @@ export function usePresets(): Presets {
       await run(async () => {
         await deletePreset({ data: { id: preset.id } })
         change((list) => list.filter((p) => p.id !== preset.id))
+        setCurrent((chosen) => (chosen?.id === preset.id ? null : chosen))
         return `Deleted “${preset.name}”`
       })
     },
     [run, change],
   )
 
-  return { presets, pending: requests > 0, message, load, save, remove, announce: setMessage }
+  return {
+    presets,
+    current,
+    choose: setCurrent,
+    pending: requests > 0,
+    message,
+    load,
+    save,
+    remove,
+    announce: setMessage,
+  }
 }

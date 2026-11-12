@@ -14,8 +14,8 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as OscillatorsRouteImport } from './routes/oscillators'
 import { Route as SiteIndexRouteImport } from './routes/_site/index'
 import { Route as AppIndexRouteImport } from './routes/app/index'
-import { Route as AppOscillatorsIndexRouteImport } from './routes/app/oscillators.index'
-import { Route as AppOscillatorsIdRouteImport } from './routes/app/oscillators.$id'
+import { Route as AppSoundRouteImport } from './routes/app/_sound'
+import { Route as AppSoundOscillatorsRouteImport } from './routes/app/_sound/oscillators'
 
 const SiteRoute = SiteRouteImport.update({
   id: '/_site',
@@ -41,15 +41,14 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppOscillatorsIndexRoute = AppOscillatorsIndexRouteImport.update({
-  id: '/oscillators/',
-  path: '/oscillators/',
+const AppSoundRoute = AppSoundRouteImport.update({
+  id: '/_sound',
   getParentRoute: () => AppRoute,
 } as any)
-const AppOscillatorsIdRoute = AppOscillatorsIdRouteImport.update({
-  id: '/oscillators/$id',
-  path: '/oscillators/$id',
-  getParentRoute: () => AppRoute,
+const AppSoundOscillatorsRoute = AppSoundOscillatorsRouteImport.update({
+  id: '/oscillators',
+  path: '/oscillators',
+  getParentRoute: () => AppSoundRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -57,47 +56,38 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/oscillators': typeof OscillatorsRoute
   '/app/': typeof AppIndexRoute
-  '/app/oscillators/$id': typeof AppOscillatorsIdRoute
-  '/app/oscillators/': typeof AppOscillatorsIndexRoute
+  '/app/oscillators': typeof AppSoundOscillatorsRoute
 }
 export interface FileRoutesByTo {
   '/oscillators': typeof OscillatorsRoute
-  '/': typeof SiteIndexRoute
   '/app': typeof AppIndexRoute
-  '/app/oscillators/$id': typeof AppOscillatorsIdRoute
-  '/app/oscillators': typeof AppOscillatorsIndexRoute
+  '/': typeof SiteIndexRoute
+  '/app/oscillators': typeof AppSoundOscillatorsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_site': typeof SiteRouteWithChildren
   '/app': typeof AppRouteWithChildren
   '/oscillators': typeof OscillatorsRoute
+  '/app/_sound': typeof AppSoundRouteWithChildren
   '/_site/': typeof SiteIndexRoute
   '/app/': typeof AppIndexRoute
-  '/app/oscillators/$id': typeof AppOscillatorsIdRoute
-  '/app/oscillators/': typeof AppOscillatorsIndexRoute
+  '/app/_sound/oscillators': typeof AppSoundOscillatorsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/app'
-    | '/oscillators'
-    | '/app/'
-    | '/app/oscillators/$id'
-    | '/app/oscillators/'
+  fullPaths: '/' | '/app' | '/oscillators' | '/app/' | '/app/oscillators'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    '/oscillators' | '/' | '/app' | '/app/oscillators/$id' | '/app/oscillators'
+  to: '/oscillators' | '/app' | '/' | '/app/oscillators'
   id:
     | '__root__'
     | '/_site'
     | '/app'
     | '/oscillators'
+    | '/app/_sound'
     | '/_site/'
     | '/app/'
-    | '/app/oscillators/$id'
-    | '/app/oscillators/'
+    | '/app/_sound/oscillators'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -143,19 +133,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/oscillators/': {
-      id: '/app/oscillators/'
-      path: '/oscillators'
-      fullPath: '/app/oscillators/'
-      preLoaderRoute: typeof AppOscillatorsIndexRouteImport
+    '/app/_sound': {
+      id: '/app/_sound'
+      path: ''
+      fullPath: '/app'
+      preLoaderRoute: typeof AppSoundRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/oscillators/$id': {
-      id: '/app/oscillators/$id'
-      path: '/oscillators/$id'
-      fullPath: '/app/oscillators/$id'
-      preLoaderRoute: typeof AppOscillatorsIdRouteImport
-      parentRoute: typeof AppRoute
+    '/app/_sound/oscillators': {
+      id: '/app/_sound/oscillators'
+      path: '/oscillators'
+      fullPath: '/app/oscillators'
+      preLoaderRoute: typeof AppSoundOscillatorsRouteImport
+      parentRoute: typeof AppSoundRoute
     }
   }
 }
@@ -170,16 +160,26 @@ const SiteRouteChildren: SiteRouteChildren = {
 
 const SiteRouteWithChildren = SiteRoute._addFileChildren(SiteRouteChildren)
 
+interface AppSoundRouteChildren {
+  AppSoundOscillatorsRoute: typeof AppSoundOscillatorsRoute
+}
+
+const AppSoundRouteChildren: AppSoundRouteChildren = {
+  AppSoundOscillatorsRoute: AppSoundOscillatorsRoute,
+}
+
+const AppSoundRouteWithChildren = AppSoundRoute._addFileChildren(
+  AppSoundRouteChildren,
+)
+
 interface AppRouteChildren {
+  AppSoundRoute: typeof AppSoundRouteWithChildren
   AppIndexRoute: typeof AppIndexRoute
-  AppOscillatorsIdRoute: typeof AppOscillatorsIdRoute
-  AppOscillatorsIndexRoute: typeof AppOscillatorsIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppSoundRoute: AppSoundRouteWithChildren,
   AppIndexRoute: AppIndexRoute,
-  AppOscillatorsIdRoute: AppOscillatorsIdRoute,
-  AppOscillatorsIndexRoute: AppOscillatorsIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

@@ -1,17 +1,11 @@
-import { expect, openApp, pageTransitionDone, showOscillator, test } from './fixtures'
+import { expect, openApp, pageTransitionDone, test } from './fixtures'
 
-test('every control is on one screen: an oscillator, master and keyboard', async ({ page }) => {
+test('the bar holds the whole sound; the keyboard fills the rest', async ({ page }) => {
   await openApp(page)
-  // The bar shows one oscillator at a time, with a select for the others.
-  await expect(page.getByRole('button', { name: /Shown oscillator/ })).toBeVisible()
-  await expect(page.getByRole('group', { name: /^Oscillator \d$/ })).toHaveCount(1)
-  for (const n of [1, 2, 3]) {
-    await showOscillator(page, n)
-    const oscillator = page.getByRole('group', { name: `Oscillator ${n}`, exact: true })
-    await expect(oscillator.getByRole('slider', { name: `Oscillator ${n} volume` })).toBeVisible()
-    await expect(oscillator.getByRole('button', { name: `Oscillator ${n} waveform` })).toBeVisible()
-    await expect(oscillator.getByRole('slider', { name: `Oscillator ${n} pitch` })).toBeVisible()
-  }
+  // Oscillator controls live on each oscillator's page, not in the bar.
+  await expect(page.getByRole('slider', { name: /^Oscillator/ })).toHaveCount(0)
+  await expect(page.getByRole('link', { name: 'Sound', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Presets/ })).toBeVisible()
   await expect(
     page.getByRole('region', { name: 'Master' }).getByRole('slider', { name: 'Master volume' }),
   ).toHaveAttribute('aria-valuetext', '50%')
@@ -77,6 +71,18 @@ test.describe('dark mode', () => {
   })
 })
 
+test('the bar puts master on the left, and presets and the Sound button on the right', async ({
+  page,
+}) => {
+  await openApp(page)
+  const master = await page.getByRole('region', { name: 'Master' }).boundingBox()
+  const presets = await page.getByRole('button', { name: /^Presets/ }).boundingBox()
+  const oscillators = await page.getByRole('link', { name: 'Sound', exact: true }).boundingBox()
+  if (!master || !presets || !oscillators) throw new Error('not visible')
+  expect(master.x + master.width).toBeLessThan(presets.x)
+  expect(presets.x + presets.width).toBeLessThanOrEqual(oscillators.x)
+})
+
 for (const viewport of [
   { width: 1280, height: 720 },
   { width: 1024, height: 700 },
@@ -90,7 +96,7 @@ for (const viewport of [
       await openApp(page)
       const rows = await page.evaluate(() => {
         const bar = document.querySelector('header')
-        const parts = bar?.querySelectorAll('fieldset, section[aria-label="Master"], header > a')
+        const parts = bar?.querySelectorAll('section[aria-label="Master"], header a, header button')
         const centers = [...(parts ?? [])].map((part) => {
           const box = part.getBoundingClientRect()
           return Math.round((box.top + box.height / 2) / 10)
