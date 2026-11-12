@@ -5,10 +5,10 @@ import {
   getRequestHeader,
   getRequestIP,
   setResponseHeader,
-  setResponseStatus,
 } from '@tanstack/react-start/server'
 import { backend } from './backend.server'
 import { clientAddress } from './client-address'
+import { PublicError } from './public-error'
 
 /*
  * The visitor's guest account, inside a server function or route. Reading never creates a guest;
@@ -39,9 +39,11 @@ export async function guestId(): Promise<string> {
     return guest.id
   } catch (error) {
     if (error instanceof GuestLimitError) {
-      setResponseStatus(429)
       setResponseHeader('retry-after', String(error.retryAfterSeconds))
-      throw new Error('Too many new visitors from your network; try again in a few minutes')
+      throw new PublicError(
+        'Too many new visitors from your network; try again in a few minutes',
+        429,
+      )
     }
     throw error
   }

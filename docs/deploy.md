@@ -18,7 +18,7 @@ Use the same Spotcraft version as `@spotcraft/kit` in `package.json` (now **0.2.
 
 The server checks these settings when it starts and stops right away if one is missing or wrong, naming it (`AUTH_SECRET must be at least 32 characters`). Spotcraft then keeps the previous version running.
 
-The app runs its own migrations (`src/server/migrations`, the tables in `public`) on first use, under a lock, so there is no release step. Spotcraft keeps the `auth` schema up to date itself.
+The app runs its own migrations (`src/server/migrations`, the tables in `public`) when it starts, under a lock, so there is no release step; if they fail, the server exits and the deploy fails its health check. Spotcraft keeps the `auth` schema up to date itself.
 
 ## First deploy
 

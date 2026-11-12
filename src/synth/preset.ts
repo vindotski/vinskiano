@@ -81,9 +81,20 @@ export function parsePresetSettings(value: unknown): PresetSettings {
   }
 }
 
-/** A preset's name, trimmed and with runs of whitespace (including line breaks) made one space. */
+/**
+ * A preset's name, as it is stored and compared: Unicode-normalized (NFC, so "é" typed two ways is
+ * one name), runs of whitespace (including line breaks) made one space, invisible control and
+ * format characters (zero-width spaces, bidi overrides) removed, and trimmed.
+ */
 export function parsePresetName(value: unknown): string {
-  const name = typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : ''
+  const name =
+    typeof value === 'string'
+      ? value
+          .normalize('NFC')
+          .replace(/\s+/g, ' ')
+          .replace(/[\p{Cc}\p{Cf}]/gu, '')
+          .trim()
+      : ''
   if (name.length === 0 || name.length > PRESET_NAME_MAX) {
     throw new Error(`A preset needs a name of 1 to ${PRESET_NAME_MAX} characters`)
   }

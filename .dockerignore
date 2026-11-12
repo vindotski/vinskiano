@@ -10,3 +10,16 @@ playwright-report
 .DS_Store
 .env*
 .output
+# Not needed to build or run the app: docs, the deploy kit, browser tests, CI, notes.
+docs
+deploy
+e2e
+.github
+*.md
+# Tool caches and editor settings.
+.eslintcache
+.vite
+.cache
+.vscode
+*.tsbuildinfo
+blob-report

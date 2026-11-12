@@ -1,6 +1,5 @@
--- Saved sounds, one row per preset, owned by a guest (or later a registered user).
--- Migrations only ever add: never drop or rename in a later file.
-
+/** Saved sounds, one row per preset, owned by a guest (or later a registered user). */
+export default /* sql */ `
 CREATE TABLE presets (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id    uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
@@ -11,3 +10,4 @@ CREATE TABLE presets (
   -- Saving under a name a visitor already used replaces that preset.
   UNIQUE (user_id, name)
 );
+`

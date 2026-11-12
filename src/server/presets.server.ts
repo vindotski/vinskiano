@@ -1,12 +1,13 @@
 import { and, asc, count, eq, sql } from 'drizzle-orm'
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { PRESETS_MAX, type Preset, type PresetSettings, parsePresetSettings } from '../synth/preset'
+import { PublicError } from './public-error'
 import { presets } from './schema'
 
-/** A visitor tried to keep more than PRESETS_MAX presets. */
-export class PresetLimitError extends Error {
+/** A visitor tried to keep more than PRESETS_MAX presets (409). */
+export class PresetLimitError extends PublicError {
   constructor() {
-    super(`You can keep up to ${PRESETS_MAX} presets; delete one to save another`)
+    super(`You can keep up to ${PRESETS_MAX} presets; delete one to save another`, 409)
   }
 }
 
