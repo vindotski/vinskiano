@@ -1,6 +1,7 @@
 import {
   createContext,
   type ReactNode,
+  type RefObject,
   useCallback,
   useContext,
   useEffect,
@@ -26,6 +27,12 @@ export interface Synth {
   updateOscillator: (id: number, settings: OscillatorSettings) => void
   /** Replaces the whole sound at once, e.g. with a preset. */
   loadSettings: (settings: PresetSettings) => void
+  /**
+   * Where the keyboard was scrolled to (its first white key), so it comes back there after a
+   * visit to the Sound pages. A ref, not state: it changes on every scroll, and nothing renders
+   * from it while it does. Kept while the page is open, not across reloads.
+   */
+  keyboardPosition: RefObject<number | null>
 }
 
 /** A sound that is currently playing, tagged with the note that started it. */
@@ -50,16 +57,22 @@ export function SynthProvider({ children }: { children: ReactNode }) {
   const [master, setMaster] = useState(INITIAL_MASTER)
   const [oscillators, setOscillators] = useState(INITIAL_OSCILLATORS)
   const [engine, setEngine] = useState<Engine | null>(null)
+  // The same engine, for playing: set the moment it exists. State only catches up on the next
+  // render, and a note played in between (a key pressed right as the page loads) was dropped.
+  const playing = useRef<Engine | null>(null)
   const sounds = useRef<PlayingSound[]>([])
+  const keyboardPosition = useRef<number | null>(null)
 
   // Browser-only setup. Settings are read once at creation and kept in sync by the effects below.
   // biome-ignore lint/correctness/useExhaustiveDependencies: create the engine once, on mount
   useEffect(() => {
     const created = new Engine(master.gain, oscillators)
+    playing.current = created
     setEngine(created)
     const enableContextMenu = disableContextMenu()
     return () => {
       enableContextMenu()
+      playing.current = null
       created.close()
       sounds.current = []
     }
@@ -68,14 +81,12 @@ export function SynthProvider({ children }: { children: ReactNode }) {
   useEffect(() => engine?.setGain(master.gain), [engine, master.gain])
   useEffect(() => engine?.configure(oscillators), [engine, oscillators])
 
-  const trigger = useCallback(
-    (note: Note) => {
-      if (!engine) return
-      const hertz = Frequency.fromNote(note).hertz
-      sounds.current.push(...engine.play(hertz).map((sound) => Object.assign(sound, { note })))
-    },
-    [engine],
-  )
+  const trigger = useCallback((note: Note) => {
+    const engine = playing.current
+    if (!engine) return
+    const hertz = Frequency.fromNote(note).hertz
+    sounds.current.push(...engine.play(hertz).map((sound) => Object.assign(sound, { note })))
+  }, [])
 
   const release = useCallback((note: Note) => {
     for (const sound of sounds.current.filter((s) => note.equals(s.note))) {
@@ -108,6 +119,7 @@ export function SynthProvider({ children }: { children: ReactNode }) {
     updateMaster: setMaster,
     updateOscillator,
     loadSettings,
+    keyboardPosition,
   }
 
   return <SynthContext value={synth}>{children}</SynthContext>

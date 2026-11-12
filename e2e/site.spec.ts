@@ -5,7 +5,7 @@ test('the home page links to the synth', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await page.getByRole('main').getByRole('link', { name: 'Open the synth' }).first().click()
   await expect(page).toHaveURL('/app')
-  await expect(page.locator('.piano-key')).toHaveCount(13)
+  await expect(page.locator('.piano-key')).toHaveCount(88)
 })
 
 test('the site never creates an audio engine', async ({ page }) => {

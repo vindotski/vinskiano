@@ -55,7 +55,7 @@ test.describe('with reduced motion', () => {
     await recordViewTransitions(page)
     await openHome(page)
     await page.getByRole('main').getByRole('link', { name: 'Open the synth' }).first().click()
-    await expect(page.locator('.piano-key')).toHaveCount(13)
+    await expect(page.locator('.piano-key')).toHaveCount(88)
     // Either no transition at all, or one that animates nothing.
     expect((await viewTransitions(page)).flat()).toEqual([])
     await expect(page.getByRole('slider', { name: 'Master volume' })).toBeVisible()

@@ -20,7 +20,12 @@ const smallTargets = (page: Page) =>
       // (`sr-only`, like the skip link until it's focused).
       if (width <= 1 || height <= 1) return []
       if (getComputedStyle(element).clipPath.startsWith('inset(50%')) return []
-      if (width >= min - 0.5 && height >= min - 0.5) return []
+      // Black piano keys keep a piano's proportions: narrower, but long (at least 28 × 44;
+      // on screen either way round, since the app turns sideways on an upright phone).
+      const short = Math.min(width, height)
+      const long = Math.max(width, height)
+      const shortest = element.matches('.piano-key--black') ? 28 : min
+      if (short >= shortest - 0.5 && long >= min - 0.5) return []
       const name =
         element.getAttribute('aria-label') ??
         element.closest('[aria-label]')?.getAttribute('aria-label') ??

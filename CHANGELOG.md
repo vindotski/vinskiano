@@ -10,11 +10,16 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 
 ### Added
 
+- Play from the computer keyboard, in FL Studio's layout: Z S X D C V G B H N J M , is an octave from the first C in view, and Q 2 W 3 E R 5 T 6 Y 7 U I 9 O 0 P the octave above and on. It goes by key position, so it's the same keys on AZERTY or QWERTZ, and follows the view as you move along the keyboard. Where there's a mouse, each key shows its letter. Typing into a field or using a control's own keys plays nothing
 - A Sound page for editing the sound, opened from the sliders button in the app bar. Its first tab, Oscillators (`/app/oscillators`), shows all three as a rack: one row each, with the waveform, volume and pitch lined up in columns. There's no keyboard there; changes apply right away and are heard back on the keyboard
 - Presets: save the current sound under a name, then load or delete it, from the presets dropdown in the app bar. It names the current sound ("New sound" until you save or load one) and shows a dot once you've changed it; saving again offers the same name, which updates it. They're kept on the server in a guest account, with no sign-up: your first save sets a cookie that lasts a year. Clearing cookies or switching browsers starts a new, empty list
 
 ### Changed
 
+- The keyboard has a piano's 88 keys, from A0 to C8, and scrolls sideways. A minimap above it shows the whole range, where you are and the notes you're holding; tap or drag it (or use the octave buttons) to move. Only the C keys are labelled, with their octave, and middle C has a dot. By keyboard, Tab reaches the keys once and the arrows move along them
+- Playing feels like an instrument: every finger plays its own note (as many as you put down), sliding a finger or the mouse across the keys plays each one in turn, and two fingers on one key keep it sounding until both lift. The browser no longer scrolls, zooms or selects text on the keys, and on Android a touch gives a short haptic tick
+- Notes fade in and out over a few milliseconds, so they no longer click, and a limiter on the output keeps many notes at once from distorting
+- A held note always stops: when the finger lifts or leaves the keyboard, the browser cancels the touch, the window loses focus or is hidden, or you leave the page
 - Every button, link and control is at least 44 × 44 px, Apple's minimum for a fingertip, in the app and on the site. The app bar is a little taller, and the menus' rows are easier to hit on a phone
 - The app bar is the same on every page and is about the whole sound: master volume and the oscilloscope on the left, the presets and the button to the Sound page (or back to the keyboard) on the right. The oscillators' controls moved to the Sound page, which leaves room in the bar for the controls to come
 - The old `/oscillators` URL now opens the Oscillators tab instead of the keyboard

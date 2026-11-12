@@ -23,11 +23,11 @@ describe('server rendering', () => {
     }
   })
 
-  test('the piano page renders all 13 keys', () => {
+  test('the piano page renders all 88 keys', () => {
     const html = renderToString(
       <PianoRoll notes={KEYBOARD_NOTES} onTrigger={noop} onRelease={noop} />,
     )
-    expect(html.match(/class="piano-key /g)).toHaveLength(13)
+    expect(html.match(/class="piano-key /g)).toHaveLength(88)
   })
 
   test('the app bar renders without an audio engine', () => {

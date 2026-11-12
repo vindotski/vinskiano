@@ -7,6 +7,7 @@ import {
   openSound,
   oscillatorRow,
   pageTransitionDone,
+  pianoKey,
   soundTabs,
   test,
 } from './fixtures'
@@ -45,7 +46,7 @@ test('upright, the app turns sideways; sideways, it stays as is', async ({ page 
 })
 
 test('a tapped key plays once and stops on release', async ({ page }) => {
-  await page.locator('.piano-key').nth(9).tap()
+  await pianoKey(page, 'A4').tap()
   const log = await audioLog(page)
   expect(log.started.map((s) => s.frequency)).toEqual([440, 440, 440])
   expect(log.stopped).toBe(3)

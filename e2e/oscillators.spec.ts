@@ -6,6 +6,7 @@ import {
   openSound,
   oscillatorRow,
   pageTransitionDone,
+  pianoKey,
   pickWaveform,
   resetAudioLog,
   soundTabs,
@@ -40,7 +41,7 @@ test('a note held on the keyboard stops when you open the sound pages', async ({
   await openApp(page)
   // Hold a key with Space, then follow the bar's Sound link with the mouse: the key goes away
   // while it's held, so its own key-up never comes.
-  await page.locator('.piano-key').first().focus()
+  await pianoKey(page, 'C4').focus()
   await resetAudioLog(page)
   await page.keyboard.down(' ')
   await expect.poll(async () => (await audioLog(page)).started.length).toBe(3)
@@ -82,7 +83,7 @@ test('changes apply right away, and all three sound back on the keyboard', async
 
   await backToKeyboard(page)
   await resetAudioLog(page)
-  await page.locator('.piano-key').first().hover()
+  await pianoKey(page, 'C4').hover()
   await page.mouse.down()
   const { started } = await audioLog(page)
   await page.mouse.up()

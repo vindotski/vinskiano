@@ -6,7 +6,7 @@ test('the server renders the piano', async ({ request }) => {
   const response = await request.get('/app')
   expect(response.status()).toBe(200)
   const html = await response.text()
-  expect(html.match(/class="piano-key /g)).toHaveLength(13)
+  expect(html.match(/class="piano-key /g)).toHaveLength(88)
   expect(html).toContain('<title>Vinskiano</title>')
 })
 
