@@ -80,7 +80,7 @@ Browser tests run in Chromium, Firefox and WebKit, and on phones held both ways.
 
 **Built with** [TanStack Start](https://tanstack.com/start) (React 19, TanStack Router, server rendering with Nitro), TypeScript, Postgres with [Drizzle](https://orm.drizzle.team) and [Spotcraft's backend kit](https://spotcraft.dev) for the guest accounts, [Tailwind CSS](https://tailwindcss.com) with [shadcn/ui](https://ui.shadcn.com) on [React Aria](https://react-spectrum.adobe.com/react-aria/), [Motion](https://motion.dev), and the Web Audio API.
 
-**Where things are:** `src/music/` is plain music theory (notes, scales), `src/audio/` the Web Audio engine, `src/components/` the UI, `src/routes/` the pages, `src/server/` the server-only code (guest accounts, the presets' table and migrations). [AGENTS.md](AGENTS.md) describes the architecture and conventions in detail; it's written for coding agents and works just as well for people.
+**Where things are:** `src/music/` is plain music theory (notes, scales), `src/audio/` the Web Audio engine, `src/components/` the UI, `src/routes/` the pages, `src/server/` the server-only code (guest accounts, the presets' table and migrations). [AGENTS.md](AGENTS.md) describes the architecture and conventions in detail; it's written for coding agents and works just as well for people. Why it's built this way is recorded in the [decision records](docs/decisions).
 
 ## Contributing
 
