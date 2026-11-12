@@ -1,25 +1,20 @@
+/** Reads what the output looks like, for drawing. */
 class Oscilloscope {
-  analyzer: AnalyserNode
-  bufferLength: number
-  buffer: Uint8Array<ArrayBuffer>
-  /** Latest waveform, one value per sample, 1 = silence (0..2). */
-  graph: number[]
+  private readonly analyzer: AnalyserNode
+  /** The latest waveform, -1..1, 0 = silence; reused on every read. */
+  private readonly samples: Float32Array<ArrayBuffer>
 
   constructor(context: BaseAudioContext, source: AudioNode) {
-    const analyzer = context.createAnalyser()
-    analyzer.fftSize = 2048
-    source.connect(analyzer)
-
-    this.analyzer = analyzer
-    this.bufferLength = analyzer.frequencyBinCount
-    this.buffer = new Uint8Array(this.bufferLength)
-    this.graph = []
+    this.analyzer = context.createAnalyser()
+    this.analyzer.fftSize = 2048
+    source.connect(this.analyzer)
+    this.samples = new Float32Array(this.analyzer.fftSize)
   }
 
-  update(): number[] {
-    this.analyzer.getByteTimeDomainData(this.buffer)
-    this.graph = Array.from(this.buffer, (sample) => sample / 128.0)
-    return this.graph
+  /** The latest waveform. The same array every time, overwritten: read it before the next call. */
+  update(): Float32Array {
+    this.analyzer.getFloatTimeDomainData(this.samples)
+    return this.samples
   }
 }
 

@@ -88,11 +88,14 @@ export default defineConfig({
         '/': { headers: REVALIDATE },
         '/app': { headers: REVALIDATE },
         '/app/**': { headers: REVALIDATE },
-        // Unhashed files in public/: a day, then revalidate.
-        '/manifest.json': { headers: { 'cache-control': 'public, max-age=86400' } },
-        '/robots.txt': { headers: { 'cache-control': 'public, max-age=86400' } },
-        '/*.png': { headers: { 'cache-control': 'public, max-age=86400' } },
-        '/*.svg': { headers: { 'cache-control': 'public, max-age=86400' } },
+        // Unhashed files in public/: a day, then revalidate. Listed by name: a pattern like
+        // `/*.png` overlaps `/app/**` and makes Nitro's rule matching ambiguous.
+        ...Object.fromEntries(
+          readdirSync('public').map((file) => [
+            `/${file}`,
+            { headers: { 'cache-control': 'public, max-age=86400' } },
+          ]),
+        ),
       },
     }),
     tailwindcss(),

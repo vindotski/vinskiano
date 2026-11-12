@@ -30,6 +30,12 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 - The Docker image applies Debian's security updates when it's built, instead of waiting for a new Node base image
 - The single-server deploy kit is retired: it has no database, so it can't run images with presets. It stays until the first Spotcraft deploy, then goes
 
+### Fixed
+
+- Turning a knob while holding notes changes them at once: the mix, master volume and pitch follow while you play, gliding instead of stepping (no zipper noise), and starting a new note no longer jumps the level of the notes already sounding
+- An oscillator whose share of the mix is 0 is silent; before, it could briefly play at half volume
+- The oscilloscope shows the whole waveform it reads, without a stray line to its right edge
+
 ### Security
 
 - The server sends security headers itself (a content security policy, no framing, `nosniff`, HSTS, a strict referrer policy and permissions policy), refuses request bodies over 16 KB, and tells browsers to revalidate pages, so a cached page never points at files a new release removed

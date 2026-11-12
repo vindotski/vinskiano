@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import { Engine, type Oscilloscope, type Sound } from '../audio'
+import { Engine, type Oscilloscope } from '../audio'
 import { Frequency, KEYBOARD_NOTES, type Note } from '../music'
 import type { MasterSettings, OscillatorSettings, OscillatorState } from '../types/synth'
 import { disableContextMenu } from '../utils/disable-context-menu'
@@ -37,9 +37,6 @@ export interface Synth {
   keyboardPosition: RefObject<number | null>
 }
 
-/** A sound that is currently playing, tagged with the note that started it. */
-type PlayingSound = Sound & { note: Note }
-
 const SynthContext = createContext<Synth | null>(null)
 
 /**
@@ -54,7 +51,6 @@ export function SynthProvider({ children }: { children: ReactNode }) {
   // The same engine, for playing: set the moment it exists. State only catches up on the next
   // render, and a note played in between (a key pressed right as the page loads) was dropped.
   const playing = useRef<Engine | null>(null)
-  const sounds = useRef<PlayingSound[]>([])
   const keyboardPosition = useRef<number | null>(null)
 
   // Browser-only setup. Settings are read once at creation and kept in sync by the effects below.
@@ -68,7 +64,6 @@ export function SynthProvider({ children }: { children: ReactNode }) {
       enableContextMenu()
       playing.current = null
       created.close()
-      sounds.current = []
     }
   }, [])
 
@@ -76,17 +71,11 @@ export function SynthProvider({ children }: { children: ReactNode }) {
   useEffect(() => engine?.configure(forEngine(oscillators)), [engine, oscillators])
 
   const trigger = useCallback((note: Note) => {
-    const engine = playing.current
-    if (!engine) return
-    const hertz = Frequency.fromNote(note).hertz
-    sounds.current.push(...engine.play(hertz).map((sound) => Object.assign(sound, { note })))
+    playing.current?.noteOn(note.toString(), Frequency.fromNote(note).hertz)
   }, [])
 
   const release = useCallback((note: Note) => {
-    for (const sound of sounds.current.filter((s) => note.equals(s.note))) {
-      sound.stop()
-    }
-    sounds.current = sounds.current.filter((s) => !note.equals(s.note))
+    playing.current?.noteOff(note.toString())
   }, [])
 
   const updateOscillator = useCallback((id: number, settings: OscillatorSettings) => {

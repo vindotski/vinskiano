@@ -41,8 +41,8 @@ export function instrumentWebAudio() {
     window.__audio.stopped++
     return stop.apply(this, args)
   }
-  const read = AnalyserNode.prototype.getByteTimeDomainData
-  AnalyserNode.prototype.getByteTimeDomainData = function (this: AnalyserNode, array) {
+  const read = AnalyserNode.prototype.getFloatTimeDomainData
+  AnalyserNode.prototype.getFloatTimeDomainData = function (this: AnalyserNode, array) {
     window.__audio.analyserReads++
     return read.call(this, array)
   }

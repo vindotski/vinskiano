@@ -1,6 +1,6 @@
 import { LazyMotion, MotionConfig } from 'motion/react'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Engine, type Sound } from '../../audio'
+import { Engine } from '../../audio'
 import { Frequency, isWhite, KEYBOARD_NOTES, type Note, typingHints } from '../../music'
 import { forEngine } from '../../synth/engine-settings'
 import type { PresetSettings } from '../../synth/preset'
@@ -25,12 +25,9 @@ const notesFrom = (first: string, last: string) => {
 const RANGES = [notesFrom('C3', 'C5'), notesFrom('C4', 'C5'), notesFrom('C4', 'B4')]
 const NARROWEST = RANGES.length - 1
 
-type PlayingSound = Sound & { note: Note }
-
 /** Plays notes with these settings; the engine is created by the first note. */
 function useDemoSynth(settings: PresetSettings) {
   const engine = useRef<Engine | null>(null)
-  const sounds = useRef<PlayingSound[]>([])
   const latest = useRef(settings)
   latest.current = settings
 
@@ -43,7 +40,6 @@ function useDemoSynth(settings: PresetSettings) {
     () => () => {
       engine.current?.close()
       engine.current = null
-      sounds.current = []
     },
     [],
   )
@@ -51,15 +47,11 @@ function useDemoSynth(settings: PresetSettings) {
   const trigger = useCallback((note: Note) => {
     const { master, oscillators } = latest.current
     engine.current ??= new Engine(master.gain, forEngine(oscillators))
-    const hertz = Frequency.fromNote(note).hertz
-    sounds.current.push(
-      ...engine.current.play(hertz).map((sound) => Object.assign(sound, { note })),
-    )
+    engine.current.noteOn(note.toString(), Frequency.fromNote(note).hertz)
   }, [])
 
   const release = useCallback((note: Note) => {
-    for (const sound of sounds.current.filter((s) => note.equals(s.note))) sound.stop()
-    sounds.current = sounds.current.filter((s) => !note.equals(s.note))
+    engine.current?.noteOff(note.toString())
   }, [])
 
   return { trigger, release }

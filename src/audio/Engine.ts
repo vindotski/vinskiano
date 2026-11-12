@@ -1,9 +1,12 @@
 import Context, { type SynthContext } from './Context'
-import Oscillator, { type OscillatorOptions, type Sound } from './Oscillator'
+import Oscillator, { type OscillatorSettings, type Sound } from './Oscillator'
 import Oscilloscope from './Oscilloscope'
 
 /** What the engine needs to know about an oscillator (everything but the audio graph). */
-export type OscillatorConfig = Required<Omit<OscillatorOptions, 'context' | 'destination'>>
+export type OscillatorConfig = OscillatorSettings & { id: number }
+
+/** How fast the master volume follows its knob (a time constant, in seconds). */
+const GLIDE = 0.01
 
 /**
  * The Web Audio side of the synth: one AudioContext with a master gain, the oscillators
@@ -14,6 +17,8 @@ class Engine {
   readonly context: SynthContext
   readonly oscilloscope: Oscilloscope
   readonly oscillators: Oscillator[]
+  /** The notes held now, by key (e.g. the note's name): one sound per oscillator. */
+  private readonly held = new Map<string, Sound[]>()
 
   constructor(gain: number, oscillators: readonly OscillatorConfig[]) {
     this.context = Context.make()
@@ -27,32 +32,41 @@ class Engine {
   }
 
   setGain(gain: number): void {
-    this.context.master.gain.value = gain
+    this.context.master.gain.setTargetAtTime(gain, this.context.currentTime, GLIDE)
   }
 
-  /** Apply new settings to the oscillators with matching ids. */
+  /** Apply new settings to the oscillators with matching ids; held notes follow. */
   configure(oscillators: readonly OscillatorConfig[]): void {
-    for (const config of oscillators) {
-      const oscillator = this.oscillators.find((o) => o.id === config.id)
-      if (oscillator) {
-        oscillator.waveform = config.waveform
-        oscillator.pitch = config.pitch
-        oscillator.volume = config.volume
-      }
+    for (const { id, ...settings } of oscillators) {
+      this.oscillators.find((o) => o.id === id)?.set(settings)
     }
   }
 
-  /** Start one sound per oscillator at this frequency. Resumes the context if the browser suspended it. */
-  play(hertz: number): Sound[] {
-    this.context.resume().catch(ignore)
-    return this.oscillators.map((oscillator) => {
-      const sound = oscillator.emit(hertz)
-      sound.start()
-      return sound
-    })
+  /**
+   * Start a note: one sound per oscillator at this frequency. A key already held is let go
+   * first. Resumes the context if the browser suspended it.
+   */
+  noteOn(key: string, hertz: number): void {
+    if (this.context.state !== 'running') this.context.resume().catch(ignore)
+    this.noteOff(key)
+    this.held.set(
+      key,
+      this.oscillators.map((oscillator) => {
+        const sound = oscillator.emit(hertz)
+        sound.start()
+        return sound
+      }),
+    )
+  }
+
+  /** Let go of a note (nothing happens if it isn't held). */
+  noteOff(key: string): void {
+    for (const sound of this.held.get(key) ?? []) sound.stop()
+    this.held.delete(key)
   }
 
   close(): void {
+    this.held.clear()
     this.context.close().catch(ignore)
   }
 }

@@ -31,7 +31,7 @@ const Oscilloscope = ({ oscilloscope, className }: OscilloscopeProps) => {
       }
 
       const style = getComputedStyle(canvas)
-      const nodes = oscilloscope.update()
+      const samples = oscilloscope.update()
 
       context.fillStyle = style.backgroundColor
       context.fillRect(0, 0, width, height)
@@ -41,18 +41,13 @@ const Oscilloscope = ({ oscilloscope, className }: OscilloscopeProps) => {
       context.strokeStyle = style.color
       context.beginPath()
 
-      const sliceWidth = width / nodes.length
-      for (const [i, node] of nodes.entries()) {
-        const x = i * sliceWidth
-        const y = (node * height) / 2
-        if (i === 0) {
-          context.moveTo(x, y)
-        } else {
-          context.lineTo(x, y)
-        }
+      // Samples are -1..1; 0 (silence) is the middle line, positive is up.
+      const step = width / (samples.length - 1)
+      for (let i = 0; i < samples.length; i++) {
+        const y = ((1 - (samples[i] ?? 0)) * height) / 2
+        if (i === 0) context.moveTo(0, y)
+        else context.lineTo(i * step, y)
       }
-
-      context.lineTo(width, height / 2)
       context.stroke()
 
       frame = requestAnimationFrame(draw)
