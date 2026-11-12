@@ -4,9 +4,9 @@ import { PRESET_NAME_MAX, parsePresetName, parsePresetSettings, sameSettings } f
 const settings = {
   master: { gain: 0.5 },
   oscillators: [
-    { id: 1, waveform: 'sine', pitch: -12, volume: 0.5 },
-    { id: 2, waveform: 'square', pitch: 0, volume: 0 },
-    { id: 3, waveform: 'sawtooth', pitch: 24, volume: 1 },
+    { id: 1, waveform: 'sine', pitch: -12 },
+    { id: 2, waveform: 'square', pitch: 0, mix: 0 },
+    { id: 3, waveform: 'sawtooth', pitch: 24, mix: 1 },
   ],
 }
 
@@ -35,16 +35,40 @@ describe('parsePresetSettings', () => {
     ['unknown waveform', withOscillator({ waveform: 'custom' })],
     ['pitch beyond two octaves', withOscillator({ pitch: 25 })],
     ['fractional pitch', withOscillator({ pitch: 0.5 })],
-    ['negative volume', withOscillator({ volume: -0.1 })],
-    ['volume not finite', withOscillator({ volume: Number.NaN })],
+    ['negative mix', withOscillator({ mix: -0.1 }, 1)],
+    ['mix not finite', withOscillator({ mix: Number.NaN }, 2)],
+    ['no mix on oscillator 2', withOscillator({ mix: undefined }, 1)],
   ])('rejects %s', (_, value) => {
     expect(() => parsePresetSettings(value)).toThrow()
   })
+
+  test('oscillator 1 has no mix of its own (it gets the rest), so any is dropped', () => {
+    expect(parsePresetSettings(withOscillator({ mix: 0.5 }))).toEqual(settings)
+  })
+
+  test('reads presets saved before the mix (a volume each) as the same balance', () => {
+    const old = {
+      master: { gain: 0.5 },
+      oscillators: [
+        { id: 1, waveform: 'sine', pitch: -12, volume: 0.5 },
+        { id: 2, waveform: 'sine', pitch: 0, volume: 0.25 },
+        { id: 3, waveform: 'sine', pitch: 12, volume: 0.75 },
+      ],
+    }
+    const { oscillators } = parsePresetSettings(old)
+    expect(oscillators[0]).toEqual({ id: 1, waveform: 'sine', pitch: -12 })
+    // Levels 1/3, 1/6 and 1/2 of the whole: 2 takes a third of what 3 leaves, 3 takes half.
+    expect(oscillators[1]?.mix).toBeCloseTo(1 / 3)
+    expect(oscillators[2]?.mix).toBeCloseTo(1 / 2)
+  })
 })
 
-function withOscillator(change: Record<string, unknown>) {
-  const [first, ...rest] = settings.oscillators
-  return { ...settings, oscillators: [{ ...first, ...change }, ...rest] }
+/** The settings with one oscillator (by index) changed. */
+function withOscillator(change: Record<string, unknown>, index = 0) {
+  return {
+    ...settings,
+    oscillators: settings.oscillators.map((o, i) => (i === index ? { ...o, ...change } : o)),
+  }
 }
 
 describe('parsePresetName', () => {
@@ -81,8 +105,11 @@ describe('sameSettings', () => {
     ],
     ['a pitch', { ...parsed, oscillators: parsed.oscillators.map((o) => ({ ...o, pitch: 1 })) }],
     [
-      'a volume',
-      { ...parsed, oscillators: parsed.oscillators.map((o) => ({ ...o, volume: 0.3 })) },
+      'a mix',
+      {
+        ...parsed,
+        oscillators: parsed.oscillators.map((o) => (o.id === 1 ? o : { ...o, mix: 0.3 })),
+      },
     ],
   ])('is false when %s differs', (_, other) => {
     expect(sameSettings(parsed, parsePresetSettings(other))).toBe(false)

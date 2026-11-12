@@ -8,10 +8,11 @@ import {
   useRef,
   useState,
 } from 'react'
-import { Engine, type Oscilloscope, type Sound } from '../audio'
+import { Engine, type OscillatorConfig, type Oscilloscope, type Sound } from '../audio'
 import { Frequency, KEYBOARD_NOTES, type Note } from '../music'
 import type { MasterSettings, OscillatorSettings, OscillatorState } from '../types/synth'
 import { disableContextMenu } from '../utils/disable-context-menu'
+import { mixLevels } from './mix'
 import type { PresetSettings } from './preset'
 
 /** Everything the pages need from the synth: its state and how to play and change it. */
@@ -40,11 +41,23 @@ type PlayingSound = Sound & { note: Note }
 
 const INITIAL_MASTER: MasterSettings = { gain: 0.5 }
 
+/** A new sound: an equal mix of three sines an octave apart. */
 const INITIAL_OSCILLATORS: OscillatorState[] = [
-  { id: 1, waveform: 'sine', pitch: -12, volume: 0.5 },
-  { id: 2, waveform: 'sine', pitch: 0, volume: 0.25 },
-  { id: 3, waveform: 'sine', pitch: 12, volume: 0.75 },
+  { id: 1, waveform: 'sine', pitch: -12 },
+  { id: 2, waveform: 'sine', pitch: 0, mix: 0.5 },
+  { id: 3, waveform: 'sine', pitch: 12, mix: 1 / 3 },
 ]
+
+/** What the engine plays: each oscillator at its level in the mix. */
+const forEngine = (oscillators: readonly OscillatorState[]): OscillatorConfig[] => {
+  const levels = mixLevels(oscillators)
+  return oscillators.map(({ id, waveform, pitch }, index) => ({
+    id,
+    waveform,
+    pitch,
+    volume: levels[index] ?? 0,
+  }))
+}
 
 const SynthContext = createContext<Synth | null>(null)
 
@@ -66,7 +79,7 @@ export function SynthProvider({ children }: { children: ReactNode }) {
   // Browser-only setup. Settings are read once at creation and kept in sync by the effects below.
   // biome-ignore lint/correctness/useExhaustiveDependencies: create the engine once, on mount
   useEffect(() => {
-    const created = new Engine(master.gain, oscillators)
+    const created = new Engine(master.gain, forEngine(oscillators))
     playing.current = created
     setEngine(created)
     const enableContextMenu = disableContextMenu()
@@ -79,7 +92,7 @@ export function SynthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => engine?.setGain(master.gain), [engine, master.gain])
-  useEffect(() => engine?.configure(oscillators), [engine, oscillators])
+  useEffect(() => engine?.configure(forEngine(oscillators)), [engine, oscillators])
 
   const trigger = useCallback((note: Note) => {
     const engine = playing.current

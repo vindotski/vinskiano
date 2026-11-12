@@ -1,6 +1,6 @@
 # Vinskiano
 
-A browser-based subtractive synthesizer built on the Web Audio API. Today it has an 88-key keyboard (A0–C8) that scrolls, with a minimap, three oscillators (waveform, pitch, volume), a master gain and an oscilloscope. A TanStack Start app: pages are server-rendered by a Node server (Nitro), then hydrate; all sound happens in the browser. Visitors can save presets, which the server keeps in Postgres under a guest account (no sign-up).
+A browser-based subtractive synthesizer built on the Web Audio API. Today it has an 88-key keyboard (A0–C8) that scrolls, with a minimap, three oscillators (waveform, pitch, and a 3x Osc–style mix), a master gain and an oscilloscope. A TanStack Start app: pages are server-rendered by a Node server (Nitro), then hydrate; all sound happens in the browser. Visitors can save presets, which the server keeps in Postgres under a guest account (no sign-up).
 
 The project is being modernized step by step; see [MODERN_TOOLING.md](MODERN_TOOLING.md) for the playbook. This file describes the **current** state. Update it whenever the stack or a convention changes.
 
@@ -49,7 +49,8 @@ src/
   synth/       SynthProvider: owns the synth settings (state) and the audio Engine (created after mount); useSynth() for routes
                preset.ts (checks a preset's settings and name; shared by browser and server),
                presets.functions.ts (the server functions), usePresets (the browser side),
-               oscillators.ts (the oscillator ids)
+               oscillators.ts (the oscillator ids), mix.ts (the mix: oscillators 2 and 3 have a mix,
+               1 gets the rest, levels always add up to one; the engine plays levels)
   server/      Server-only: backend.server.ts (the kit, created on first use; database() runs migrations),
                guest.server.ts (the visitor's guest from the request), presets.server.ts (queries),
                schema.ts (Drizzle tables), migrations/ (numbered SQL), migrate.server.ts,

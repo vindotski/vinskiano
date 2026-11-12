@@ -27,7 +27,7 @@ const STEPS: Step[] = [
     icon: SlidersHorizontal,
     title: 'Shape the sound',
     description:
-      'Each of the three oscillators has its own waveform (sine, square, triangle or sawtooth), pitch (up to two octaves up or down) and volume. Layer them to build your tone.',
+      'Each of the three oscillators has its own waveform (sine, square, triangle or sawtooth), pitch (up to two octaves up or down) and share of the mix, which always adds up to 100%. Layer them to build your tone.',
   },
   {
     icon: KeyboardMusic,
