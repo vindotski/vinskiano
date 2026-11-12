@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react'
 import type { Oscilloscope as AudioOscilloscope } from '@/audio'
+import type { OscillatorId } from '@/synth/oscillators'
 import type { MasterSettings, OscillatorSettings, OscillatorState } from '@/types/synth'
 import VolumeKnob from './knobs/VolumeKnob'
 import Oscillator from './Oscillator'
+import OscillatorSelect from './OscillatorSelect'
 import Oscilloscope from './Oscilloscope'
 
 interface AppBarProps {
@@ -10,22 +12,32 @@ interface AppBarProps {
   start?: ReactNode
   /** Shown before the master section, e.g. the presets menu. */
   end?: ReactNode
-  oscillators: OscillatorState[]
+  /** Which oscillator the bar is about, and how to pick another. */
+  shownOscillator: OscillatorId
+  onShowOscillator: (id: OscillatorId) => void
+  /** The shown oscillator's controls; left out on a page that shows them in detail. */
+  oscillator?: OscillatorState | undefined
   onOscillatorChange: (id: number, settings: OscillatorSettings) => void
+  /** Shown after the oscillator, e.g. a link to its detail page. */
+  nav?: ReactNode
   master: MasterSettings
   onMasterChange: (settings: MasterSettings) => void
   oscilloscope: AudioOscilloscope | null
 }
 
 /**
- * Every synth control in one bar: the oscillators, then (at the right end) the `end` slot and the
- * master section (volume and the output's oscilloscope). Wraps onto a second row when space runs out.
+ * The synth's controls in one bar: a select for the oscillator it shows and that oscillator's
+ * strip, then (at the right end) the `end` slot and the master section (volume and the output's
+ * oscilloscope). Wraps onto a second row when space runs out.
  */
 const AppBar = ({
   start,
   end,
-  oscillators,
+  shownOscillator,
+  onShowOscillator,
+  oscillator,
   onOscillatorChange,
+  nav,
   master,
   onMasterChange,
   oscilloscope,
@@ -33,21 +45,21 @@ const AppBar = ({
   <header className="flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1 border-b bg-card px-2 py-2 short:py-1 md:gap-x-3 md:px-3 xl:gap-x-4">
     {start}
 
-    <section
-      aria-label="Oscillators"
-      className="flex flex-wrap items-center gap-x-1 gap-y-1 divide-x divide-border/60 md:gap-x-2 xl:gap-x-4 [&>*]:pr-1 md:[&>*]:pr-2 xl:[&>*]:pr-4 [&>*:last-child]:pr-0"
-    >
-      {oscillators.map((oscillator, index) => (
+    <section aria-label="Oscillators" className="flex items-center gap-1 md:gap-1.5 xl:gap-2">
+      <OscillatorSelect value={shownOscillator} onChange={onShowOscillator} />
+      {oscillator ? (
         <Oscillator
           key={oscillator.id}
           id={oscillator.id}
-          label={String(index + 1)}
+          label={String(oscillator.id)}
           waveform={oscillator.waveform}
           pitch={oscillator.pitch}
           volume={oscillator.volume}
           onChange={onOscillatorChange}
+          numbered={false}
         />
-      ))}
+      ) : null}
+      {nav}
     </section>
 
     <div className="ml-auto flex items-center gap-2 xl:gap-3">

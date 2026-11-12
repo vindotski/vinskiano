@@ -6,16 +6,16 @@ A three-oscillator synth that lives in your browser. Free and open source, no in
 
 <picture>
   <source srcset="src/assets/screenshots/app-dark-1280.webp" media="(prefers-color-scheme: dark)">
-  <img src="src/assets/screenshots/app-light-1280.webp" alt="The Vinskiano synth: three oscillators with volume, waveform and pitch controls, a master volume knob and an oscilloscope above a one-octave keyboard">
+  <img src="src/assets/screenshots/app-light-1280.webp" alt="The Vinskiano synth: a bar with an oscillator select, that oscillator's volume, waveform and pitch controls, a master volume knob and an oscilloscope, above a one-octave keyboard">
 </picture>
 
 ## What it does
 
-- **Three oscillators**, each with its own waveform (sine, square, triangle or sawtooth), pitch (up to two octaves up or down, in semitones) and volume. Layer them to build a tone.
+- **Three oscillators**, each with its own waveform (sine, square, triangle or sawtooth), pitch (up to two octaves up or down, in semitones) and volume. Layer them to build a tone. The bar shows one at a time (a select picks which), and each has its own page with larger controls.
 - **A 13-key keyboard**, C4 to C5. Play it with a mouse, by touch, or from the keyboard: Tab to a key and hold Space or Enter.
 - **A master volume knob and an oscilloscope** that draws what you hear.
 - **Presets:** save the sound you made under a name, and load it back later. No sign-up: your first save gives this browser a guest account (a cookie that lasts a year). Clearing cookies or using another browser starts a fresh list.
-- **One screen, any device.** Everything fits in a single bar above the keyboard, down to a small phone held sideways. Held upright, a phone turns the synth sideways so the keyboard stays wide.
+- **One screen, any device.** The controls fit in a single bar above the keyboard, down to a small phone held sideways. Held upright, a phone turns the synth sideways so the keyboard stays wide.
 - **Accessible:** every control has a name for screen readers and works by keyboard (knobs take arrows, Page Up/Down, Home/End). Animations respect reduced motion, and dark mode follows your system.
 
 Not there yet: envelopes, filters and modulation. Vinskiano is meant to grow into a full subtractive synth.

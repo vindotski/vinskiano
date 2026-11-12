@@ -1,4 +1,4 @@
-import { expect, instrumentWebAudio, openApp, test } from './fixtures'
+import { expect, instrumentWebAudio, openApp, showOscillator, test } from './fixtures'
 
 test.beforeEach(async ({ page }) => {
   await openApp(page)
@@ -13,6 +13,7 @@ test('knobs are named sliders with readable values', async ({ page }) => {
     'aria-valuetext',
     '-12',
   )
+  await showOscillator(page, 3)
   await expect(page.getByRole('slider', { name: 'Oscillator 3 pitch' })).toHaveAttribute(
     'aria-valuetext',
     '+12',
@@ -20,6 +21,7 @@ test('knobs are named sliders with readable values', async ({ page }) => {
 })
 
 test('knobs work with the keyboard', async ({ page }) => {
+  await showOscillator(page, 2)
   const pitch = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
   await pitch.focus()
 
@@ -32,7 +34,9 @@ test('knobs work with the keyboard', async ({ page }) => {
   await expect(pitch).toHaveValue('-24')
   await page.keyboard.press('End')
   await expect(pitch).toHaveValue('24')
-  await expect(page.locator('.oscillator').nth(1).locator('.knob-text').last()).toHaveText('24')
+  await expect(
+    page.getByRole('group', { name: 'Oscillator 2', exact: true }).locator('.knob-text').last(),
+  ).toHaveText('24')
 })
 
 test('the focused knob shows a focus ring when reached by keyboard', async ({ page }) => {
@@ -64,6 +68,7 @@ async function turnKnob(page: import('@playwright/test').Page, name: string, deg
 }
 
 test('dragging turns the knob by angle over a 270° sweep', async ({ page }) => {
+  await showOscillator(page, 2)
   const pitch = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
   // 12 o'clock is the middle (0); a quarter turn is 90 / 270 of the -24..24 range.
   await turnKnob(page, 'Oscillator 2 pitch', [45, 90])
@@ -95,6 +100,7 @@ const pointerAngle = (page: import('@playwright/test').Page, name: string) =>
 test('the drawing eases to a new value while the value itself changes at once', async ({
   page,
 }) => {
+  await showOscillator(page, 2)
   const pitch = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
   await pitch.focus()
   await page.keyboard.press('End')
@@ -110,6 +116,7 @@ test('knobs still draw their value if Motion’s lazy features never load', asyn
   await page.addInitScript(instrumentWebAudio)
   await page.route('**/motion-features-*.js', (route) => route.abort())
   await openApp(page)
+  await showOscillator(page, 2)
   const pitch = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
   await pitch.focus()
   await page.keyboard.press('End')
@@ -119,7 +126,8 @@ test('knobs still draw their value if Motion’s lazy features never load', asyn
 
 test('each knob is announced with its name once', async ({ page }) => {
   // Regression: the name used to be read twice ("Oscillator 1 volume Oscillator 1 volume").
-  for (const name of ['Oscillator 1 volume', 'Oscillator 2 pitch', 'Master volume']) {
+  await showOscillator(page, 2)
+  for (const name of ['Oscillator 2 volume', 'Oscillator 2 pitch', 'Master volume']) {
     await expect(page.getByRole('slider', { name, exact: true })).toHaveAccessibleName(name)
   }
 })

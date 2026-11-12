@@ -36,17 +36,20 @@ Before editing files for a substantial task:
 src/
   music/       Pure music theory: Note, Octave, Frequency, Scale, ScaleBuilder, ScaleStrategy, KEYBOARD_NOTES
   audio/       Web Audio: Engine (context + oscillators + oscilloscope), Context, Oscillator, Oscilloscope
-  components/  React UI: AppBar (oscillator strips + presets + master knob + oscilloscope), Oscillator, WaveformSelect, PresetsMenu, Piano, PianoKey, knobs/, toolbars/, site/ (header, footer)
+  components/  React UI: AppBar (oscillator select + the shown oscillator's strip + presets + master knob + oscilloscope), Oscillator, OscillatorSelect, WaveformSelect, PresetsMenu, Piano, PianoKey, knobs/, toolbars/, site/ (header, footer)
   routes/      File-based routes, two sections:
                  __root      HTML document (shellComponent + head()), 404 (NotFound brings the site chrome)
                  _site.tsx   pathless site layout (header, scrolling page, footer); _site/index.tsx = /
                  app.tsx     /app layout: LazyMotion + SynthProvider + fixed viewport frame + AppBar
-                 app/index.tsx = /app: the keyboard (the whole synth is one screen)
-                 oscillators.tsx  301 redirect from the old /oscillators URL to /app
-  pages/       Presentational pages the routes render: Home (site), PianoRoll (keyboard), NotFound
+                 app/index.tsx = /app: the keyboard; `?osc=2` says which oscillator the bar shows
+                 app/oscillators.$id.tsx = /app/oscillators/1..3: one oscillator in detail, no keyboard
+                 app/oscillators.index.tsx  /app/oscillators → /app/oscillators/1
+                 oscillators.tsx  301 redirect from the old /oscillators URL to /app/oscillators/1
+  pages/       Presentational pages the routes render: Home (site), PianoRoll (keyboard), OscillatorDetail, NotFound
   synth/       SynthProvider: owns the synth settings (state) and the audio Engine (created after mount); useSynth() for routes
                preset.ts (checks a preset's settings and name; shared by browser and server),
-               presets.functions.ts (the server functions), usePresets (the browser side)
+               presets.functions.ts (the server functions), usePresets (the browser side),
+               oscillators.ts (the oscillator ids; reads one from a URL)
   server/      Server-only: backend.server.ts (the kit, created on first use; database() runs migrations),
                guest.server.ts (the visitor's guest from the request), presets.server.ts (queries),
                schema.ts (Drizzle tables), migrations/ (numbered SQL), migrate.server.ts,
@@ -122,6 +125,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 
 - Add a page by adding a file in `src/routes/` (`createFileRoute('/path')`); `pnpm dev`/`pnpm build` regenerate `routeTree.gen.ts`. Commit the regenerated file with the route.
 - Document-level tags go in `__root.tsx`'s `head()`. `HeadContent` keeps one meta per `name`, so tags that share a name (the light/dark `theme-color` pair) are written directly in `RootDocument`.
+- **Which oscillator is shown lives in the URL**, not in state: `?osc=N` on the keyboard (none for 1), the `$id` on its own page. `SynthBar` in `routes/app.tsx` reads both; switching navigates with `replace: true` and `viewTransition: false` (no history entry, no crossfade). Only the view changes: all three oscillators always sound. UI choices worth keeping on reload or in a link belong in the URL the same way.
 - Route components are thin: read state with `useSynth()` and render a component from `pages/` or `components/`. Components stay presentational (props in, callbacks out); router links are passed in as slots (e.g. `AppBar`'s `start`), so components render without a router in unit tests.
 - After visible UI changes in the app, run `pnpm screenshots` so the home page shows the current app.
 - **Rendering:** the home page (`/`) is **prerendered at build time by Nitro** (`nitro({ prerender: { routes: ['/'] } })` in `vite.config.ts`) and served as a static file; everything else is server-rendered per request. Add a page to `routes` there only if it has no per-request data. Use Nitro's prerender, not Start's `prerender` option: Start writes its HTML after Nitro has listed the public files, so Nitro never served it. `e2e/site.spec.ts` checks `/` has `etag`/`last-modified` and `/app` doesn't.
@@ -190,7 +194,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - Piano keys use their own tokens (`bg-key-white`, `bg-key-black`, …) so they stay ivory/ebony in dark mode.
 - `short:` is a custom variant for short viewports (≤ 500px tall, e.g. a phone in landscape): use it to tighten spacing so pages fit without scrolling.
 - **Upright phones get the app rotated** (`data-app-frame` in `routes/app.tsx`). Anything that reads screen coordinates must convert them: popovers render inside the frame (React Aria's `PortalProvider`) and the select places its popover from layout offsets when the frame is rotated (`placeInRotatedContainer` in `ui/select.tsx`); the knob maps the pointer into its own SVG coordinates (`getScreenCTM()`). New overlays or pointer math need the same care; `e2e/orientation.spec.ts` covers both orientations.
-- **The app bar must stay on one row** down to 667 px wide (a small phone in landscape); `e2e/app.spec.ts` checks four sizes. Compact sizing is the default, `md:` and `xl:` add room. Prefer single compact controls (like the waveform dropdown) over rows of buttons.
+- **The app bar must stay on one row** down to 667 px wide (a small phone in landscape); `e2e/app.spec.ts` checks four sizes. Compact sizing is the default, `md:` and `xl:` add room. Prefer single compact controls (like the waveform and oscillator dropdowns) over rows of buttons; the bar shows one oscillator at a time, so new per-oscillator controls go on its page first.
 - Some elements keep plain class names as test hooks (`piano-key`, `piano-key--active`, `oscillator`, `oscilloscope`, `knob`…). Keep them when restyling; prefer roles and names for new tests.
 - Import `buttonVariants` from `@/components/ui/button-variants` when you only need the look (e.g. on a `Link`): importing `button.tsx` pulls React Aria's Button into the bundle.
 
@@ -232,7 +236,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - **The agent commits after the user confirms the message** (since 2026-11-08). It finishes a step, verifies it, proposes the message (see the `commit-message` skill), and runs `git commit` only once the user says so, with a `Co-Authored-By` trailer. It never runs `git push`, `git tag` or anything that rewrites history.
 - **One step = one commit.** The next step starts only when the user says so.
 - Messages follow [Conventional Commits](https://www.conventionalcommits.org/).
-- Branches: agent feature work happens on `claude/…` branches, merged into `dev`; `main` is what's released.
+- **Branches:** `dev` is the default branch, where development happens; `main` is production (what's released and published). Pull requests target `dev`, and `dev` is merged into `main` to ship. Agent feature work happens on `claude/…` branches.
 
 ## Verifying work
 

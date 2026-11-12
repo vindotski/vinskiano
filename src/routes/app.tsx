@@ -1,10 +1,20 @@
-import { createFileRoute, Link, Outlet } from '@tanstack/react-router'
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  useNavigate,
+  useParams,
+  useSearch,
+} from '@tanstack/react-router'
+import { PianoIcon, SlidersHorizontalIcon } from 'lucide-react'
 import { LazyMotion, MotionConfig } from 'motion/react'
 import { useRef } from 'react'
 import { UNSAFE_PortalProvider as PortalProvider } from 'react-aria'
 import AppBar from '../components/AppBar'
 import Logo from '../components/icons/Logo'
 import PresetsMenu from '../components/PresetsMenu'
+import { buttonVariants } from '../components/ui/button-variants'
+import { type OscillatorId, toOscillatorId } from '../synth/oscillators'
 import { SynthProvider, useSynth } from '../synth/SynthProvider'
 import { usePresets } from '../synth/usePresets'
 
@@ -48,10 +58,38 @@ function AppLayout() {
   )
 }
 
-/** The app bar, wired to the synth and the visitor's presets. */
+/** The app bar, wired to the synth, the visitor's presets and the URL (which oscillator it shows). */
 function SynthBar() {
   const synth = useSynth()
   const presets = usePresets()
+  const navigate = useNavigate()
+  // On an oscillator's own page (/app/oscillators/2) the bar is about that one; on the keyboard,
+  // `?osc=2` says which it shows.
+  const detail = toOscillatorId(useParams({ strict: false }).id)
+  const search = toOscillatorId(useSearch({ strict: false }).osc)
+  const shown = detail ?? search ?? 1
+  // Switching only changes the bar (or which oscillator the page shows): no crossfade, and no
+  // history entry per switch.
+  const show = (osc: OscillatorId) =>
+    detail
+      ? navigate({
+          to: '/app/oscillators/$id',
+          params: { id: String(osc) },
+          replace: true,
+          viewTransition: false,
+        })
+      : navigate({
+          to: '/app',
+          search: osc === 1 ? {} : { osc },
+          replace: true,
+          resetScroll: false,
+          viewTransition: false,
+        })
+  const linkStyle = buttonVariants({
+    variant: 'ghost',
+    size: 'icon-sm',
+    className: 'size-7 md:size-8',
+  })
   return (
     <AppBar
       start={
@@ -79,8 +117,32 @@ function SynthBar() {
           onDelete={presets.remove}
         />
       }
-      oscillators={synth.oscillators}
+      shownOscillator={shown}
+      onShowOscillator={show}
+      // Its own page shows the oscillator in detail, so the bar leaves its strip out.
+      oscillator={detail ? undefined : synth.oscillators.find((o) => o.id === shown)}
       onOscillatorChange={synth.updateOscillator}
+      nav={
+        detail ? (
+          <Link
+            to="/app"
+            search={shown === 1 ? {} : { osc: shown }}
+            aria-label="Back to the keyboard"
+            className={linkStyle}
+          >
+            <PianoIcon className="size-5 text-primary" />
+          </Link>
+        ) : (
+          <Link
+            to="/app/oscillators/$id"
+            params={{ id: String(shown) }}
+            aria-label={`Oscillator ${shown} in detail`}
+            className={linkStyle}
+          >
+            <SlidersHorizontalIcon className="size-5 text-primary" />
+          </Link>
+        )
+      }
       master={synth.master}
       onMasterChange={synth.updateMaster}
       oscilloscope={synth.oscilloscope}

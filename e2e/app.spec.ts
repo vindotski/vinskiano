@@ -1,8 +1,12 @@
-import { expect, openApp, pageTransitionDone, test } from './fixtures'
+import { expect, openApp, pageTransitionDone, showOscillator, test } from './fixtures'
 
-test('every control is on one screen: oscillators, master and keyboard', async ({ page }) => {
+test('every control is on one screen: an oscillator, master and keyboard', async ({ page }) => {
   await openApp(page)
+  // The bar shows one oscillator at a time, with a select for the others.
+  await expect(page.getByRole('button', { name: /Shown oscillator/ })).toBeVisible()
+  await expect(page.getByRole('group', { name: /^Oscillator \d$/ })).toHaveCount(1)
   for (const n of [1, 2, 3]) {
+    await showOscillator(page, n)
     const oscillator = page.getByRole('group', { name: `Oscillator ${n}`, exact: true })
     await expect(oscillator.getByRole('slider', { name: `Oscillator ${n} volume` })).toBeVisible()
     await expect(oscillator.getByRole('button', { name: `Oscillator ${n} waveform` })).toBeVisible()

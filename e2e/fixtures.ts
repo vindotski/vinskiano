@@ -106,8 +106,21 @@ export async function pageTransitionDone(page: Page) {
   await page.waitForFunction(() => !document.activeViewTransition)
 }
 
+/**
+ * Make the app bar show an oscillator's controls (it shows one at a time), with its select, as a
+ * person would. Does nothing if that oscillator is already shown.
+ */
+export async function showOscillator(page: Page, oscillator: number) {
+  const strip = page.getByRole('group', { name: `Oscillator ${oscillator}`, exact: true })
+  if (await strip.isVisible()) return
+  await page.getByRole('button', { name: /Shown oscillator/ }).click()
+  await page.getByRole('option', { name: `Oscillator ${oscillator}` }).click()
+  await expect(strip).toBeVisible()
+}
+
 /** Pick a waveform from an oscillator's waveform dropdown. */
 export async function chooseWaveform(page: Page, oscillator: number, waveform: string) {
+  await showOscillator(page, oscillator)
   await page.getByRole('button', { name: `Oscillator ${oscillator} waveform` }).click()
   await page.getByRole('option', { name: waveform }).click()
 }
