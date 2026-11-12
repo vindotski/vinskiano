@@ -89,6 +89,10 @@ describe('parsePresetName', () => {
     expect(parsePresetName('\u2066Lead\u2069 one')).toBe('Lead one') // bidi isolates
   })
 
+  test('leaves one space where an invisible character sat between two', () => {
+    expect(parsePresetName('Warm \u200B bass')).toBe('Warm bass')
+  })
+
   test('counts the length after cleaning', () => {
     const padded = `${'a'.repeat(PRESET_NAME_MAX)}${'\u200B'.repeat(10)}`
     expect(parsePresetName(padded)).toHaveLength(PRESET_NAME_MAX)

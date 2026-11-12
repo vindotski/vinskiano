@@ -91,8 +91,10 @@ export function parsePresetName(value: unknown): string {
     typeof value === 'string'
       ? value
           .normalize('NFC')
-          .replace(/\s+/g, ' ')
-          .replace(/[\p{Cc}\p{Cf}]/gu, '')
+          // Invisible characters go first, so the spaces around one collapse into one.
+          .replace(/\p{Cf}/gu, '')
+          .replace(/\s+/g, ' ') // line breaks and tabs (control characters) become spaces
+          .replace(/\p{Cc}/gu, '')
           .trim()
       : ''
   if (name.length === 0 || name.length > PRESET_NAME_MAX) {
