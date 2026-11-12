@@ -1,4 +1,5 @@
-import { expect, instrumentWebAudio, openApp, openSound, test } from './fixtures'
+import type { Page } from '@playwright/test'
+import { expect, openApp, openSound, test } from './fixtures'
 
 // Oscillator knobs live on each oscillator's page (/app/oscillators/N); master is in the bar.
 
@@ -53,7 +54,7 @@ test('the focused knob shows a focus ring when reached by keyboard', async ({ pa
 })
 
 /** Drag a knob's dial from 12 o'clock to an angle (degrees, clockwise). */
-async function turnKnob(page: import('@playwright/test').Page, name: string, degrees: number[]) {
+async function turnKnob(page: Page, name: string, degrees: number[]) {
   const dial = page
     .getByRole('slider', { name })
     .locator('xpath=ancestor::div[contains(@class, "knob")]')
@@ -92,7 +93,7 @@ test('dragging through the bottom dead zone does not jump to the other end', asy
 })
 
 /** Where the knob's pointer dot is drawn, as a clock angle in degrees (0 = 12 o'clock). */
-const pointerAngle = (page: import('@playwright/test').Page, name: string) =>
+const pointerAngle = (page: Page, name: string) =>
   page
     .locator('.knob')
     .filter({ has: page.getByRole('slider', { name }) })
@@ -115,20 +116,6 @@ test('the drawing eases to a new value while the value itself changes at once', 
   await expect.poll(() => pointerAngle(page, 'Oscillator 2 pitch')).toBe(135) // 4:30
   await page.keyboard.press('Home')
   await expect.poll(() => pointerAngle(page, 'Oscillator 2 pitch')).toBe(-135) // 7:30
-})
-
-test('knobs still draw their value if Motion’s lazy features never load', async ({ browser }) => {
-  // Its own page: the aborted chunk logs a console error, which the shared fixture would fail.
-  const page = await browser.newPage()
-  await page.addInitScript(instrumentWebAudio)
-  await page.route('**/motion-features-*.js', (route) => route.abort())
-  await openApp(page)
-  await openSound(page)
-  const pitch = page.getByRole('slider', { name: 'Oscillator 2 pitch' })
-  await pitch.focus()
-  await page.keyboard.press('End')
-  await expect.poll(() => pointerAngle(page, 'Oscillator 2 pitch')).toBe(135)
-  await page.close()
 })
 
 test('each knob is announced with its name once', async ({ page }) => {

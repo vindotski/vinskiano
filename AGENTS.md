@@ -26,7 +26,7 @@ Before editing files for a substantial task:
 - Vitest for unit tests (config in `vite.config.ts`), Playwright for browser tests (`playwright.config.ts`: Chromium, Firefox and WebKit, plus phones in both orientations)
 - pnpm (pinned via `packageManager`), Node 26 (`.nvmrc`)
 - React Aria hooks (`react-aria`, `react-stately`) for accessible controls; the rotary `Knob` is built on its slider hooks
-- Motion (motion.dev) for animations, loaded lazily (see Animation)
+- Motion (motion.dev) for the knobs' spring, in the app only (see Animation); simple transitions are CSS
 - Guest accounts and the app's Postgres through Spotcraft's backend kit (`@spotcraft/kit`: Better Auth's anonymous plugin, server-only), with Drizzle ORM for queries; Postgres 18, locally from `pnpm exec spotcraft dev start` (see Server data)
 - Tailwind CSS v4 (`@tailwindcss/vite`) with a shadcn/ui theme (`components.json`: style aria-luma, preset b51FfLcNG; tokens in `src/styles.css`). Dark mode follows `prefers-color-scheme` via the `dark:` variant.
 
@@ -34,34 +34,34 @@ Before editing files for a substantial task:
 
 ```
 src/
-  music/       Pure music theory: Note, Octave, Frequency, Scale, ScaleBuilder, ScaleStrategy, KEYBOARD_NOTES (88, A0–C8), WHITE_NOTES, MIDDLE_C
+  music/       Pure music theory: Note (with its MIDI number), NOTE_NAMES, Frequency (equal temperament from A4 = 440 Hz), KEYBOARD_NOTES (88, A0–C8), WHITE_NOTES, MIDDLE_C, the typing keyboard
   audio/       Web Audio: Engine (context + oscillators + oscilloscope), Context (master gain → limiter → speakers), Oscillator (a gain per note, for click-free fades), Oscilloscope
-  components/  React UI: AppBar (left: master knob + oscilloscope; right: an `end` slot with the presets dropdown and the Sound/keyboard link), OscillatorRow (one row of the oscillator rack), PresetsMenu, Piano, PianoKey, KeyboardMinimap, knobs/, toolbars/, site/ (header, footer), home/ (the home page's demo: PlaySection, and DemoPlayer, its lazily loaded keyboard)
+  components/  React UI: AppBar (left: master knob + oscilloscope; right: an `end` slot with the presets dropdown and the Sound/keyboard link), OscillatorRow (one row of the oscillator rack), PresetsMenu, Piano, PianoKey, KeyboardMinimap, knobs/, site/ (header, footer), home/ (the home page's demo: PlaySection, and DemoPlayer, its lazily loaded keyboard)
   routes/      File-based routes, two sections:
                  __root      HTML document (shellComponent + head()), 404 (NotFound brings the site chrome)
                  _site.tsx   pathless site layout (header, scrolling page, footer); _site/index.tsx = /
-                 app.tsx     /app layout: LazyMotion + SynthProvider + fixed viewport frame + AppBar
+                 app.tsx     /app layout: MotionConfig + SynthProvider + fixed viewport frame + AppBar
                  app/index.tsx = /app: the keyboard
                  app/_sound.tsx  pathless layout of the sound pages: a tab bar (nav "Sound") over the page, no keyboard
                  app/_sound/oscillators.tsx = /app/oscillators: the oscillator rack (all three)
                  oscillators.tsx  301 redirect from the old /oscillators URL to /app/oscillators
   pages/       Presentational pages the routes render: Home (site), PianoRoll (minimap + scrolling keyboard), Oscillators (the rack), NotFound
-  synth/       SynthProvider: owns the synth settings (state) and the audio Engine (created after mount); useSynth() for routes
+  synth/       SynthProvider: owns the synth settings (state) and the audio Engine (created after mount); useSynthActions() (stable: play, change) and useSynth() (state too) for routes
                preset.ts (checks a preset's settings and name; shared by browser and server),
                presets.functions.ts (the server functions), usePresets (the browser side),
                factory.ts (sounds that come with the app; INIT is a new sound), engine-settings.ts (settings → what the engine plays),
                oscillators.ts (the oscillator ids), mix.ts (the mix: oscillators 2 and 3 have a mix,
                1 gets the rest, levels always add up to one; the engine plays levels)
-  server/      Server-only: backend.server.ts (the kit, created on first use; database() runs migrations),
+  server/      Server-only: backend.server.ts (the kit, one per process; database() runs migrations),
                guest.server.ts (the visitor's guest from the request), presets.server.ts (queries),
-               schema.ts (Drizzle tables), migrations/ (numbered SQL), migrate.server.ts,
-               client-address.ts, startup.ts (Nitro plugin: checks the settings at start)
+               schema.ts (Drizzle tables), migrations/ (numbered SQL modules), migrate.server.ts,
+               client-address.ts, public-error.ts, startup.ts (Nitro plugin: settings, migrations)
   types/       Shared app types (synth.ts): plain settings data, no audio nodes
   utils/       Browser helpers that return a cleanup (context menu)
   router.tsx   getRouter() (called per request on the server, once in the browser) and type registration
   routeTree.gen.ts  GENERATED by Start from src/routes; committed, never edit by hand
   styles.css   Tailwind + theme; linked from __root via `?url`
-public/        Static assets served as-is (favicon, manifest, icons)
+public/        Static assets served as-is (favicon.svg/.ico, manifest, icons, robots.txt, sitemap.xml); each gets a one-day cache rule by name in vite.config.ts
 scripts/       Node scripts run with type stripping (own tsconfig with Node types), e.g. capture-screenshots.ts
 vite.config.ts   Start, Nitro, Tailwind and React plugins
 vitest.config.ts Unit tests, deliberately without the Start/Nitro plugins
@@ -120,7 +120,8 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - **No polyfills.** Vite only lowers syntax, it doesn't add polyfills, and nothing we use needs one at this floor. Before adding a browser API, check it against the floor (MDN/Baseline); if it's newer, feature-detect it and let older browsers do without (like View Transitions, Safari 18 / Firefox 144: older browsers switch pages instantly).
 - **Browser tests run in Chromium, Firefox and WebKit** (see Tests); that's the check that a change works beyond Chrome.
 - **Static files are compressed at build time** (Nitro `compressPublicAssets`: gzip and brotli, chosen by `Accept-Encoding`). Hashed `/assets/` are cached for a year. Pages rendered per request (`/app`) are not compressed by Nitro; a reverse proxy or CDN in front can do that.
-- **Measure before optimizing:** Lighthouse (mobile) on `/` and `/app`, median of several runs. Install it pinned in a scratch directory, never as a project dependency.
+- **Measure before optimizing:** Lighthouse (mobile) on `/` and `/app`, median of several runs, and the gzip size of each page's initial JS (the scripts its HTML loads). Install Lighthouse pinned in a scratch directory, never as a project dependency. A change that doesn't measurably help is reverted (lazy-loading the presets popover saved 3 kB on `/app` and cost a delay on a phone's first tap, so it isn't done).
+- **Render cost:** the keyboard (88 keys) must not re-render on knob turns, scrolls or state it doesn't show. Read only `useSynthActions()` where the sound itself isn't shown; `Piano`, `PianoKey`, the minimap's keys and the oscillator rows are `memo`ized, so callbacks passed to them must be stable (`useCallback`, or a ref for the latest). Anything per frame (the oscilloscope) reads layout and styles only when they change and allocates nothing.
 - **Web Audio stays hand-written; no Tone.js (decided 2026-11).** Tone.js is good at scheduling, envelopes, effects and polyphony, but it would add a large bundle and an unmaintained shim (`standardized-audio-context`), replace a small tested `Engine`, and needs care with SSR. The planned features map to native nodes: envelopes to `GainNode` automation, filters to `BiquadFilterNode`, LFOs to an `OscillatorNode` driving an `AudioParam`. Revisit if sequencing or many effects arrive. Re-checked (2026-11-12) against the whole 3x Osc parity list: still no; see `docs/roadmap.md`.
 - **Parity target: FL Studio's 3x Osc plus the channel settings around it** (`docs/parity.md`). A new sound feature takes FL's behaviour and ranges from there; update its row when it lands.
 
@@ -132,7 +133,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - Route components are thin: read state with `useSynth()` and render a component from `pages/` or `components/`. Components stay presentational (props in, callbacks out); router links are passed in as slots (e.g. `AppBar`'s `start`), so components render without a router in unit tests.
 - After visible UI changes in the app, run `pnpm screenshots` so the home page shows the current app.
 - **Rendering:** the home page (`/`) is **prerendered at build time by Nitro** (`nitro({ prerender: { routes: ['/'] } })` in `vite.config.ts`) and served as a static file; everything else is server-rendered per request. Add a page to `routes` there only if it has no per-request data. Use Nitro's prerender, not Start's `prerender` option: Start writes its HTML after Nitro has listed the public files, so Nitro never served it. `e2e/site.spec.ts` checks `/` has `etag`/`last-modified` and `/app` doesn't.
-- **Two sections:** the site (`_site`) is a normal scrolling website; the app (`/app`) owns the synth (`SynthProvider`) and Motion. The one exception is the home page's demo: `components/home/DemoPlayer` (the keyboard, the `Engine` and Motion) is a lazy chunk that `PlaySection` loads only once the page is idle or the demo is near view, and it creates the `AudioContext` with the first note played, not before. Nothing else on the site imports audio code or Motion. `e2e/site.spec.ts` checks that `/` creates no `AudioContext` until a demo key is played.
+- **Two sections:** the site (`_site`) is a normal scrolling website; the app (`/app`) owns the synth (`SynthProvider`) and Motion. The one exception is the home page's demo: `components/home/DemoPlayer` (the keyboard and the `Engine`) is a lazy chunk that `PlaySection` loads only once the page is idle or the demo is near view, and it creates the `AudioContext` with the first note played, not before. Nothing else on the site imports audio code or Motion. `e2e/site.spec.ts` checks that `/` creates no `AudioContext` until a demo key is played.
 - Use `Link` from `@tanstack/react-router`; it sets the `active` class itself (use `activeOptions={{ exact: true }}` for `/`).
 - TanStack ships version-matched agent skills (`react-router`, `react-start`), linked into `.claude/skills/` by pnpm (see `permissions` in `pnpm-workspace.yaml`). Read them before changing routing or Start setup.
 
@@ -148,19 +149,22 @@ pnpm fix        # Biome: apply formatting and safe fixes
 
 - **The only server-side data is presets**, in the `presets` table, owned by a guest in `auth.users`. Guests come from Spotcraft's backend kit: a visitor gets one on their first save, kept by an httpOnly cookie for a year. There are no sign-ups or auth routes.
 - **Server-only code lives in `src/server/`** (`*.server.ts`, which Start keeps out of the browser bundle). The browser reaches it only through server functions (`createServerFn` in `*.functions.ts`), whose handlers import the server modules; the build strips them from the client. The kit's browser export throws, so a leak fails loudly.
-- **Read with `currentGuestId()`, which never creates a guest; write with `guestId()`, which does.** Creating guests on reads would make one per first request, favicon and crawler. `guestId()` answers 429 with `retry-after` past the kit's limit on new guests (30 per client address per 10 minutes). The client address is the **last** `X-Forwarded-For` entry, the one Spotcraft's Caddy adds; it replaces whatever the client sent.
+- **Read with `currentGuestId()`, which never creates a guest; write with `guestId()`, which does.** Creating guests on reads would make one per first request, favicon and crawler. `guestId()` answers 429 with `retry-after` past the kit's limit on new guests (30 per client address per 10 minutes). The client address is the **last** `X-Forwarded-For` entry, the one Spotcraft's Caddy adds; it replaces whatever the client sent. An IPv6 address counts as its /64 (one household or phone gets a whole /64).
 - **The user id comes from the session, never from the request,** and every query filters by it. Check all input on the server (`parsePresetSettings`, `parsePresetName` in `synth/preset.ts`), and keep only known fields. Responses that depend on the visitor are `cache-control: private, no-store`.
 - **Preset settings must keep loading forever** (full rules in `docs/roadmap.md#preset-format`): physical units, never knob positions; a new field is optional with a default that sounds like before; `version` changes only on a breaking change, which needs a migration and a fixture that keeps loading; keep existing names.
+- **Errors a visitor sees are `PublicError`s** (`server/public-error.ts`: a message for them and an HTTP status): bad input 400 (wrap validators in `badRequest`), the preset limit 409, the guest limit 429. Server functions take the `publicErrors` middleware (`synth/presets.functions.ts`), which sets that status and turns any other error into a logged, plain 500 "Something went wrong; try again": a Postgres message can name an address or a constraint. (Start sends only an error's message, and answers an error thrown in a function with the response's status, not `error.status`.)
+- **Preset names are cleaned before they're checked** (`parsePresetName`): NFC, whitespace runs made one space, control and format characters (zero-width, bidi) removed, trimmed.
+- **Security headers, caching and the body limit are the server's own,** so they hold behind any proxy: Nitro `routeRules` in `vite.config.ts` (a CSP, no framing, `nosniff`, HSTS, referrer and permissions policies on every response; pages `no-cache`; files in `public/` a day), and request middleware in `src/start.ts` (bodies over 16 KB get 413, unknown length 411). Listing request middleware replaces Start's default CSRF check, so `start.ts` lists `createCsrfMiddleware` itself; keep it first. A new inline script, external host or embed needs the CSP changed. `e2e/security.spec.ts` covers all of it.
 - **Start's CSRF middleware** guards server functions (it checks `Sec-Fetch-Site`, which every browser at our floor sends), so no `X-Forwarded-Proto` handling is needed behind the proxy.
-- **Migrations:** numbered SQL files in `src/server/migrations/` (`0002_….sql`), for tables in `public` only. They **only add** (never drop or rename) and run once per server process on first use (`database()`), in one transaction under an advisory lock. Vite inlines them (`import.meta.glob` with `?raw`), so nothing is read from disk. Keep `schema.ts` matching them. Never change `auth.*`: Spotcraft owns it.
-- **Bundling gotchas:** the kit reads its own migrations from files next to it at import, so a Nitro `compiled` hook in `vite.config.ts` copies them next to the bundled kit (unbundling it makes Nitro copy all of `node_modules`). Nitro plugins (`startup.ts`) are bundled by Nitro, not Vite: no `import.meta.glob` or other Vite features there.
+- **Migrations:** numbered modules in `src/server/migrations/` (`0002_name.ts`, default-exporting the SQL), listed in order in `migrations/index.ts`, for tables in `public` only. Modules, not `.sql` files, because the startup plugin runs them and Nitro bundles it without Vite's `?raw`/`import.meta.glob`. They **only add** (never drop or rename) and run in one transaction under an advisory lock, with a 5 s `lock_timeout`: at start in production (`startup.ts`), on first use (`database()`) in dev. A migration numbered below one the database already has is refused (renumber it). Keep `schema.ts` matching them. Never change `auth.*`: Spotcraft owns it.
+- **Bundling gotchas:** the kit reads its own migrations from files next to it at import, so a Nitro `compiled` hook in `vite.config.ts` copies them next to the bundled kit (unbundling it makes Nitro copy all of `node_modules`). Nitro plugins (`startup.ts`) are bundled by Nitro, not Vite: no `import.meta.glob` or other Vite features there. Code they share with the app is bundled twice, so `backend.server.ts` keeps its one backend on `globalThis`.
 - **Tests:** database unit tests run against the local stack (Vitest loads all of `.env`) and are skipped without `DATABASE_URL`. Browser tests need the local stack too; preset tests call `asNewVisitor(page)` (its own `X-Forwarded-For`), so a run stays under the limit on new guests.
 - `@types/pg` is needed: `pg` ships no types, and without them Drizzle's raw `execute()` rows are silently `any`.
 
 ## Deploy (`docs/deploy.md`)
 
 - **Target: [Spotcraft](https://spotcraft.dev)** (decided 2026-11): the published image on Spotcraft's apps server, added and updated in its dashboard (image, tag, domain, container port 3000, Database ticked, `AUTH_SECRET`, `PUBLIC_URL`). Spotcraft runs Caddy (HTTPS, `www`, `X-Forwarded-*`), the health check and the deploy switch; a deploy that isn't healthy keeps the previous version. Keep `@spotcraft/kit` at the version of the Spotcraft it deploys to.
-- **The server checks its settings at start** (`src/server/startup.ts`, a Nitro plugin) and exits naming a missing or wrong one, so a bad deploy fails its health check instead of failing on the first save.
+- **The server checks its settings, connects and migrates at start** (`src/server/startup.ts`, a Nitro plugin; Nitro holds requests until it's done) and exits naming what failed, so a bad deploy fails its health check instead of failing on the first save. It closes the database pool on Nitro's `close` hook. The image caps Node's heap (`--max-old-space-size=160`) below the container's memory limit.
 - **Rehearse deploy changes locally** (steps in `docs/deploy.md`): the production image read-only, without capabilities and memory-limited, behind Caddy over HTTPS on the local Spotcraft network, then `E2E_BASE_URL=https://localhost:8443 pnpm test:e2e` and the failure path (a missing `AUTH_SECRET`).
 - **Deploys need a published image** (`sha-…` from `main`, or a release tag), and only the user starts them.
 - `E2E_BASE_URL=https://…` runs the browser tests against any running site (rehearsal or production) instead of starting a server. `deploy/check-site.sh <url>` checks a live site from outside.
@@ -169,11 +173,12 @@ pnpm fix        # Biome: apply formatting and safe fixes
 ## CI
 
 - `.github/workflows/ci.yml` runs on pushes to `dev`/`main` and on PRs, in three kinds of jobs:
-  - lint (`biome ci`), typecheck, unit tests and build;
+  - lint (`biome ci`), typecheck and build (before Postgres starts), then unit tests. This is the run's only app build: `.output/` goes up as an artifact;
   - every job that runs tests first starts the local Spotcraft Postgres (`spotcraft dev start`, `dev env --write`), like a laptop;
-  - the browser tests, one job per engine (Chromium with the Pixel projects, Firefox, WebKit with the iPhone projects);
-  - the production Docker image: browser tests against it, then a Trivy scan that fails on fixable HIGH/CRITICAL vulnerabilities;
-  - on `main` and `v*` tags only, after all of the above: publishing the image (see Releases).
+  - the browser tests, one job per engine (Chromium with the Pixel projects, Firefox, WebKit with the iPhone projects), on check's build (`E2E_PREBUILT=1`: `pnpm start` without `pnpm build`). Browsers are cached per Playwright version. Failed tests are retried once, so a flaky one is reported, not failing the run; on failure the HTML report and traces are uploaded;
+  - the production Docker image (built amd64 with the layer cache publish shares, production stage always fresh): browser tests against it, then a Trivy scan that fails on fixable HIGH/CRITICAL vulnerabilities;
+  - on `main` and `v*` tags only, after all of the above: publishing the image (see Releases). It pushes by digest, scans both platforms with Trivy, and only then tags (`latest` on `main`).
+- Only PRs and `dev` cancel a run still going; `main` and tags never do, so a quick second merge can't stop a publish.
 - Actions are pinned to commit SHAs with the version in a comment; the Trivy and actionlint images are pinned by digest. Permissions are `contents: read`, and checkout uses `persist-credentials: false`. Run `pnpm lint:actions` after editing a workflow.
 - When pinning a new version (action, image, package), pick one at least about a week old, like Dependabot's cooldown and pnpm's `minimumReleaseAge`.
 - Dependabot (`.github/dependabot.yml`) opens weekly PRs against `dev` for npm, GitHub Actions, the Docker base image and the deploy kit's Caddy image, with a 7-day cooldown.
@@ -193,24 +198,26 @@ pnpm fix        # Biome: apply formatting and safe fixes
 
 - Use theme tokens (`bg-background`, `text-primary`, `border-border`…), never raw colors, so light and dark both work.
 - Add shadcn/ui components with `pnpm exec shadcn add <name>` (the pinned CLI, React Aria base). They land in `src/components/ui/`; edit them freely after adding.
-- `@/` is an alias for `src/`. Merge classes with `cn()` from `@/lib/utils`.
+- `@/` is an alias for `src/`. Merge classes with `cn()` from `@/lib/utils` (in the app; see below for the site).
 - Tailwind only scans `src/` for class names (`source(".")` in `styles.css`). Classes written anywhere else (docs, skills, tests) are not generated; keep class names in `src/` as complete literal strings.
 - Piano keys use their own tokens (`bg-key-white`, `bg-key-black`, …) so they stay ivory/ebony in dark mode.
 - `short:` is a custom variant for short screens: ≤ 500px tall (a phone in landscape), or a phone held upright (≤ 500px wide in portrait, where the app is rotated, so its height is the phone's width). Use it to tighten spacing so pages fit without scrolling.
 - **Upright phones get the app rotated** (`data-app-frame` in `routes/app.tsx`). Anything that reads screen coordinates must convert them: popovers render inside the frame (React Aria's `PortalProvider`) and the select places its popover from layout offsets when the frame is rotated (`placeInRotatedContainer` in `ui/select.tsx`); the knob maps the pointer into its own SVG coordinates (`getScreenCTM()`). New overlays or pointer math need the same care; `e2e/orientation.spec.ts` covers both orientations.
 - **The app bar must stay on one row** down to 667 px wide (a small phone in landscape); `e2e/app.spec.ts` checks four sizes. Compact sizing is the default, `md:` and `xl:` add room. Prefer single compact controls (like the presets dropdown) over rows of buttons. The bar is for the whole sound; a new per-oscillator control is a new column of the rack (`COLUMNS` in `OscillatorRow.tsx`, so every row and the header line up).
 - Some elements keep plain class names as test hooks (`piano-key`, `piano-key--active`, `oscillator`, `oscilloscope`, `knob`…). Keep them when restyling; prefer roles and names for new tests.
-- Import `buttonVariants` from `@/components/ui/button-variants` when you only need the look (e.g. on a `Link`): importing `button.tsx` pulls React Aria's Button into the bundle.
+- Import `buttonVariants` from `@/components/ui/button-variants` when you only need the look (e.g. on a `Link`): importing `button.tsx` pulls React Aria's Button into the bundle. Keep `cn()` out of it and out of the site's components: its merge engine is about 11 kB gzip, and anything the site header or 404 page imports lands in the bundle every page loads. Variants set their own border colour instead of relying on merging.
+- **Fonts:** Inter's Latin and Latin Extended files only, declared in `styles.css` with a metric-matched "Inter Fallback" (Arial), and the Latin file preloaded from `__root.tsx`. Don't import `@fontsource-variable/inter` whole: it ships seven subsets.
+- **Zoom:** the site allows it; only `/app` sets the no-zoom viewport in its own `head()` (a pinch must play keys, not zoom).
 
 ## Animation
 
-- Motion (`motion`) through `LazyMotion` in the app layout (`routes/app.tsx`; the site doesn't load it): use the small `m.*` components (`import * as m from 'motion/react-m'`); `strict` makes the full `motion.*` components throw. The features (`domAnimation`; `domMax` only if layout animations are ever needed) load lazily from `src/lib/motion-features.ts`, after the page.
+- **CSS first.** A simple state change (the key press dip: a `scale` transition on `.piano-key--active`'s face) is a Tailwind transition with `motion-reduce:transition-none`. Motion (`motion/react`) is for what CSS can't do: the knob's spring (`useSpring`), in the app layout only (the site doesn't load it). No `m.*` components or `LazyMotion`: they cost a lazy features chunk and a component per element (88 keys) for a 1.5% dip.
 - **Never delay sound or state.** Audio starts on pointer-down; animations are purely visual and follow state, never gate it.
-- **Respect reduced motion:** `MotionConfig reducedMotion="user"` is set in the app layout; don't override it per component.
-- **SSR-safe:** nothing animates on first paint (`initial={false}` for server-rendered content), so server HTML and hydration stay identical.
+- **Respect reduced motion:** `MotionConfig reducedMotion="user"` is set in the app layout (the knobs jump instead of springing); CSS transitions use `motion-reduce:`. Don't override either per component.
+- **SSR-safe:** nothing animates on first paint, so server HTML and hydration stay identical.
 - Values, accessible names and focus never depend on an animation's progress.
 - **Page transitions are not Motion:** they use TanStack Router's `defaultViewTransition` (the browser's View Transitions API). Only the `<main>` page area (`view-transition-name: page`) animates; styles live at the end of `styles.css`. Motion can't animate the outgoing page, because the outlet switches to the new route immediately.
-- **Must work without the lazy features.** `m.*` components only animate once `motion-features` has loaded, and motion values bound to them don't render before that. Anything that must always show the right state (like the knob's drawing) uses plain elements updated from a motion value (`useMotionValueEvent`), not `m.*` props. `e2e/knob.spec.ts` blocks the features chunk to check this.
+- **The knob's drawing never waits for an animation:** it's plain SVG updated from the spring's motion value (`useMotionValueEvent`), and its value and name are the range input's.
 
 ## Accessibility
 

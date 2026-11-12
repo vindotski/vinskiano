@@ -3,7 +3,7 @@
 # (DigitalOcean, Hetzner, Vultr, Linode, AWS, ...) on Ubuntu 22.04/24.04 or
 # Debian 12/13, amd64 or arm64. Paste it into the provider's "user data" field
 # when creating the server. Installs Docker, a firewall, automatic security
-# updates, and a `deploy` user for the GitHub deploy workflow. See docs/deploy.md.
+# updates, and a `deploy` user for the GitHub deploy workflow. See docs/deploy-single-server.md.
 
 package_update: true
 package_upgrade: true

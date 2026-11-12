@@ -13,6 +13,36 @@ import { defineConfig } from 'vite'
 const browsers = ['chrome111', 'edge111', 'firefox128', 'safari16.4', 'ios16.4']
 
 /**
+ * Sent with every response, by the server itself, so they hold whatever sits in front of it.
+ * The CSP allows inline scripts because the prerendered home page has TanStack's fixed inline
+ * scripts (no per-request nonce is possible there), and inline styles because React and the
+ * knob write style attributes. Everything else comes from our own origin.
+ */
+const SECURITY_HEADERS = {
+  'content-security-policy': [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data:",
+    "font-src 'self'",
+    "connect-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+  ].join('; '),
+  'cross-origin-opener-policy': 'same-origin',
+  'permissions-policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
+  'referrer-policy': 'strict-origin-when-cross-origin',
+  'strict-transport-security': 'max-age=31536000; includeSubDomains',
+  'x-content-type-options': 'nosniff',
+  'x-frame-options': 'DENY',
+}
+
+/** Revalidate on every visit (a cheap 304), so a cached page never points at deleted assets. */
+const REVALIDATE = { 'cache-control': 'no-cache' }
+
+/**
  * Spotcraft's backend kit reads its `auth` migrations from `./migrations/` next to its own file
  * when it's imported (to know its schema version). Bundled into the server, that folder isn't
  * there and the import throws ENOENT, so this copies it next to every server chunk that reads it.
@@ -52,6 +82,21 @@ export default defineConfig({
       hooks: { compiled: (app) => copyKitMigrations(app.options.output.serverDir) },
       // Checks the guest accounts' settings at start (see the file).
       plugins: ['src/server/startup.ts'],
+      routeRules: {
+        '/**': { headers: SECURITY_HEADERS },
+        // Pages: the prerendered home page and the server-rendered app.
+        '/': { headers: REVALIDATE },
+        '/app': { headers: REVALIDATE },
+        '/app/**': { headers: REVALIDATE },
+        // Unhashed files in public/: a day, then revalidate. Listed by name: a pattern like
+        // `/*.png` overlaps `/app/**` and makes Nitro's rule matching ambiguous.
+        ...Object.fromEntries(
+          readdirSync('public').map((file) => [
+            `/${file}`,
+            { headers: { 'cache-control': 'public, max-age=86400' } },
+          ]),
+        ),
+      },
     }),
     tailwindcss(),
     tanstackStart(),

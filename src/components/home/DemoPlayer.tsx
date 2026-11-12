@@ -1,6 +1,5 @@
-import { LazyMotion, MotionConfig } from 'motion/react'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Engine, type Sound } from '../../audio'
+import { Engine } from '../../audio'
 import { Frequency, isWhite, KEYBOARD_NOTES, type Note, typingHints } from '../../music'
 import { forEngine } from '../../synth/engine-settings'
 import type { PresetSettings } from '../../synth/preset'
@@ -8,12 +7,9 @@ import Piano from '../Piano'
 
 /*
  * The home page's playable keyboard. Loaded lazily (see PlaySection), so the site's first load
- * carries no audio code and no Motion; and the audio engine itself only starts with the first
+ * carries no audio code; and the audio engine itself only starts with the first
  * note, inside that key press (which is also what iOS needs to let it make sound).
  */
-
-const loadMotionFeatures = () =>
-  import('../../lib/motion-features').then((module) => module.default)
 
 const notesFrom = (first: string, last: string) => {
   const start = KEYBOARD_NOTES.findIndex((note) => note.toString() === first)
@@ -25,12 +21,9 @@ const notesFrom = (first: string, last: string) => {
 const RANGES = [notesFrom('C3', 'C5'), notesFrom('C4', 'C5'), notesFrom('C4', 'B4')]
 const NARROWEST = RANGES.length - 1
 
-type PlayingSound = Sound & { note: Note }
-
 /** Plays notes with these settings; the engine is created by the first note. */
 function useDemoSynth(settings: PresetSettings) {
   const engine = useRef<Engine | null>(null)
-  const sounds = useRef<PlayingSound[]>([])
   const latest = useRef(settings)
   latest.current = settings
 
@@ -43,7 +36,6 @@ function useDemoSynth(settings: PresetSettings) {
     () => () => {
       engine.current?.close()
       engine.current = null
-      sounds.current = []
     },
     [],
   )
@@ -51,15 +43,11 @@ function useDemoSynth(settings: PresetSettings) {
   const trigger = useCallback((note: Note) => {
     const { master, oscillators } = latest.current
     engine.current ??= new Engine(master.gain, forEngine(oscillators))
-    const hertz = Frequency.fromNote(note).hertz
-    sounds.current.push(
-      ...engine.current.play(hertz).map((sound) => Object.assign(sound, { note })),
-    )
+    engine.current.noteOn(note.toString(), Frequency.fromNote(note).hertz)
   }, [])
 
   const release = useCallback((note: Note) => {
-    for (const sound of sounds.current.filter((s) => note.equals(s.note))) sound.stop()
-    sounds.current = sounds.current.filter((s) => !note.equals(s.note))
+    engine.current?.noteOff(note.toString())
   }, [])
 
   return { trigger, release }
@@ -97,23 +85,21 @@ const DemoPlayer = ({ settings }: DemoPlayerProps) => {
   const hints = useMemo(() => (base ? typingHints(base) : undefined), [base])
 
   return (
-    <LazyMotion features={loadMotionFeatures} strict>
-      <MotionConfig reducedMotion="user">
-        {/* Centred, and scrollable if even the narrowest range doesn't fit (a phone under
+    <>
+      {/* Centred, and scrollable if even the narrowest range doesn't fit (a phone under
             336 px): auto margins centre without cutting off the ends, as justify-center would. */}
-        <div ref={frame} className="h-full overflow-x-auto overflow-y-hidden">
-          <div className="mx-auto h-full w-max">
-            <Piano
-              notes={notes}
-              onTrigger={trigger}
-              onRelease={release}
-              typingBase={base}
-              {...(hints ? { hints } : {})}
-            />
-          </div>
+      <div ref={frame} className="h-full overflow-x-auto overflow-y-hidden">
+        <div className="mx-auto h-full w-max">
+          <Piano
+            notes={notes}
+            onTrigger={trigger}
+            onRelease={release}
+            typingBase={base}
+            {...(hints ? { hints } : {})}
+          />
         </div>
-      </MotionConfig>
-    </LazyMotion>
+      </div>
+    </>
   )
 }
 

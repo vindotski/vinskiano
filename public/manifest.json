@@ -1,11 +1,24 @@
 {
+  "id": "/app",
   "short_name": "Vinskiano",
   "name": "Vinskiano",
-  "description": "Browser-based subtractive synthesizer",
+  "description": "A synth that plays in your browser: three oscillators, 88 keys, your computer keyboard as a piano.",
   "icons": [
-    { "src": "favicon.svg", "type": "image/svg+xml", "sizes": "any" },
-    { "src": "icon-192.png", "type": "image/png", "sizes": "192x192" },
-    { "src": "icon-512.png", "type": "image/png", "sizes": "512x512" },
+    {
+      "src": "favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    },
     {
       "src": "icon-maskable-512.png",
       "type": "image/png",
@@ -13,9 +26,10 @@
       "purpose": "maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/app",
+  "scope": "/",
   "display": "standalone",
   "orientation": "landscape",
-  "theme_color": "#c70036",
+  "theme_color": "#ffffff",
   "background_color": "#ffffff"
 }

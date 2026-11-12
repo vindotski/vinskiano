@@ -1,5 +1,4 @@
 import { lazy, type ReactNode, Suspense, useEffect, useRef, useState } from 'react'
-import { cn } from '@/lib/utils'
 import { FACTORY_SOUNDS } from '../../synth/factory'
 
 const DemoPlayer = lazy(() => import('./DemoPlayer'))
@@ -14,7 +13,7 @@ interface PlaySectionProps {
 
 /**
  * "Play it here": sound chips and a keyboard on the home page. The page is prerendered and the
- * keyboard needs audio code and Motion, so it shows a placeholder first and loads the player
+ * keyboard needs audio code, so it shows a placeholder first and loads the player
  * once the page is idle or the section is about to scroll into view, whichever comes first.
  */
 const PlaySection = ({ footer }: PlaySectionProps) => {
@@ -62,12 +61,11 @@ const PlaySection = ({ footer }: PlaySectionProps) => {
             {FACTORY_SOUNDS.map(({ name }, index) => (
               <label
                 key={name}
-                className={cn(
-                  'flex min-h-11 cursor-pointer items-center rounded-full border px-4 text-sm font-medium transition-colors has-focus-visible:ring-3 has-focus-visible:ring-ring/30',
+                className={`flex min-h-11 cursor-pointer items-center rounded-full border px-4 text-sm font-medium transition-colors has-focus-visible:ring-3 has-focus-visible:ring-ring/30 ${
                   index === sound
                     ? 'border-primary bg-primary text-primary-foreground'
-                    : 'bg-background hover:bg-muted',
-                )}
+                    : 'bg-background hover:bg-muted'
+                }`}
               >
                 <input
                   type="radio"
@@ -108,16 +106,24 @@ const cancelling =
   () =>
     cancel(id)
 
+/**
+ * The placeholder's white keys: as many as the player will show at this width (it measures;
+ * these breakpoints approximate it), so the swap doesn't change the count.
+ */
+const PLACEHOLDER_KEYS = Array.from({ length: 15 }, (_, index) => ({
+  id: `white-${index}`,
+  className: index < 7 ? '' : index === 7 ? 'max-[383px]:hidden' : 'max-[879px]:hidden',
+}))
+
 /** Stands in for the keyboard until it loads: a quiet row of white keys. */
 const Placeholder = () => (
   <div className="flex h-full justify-center overflow-hidden" data-keyboard-placeholder>
     <p className="sr-only">Loading the keyboard…</p>
-    {Array.from({ length: 15 }, (_, index) => (
+    {PLACEHOLDER_KEYS.map(({ id, className }) => (
       <div
-        // biome-ignore lint/suspicious/noArrayIndexKey: a fixed row of identical shapes
-        key={index}
+        key={id}
         aria-hidden="true"
-        className="h-full w-12 shrink-0 rounded-b-xl border border-t-0 border-r-0 border-key-black/20 bg-key-white last:border-r md:w-14 xl:w-16"
+        className={`h-full w-12 shrink-0 rounded-b-xl border border-t-0 border-l-0 border-key-black/20 bg-key-white first:border-l md:w-14 xl:w-16 ${className}`}
       />
     ))}
   </div>

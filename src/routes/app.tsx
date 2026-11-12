@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useMatch } from '@tanstack/react-router'
 import { PianoIcon, SlidersHorizontalIcon } from 'lucide-react'
-import { LazyMotion, MotionConfig } from 'motion/react'
+import { MotionConfig } from 'motion/react'
 import { useRef } from 'react'
 import { UNSAFE_PortalProvider as PortalProvider } from 'react-aria'
 import AppBar from '../components/AppBar'
@@ -13,41 +13,47 @@ import { usePresets } from '../synth/usePresets'
 
 /** The synth: owns the audio engine, so it only exists under /app (the site never creates one). */
 export const Route = createFileRoute('/app')({
+  head: () => ({
+    meta: [
+      // An instrument, not a page: a pinch or double-tap on the keys must play, not zoom.
+      {
+        name: 'viewport',
+        content:
+          'width=device-width, initial-scale=1, user-scalable=0, maximum-scale=1, minimum-scale=1',
+      },
+    ],
+    links: [{ rel: 'canonical', href: 'https://vinskiano.app/app' }],
+  }),
   component: AppLayout,
 })
-
-const loadMotionFeatures = () => import('../lib/motion-features').then((module) => module.default)
 
 function AppLayout() {
   const frame = useRef<HTMLDivElement>(null)
   return (
-    // Motion is only used by the app, so the site never loads it. Animations use the small `m`
-    // components; `strict` rejects the full `motion` ones. reducedMotion="user" skips
-    // transforms and layout animations when the OS asks for less motion.
-    <LazyMotion features={loadMotionFeatures} strict>
-      <MotionConfig reducedMotion="user">
-        <SynthProvider>
-          {/* The app is a fixed, full-viewport instrument: nothing scrolls. */}
-          <div className="fixed inset-0 overflow-hidden">
-            {/* Fills the real viewport (dvh tracks mobile browser bars). Held upright, a phone gets the app rotated to landscape. */}
-            <div
-              ref={frame}
-              data-app-frame
-              className="flex h-dvh w-screen flex-col portrait:absolute portrait:top-[-100vw] portrait:left-0 portrait:h-[100vw] portrait:w-[100dvh] portrait:origin-bottom-left portrait:rotate-90 portrait:overflow-auto"
-            >
-              {/* Popovers (the waveform dropdown) render inside the frame, so they turn with it. */}
-              <PortalProvider getContainer={() => frame.current}>
-                <SynthBar />
-                {/* The page area is what transitions between pages (view-transition-name: page). */}
-                <main className="flex min-h-0 flex-1 flex-col [view-transition-name:page]">
-                  <Outlet />
-                </main>
-              </PortalProvider>
-            </div>
+    // Motion is only used by the app (the knobs' spring), so the site never loads it.
+    // reducedMotion="user" makes the knobs jump instead of spring when the OS asks for less motion.
+    <MotionConfig reducedMotion="user">
+      <SynthProvider>
+        {/* The app is a fixed, full-viewport instrument: nothing scrolls. */}
+        <div className="fixed inset-0 overflow-hidden">
+          {/* Fills the real viewport (dvh tracks mobile browser bars). Held upright, a phone gets the app rotated to landscape. */}
+          <div
+            ref={frame}
+            data-app-frame
+            className="flex h-dvh w-screen flex-col portrait:absolute portrait:top-[-100vw] portrait:left-0 portrait:h-[100vw] portrait:w-[100dvh] portrait:origin-bottom-left portrait:rotate-90 portrait:overflow-auto"
+          >
+            {/* Popovers (the waveform dropdown) render inside the frame, so they turn with it. */}
+            <PortalProvider getContainer={() => frame.current}>
+              <SynthBar />
+              {/* The page area is what transitions between pages (view-transition-name: page). */}
+              <main className="flex min-h-0 flex-1 flex-col [view-transition-name:page]">
+                <Outlet />
+              </main>
+            </PortalProvider>
           </div>
-        </SynthProvider>
-      </MotionConfig>
-    </LazyMotion>
+        </div>
+      </SynthProvider>
+    </MotionConfig>
   )
 }
 

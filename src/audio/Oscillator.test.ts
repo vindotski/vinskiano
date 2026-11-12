@@ -81,4 +81,40 @@ describe('Oscillator', () => {
     sound.stop()
     expect(events).toHaveLength(count)
   })
+
+  test('a level of 0 stays 0', () => {
+    const { context } = fakeContext()
+    const oscillator = new Oscillator({ context, destination: {} as AudioNode, volume: 0 })
+    expect(oscillator.volume).toBe(0)
+    expect(oscillator.node.gain.value).toBe(0)
+  })
+
+  test('a new level glides there, and reaches notes already sounding', () => {
+    const { context, events } = fakeContext()
+    const oscillator = new Oscillator({ context, destination: {} as AudioNode, volume: 0.5 })
+    oscillator.emit(440).start()
+    events.length = 0
+    oscillator.set({ waveform: 'sine', pitch: 0, volume: 0.25 })
+    expect(events).toContain('oscillator gain → 0.25 from 10')
+  })
+
+  test('starting a note leaves the level of the others alone', () => {
+    const { context, events } = fakeContext()
+    const oscillator = new Oscillator({ context, destination: {} as AudioNode, volume: 0.5 })
+    oscillator.emit(440).start()
+    oscillator.set({ waveform: 'sine', pitch: 0, volume: 0.25 })
+    events.length = 0
+    oscillator.emit(550).start()
+    expect(events.some((event) => event.startsWith('oscillator gain'))).toBe(false)
+    expect(oscillator.node.gain.value).toBe(0.5) // only the glide changed it
+  })
+
+  test('a new pitch retunes notes already sounding', () => {
+    const { context, events } = fakeContext()
+    const oscillator = new Oscillator({ context, destination: {} as AudioNode })
+    oscillator.emit(440).start()
+    events.length = 0
+    oscillator.set({ waveform: 'square', pitch: 7, volume: 0.5 })
+    expect(events).toContain('detune → 700 from 10')
+  })
 })

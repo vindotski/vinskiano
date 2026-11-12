@@ -5,24 +5,20 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react'
-import { Engine, type Oscilloscope, type Sound } from '../audio'
-import { Frequency, KEYBOARD_NOTES, type Note } from '../music'
+import { Engine, type Oscilloscope } from '../audio'
+import { Frequency, type Note } from '../music'
 import type { MasterSettings, OscillatorSettings, OscillatorState } from '../types/synth'
 import { disableContextMenu } from '../utils/disable-context-menu'
 import { forEngine } from './engine-settings'
 import { INIT } from './factory'
 import type { PresetSettings } from './preset'
 
-/** Everything the pages need from the synth: its state and how to play and change it. */
-export interface Synth {
-  scale: readonly Note[]
-  master: MasterSettings
-  /** The output analyser; null until the audio engine exists (it's browser-only). */
-  oscilloscope: Oscilloscope | null
-  oscillators: OscillatorState[]
+/** How to play and change the synth. Never changes, so reading it never re-renders a page. */
+export interface SynthActions {
   trigger: (note: Note) => void
   release: (note: Note) => void
   updateMaster: (settings: MasterSettings) => void
@@ -37,10 +33,19 @@ export interface Synth {
   keyboardPosition: RefObject<number | null>
 }
 
-/** A sound that is currently playing, tagged with the note that started it. */
-type PlayingSound = Sound & { note: Note }
+/** The synth's state: what it sounds like now. Changes with every knob turn. */
+export interface SynthState {
+  master: MasterSettings
+  /** The output analyser; null until the audio engine exists (it's browser-only). */
+  oscilloscope: Oscilloscope | null
+  oscillators: OscillatorState[]
+}
 
-const SynthContext = createContext<Synth | null>(null)
+/** Everything the pages need from the synth: its state and how to play and change it. */
+export type Synth = SynthActions & SynthState
+
+const ActionsContext = createContext<SynthActions | null>(null)
+const StateContext = createContext<SynthState | null>(null)
 
 /**
  * Owns the synth: its settings as plain state, and the audio engine that follows them.
@@ -54,7 +59,6 @@ export function SynthProvider({ children }: { children: ReactNode }) {
   // The same engine, for playing: set the moment it exists. State only catches up on the next
   // render, and a note played in between (a key pressed right as the page loads) was dropped.
   const playing = useRef<Engine | null>(null)
-  const sounds = useRef<PlayingSound[]>([])
   const keyboardPosition = useRef<number | null>(null)
 
   // Browser-only setup. Settings are read once at creation and kept in sync by the effects below.
@@ -68,7 +72,6 @@ export function SynthProvider({ children }: { children: ReactNode }) {
       enableContextMenu()
       playing.current = null
       created.close()
-      sounds.current = []
     }
   }, [])
 
@@ -76,17 +79,11 @@ export function SynthProvider({ children }: { children: ReactNode }) {
   useEffect(() => engine?.configure(forEngine(oscillators)), [engine, oscillators])
 
   const trigger = useCallback((note: Note) => {
-    const engine = playing.current
-    if (!engine) return
-    const hertz = Frequency.fromNote(note).hertz
-    sounds.current.push(...engine.play(hertz).map((sound) => Object.assign(sound, { note })))
+    playing.current?.noteOn(note.toString(), Frequency.fromNote(note).hertz)
   }, [])
 
   const release = useCallback((note: Note) => {
-    for (const sound of sounds.current.filter((s) => note.equals(s.note))) {
-      sound.stop()
-    }
-    sounds.current = sounds.current.filter((s) => !note.equals(s.note))
+    playing.current?.noteOff(note.toString())
   }, [])
 
   const updateOscillator = useCallback((id: number, settings: OscillatorSettings) => {
@@ -103,26 +100,45 @@ export function SynthProvider({ children }: { children: ReactNode }) {
     setOscillators(settings.oscillators)
   }, [])
 
-  const synth: Synth = {
-    scale: KEYBOARD_NOTES,
-    master,
-    oscilloscope: engine?.oscilloscope ?? null,
-    oscillators,
-    trigger,
-    release,
-    updateMaster: setMaster,
-    updateOscillator,
-    loadSettings,
-    keyboardPosition,
-  }
+  // Two contexts: the keyboard reads only the actions, so turning a knob doesn't re-render it.
+  const actions = useMemo<SynthActions>(
+    () => ({
+      trigger,
+      release,
+      updateMaster: setMaster,
+      updateOscillator,
+      loadSettings,
+      keyboardPosition,
+    }),
+    [trigger, release, updateOscillator, loadSettings],
+  )
+  const state = useMemo<SynthState>(
+    () => ({ master, oscillators, oscilloscope: engine?.oscilloscope ?? null }),
+    [master, oscillators, engine],
+  )
 
-  return <SynthContext value={synth}>{children}</SynthContext>
+  return (
+    <ActionsContext value={actions}>
+      <StateContext value={state}>{children}</StateContext>
+    </ActionsContext>
+  )
 }
 
+/** How to play and change the synth, without re-rendering when its sound changes. */
+export function useSynthActions(): SynthActions {
+  const actions = useContext(ActionsContext)
+  if (!actions) {
+    throw new Error('useSynthActions() must be used inside <SynthProvider>')
+  }
+  return actions
+}
+
+/** The synth's state and actions; re-renders on every change to the sound. */
 export function useSynth(): Synth {
-  const synth = useContext(SynthContext)
-  if (!synth) {
+  const actions = useSynthActions()
+  const state = useContext(StateContext)
+  if (!state) {
     throw new Error('useSynth() must be used inside <SynthProvider>')
   }
-  return synth
+  return { ...actions, ...state }
 }

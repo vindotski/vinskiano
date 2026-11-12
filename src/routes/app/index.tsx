@@ -1,22 +1,29 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { useCallback } from 'react'
+import { KEYBOARD_NOTES } from '../../music'
 import PianoRoll from '../../pages/PianoRoll'
-import { useSynth } from '../../synth/SynthProvider'
+import { useSynthActions } from '../../synth/SynthProvider'
 
 export const Route = createFileRoute('/app/')({
   component: PianoRollRoute,
 })
 
+/** The keyboard. It reads only the synth's actions, so turning a knob doesn't re-render it. */
 function PianoRollRoute() {
-  const { scale, trigger, release, keyboardPosition } = useSynth()
+  const { trigger, release, keyboardPosition } = useSynthActions()
+  const remember = useCallback(
+    (start: number) => {
+      keyboardPosition.current = start
+    },
+    [keyboardPosition],
+  )
   return (
     <PianoRoll
-      notes={scale}
+      notes={KEYBOARD_NOTES}
       onTrigger={trigger}
       onRelease={release}
       position={keyboardPosition.current}
-      onPositionChange={(start) => {
-        keyboardPosition.current = start
-      }}
+      onPositionChange={remember}
     />
   )
 }

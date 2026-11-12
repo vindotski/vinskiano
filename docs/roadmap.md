@@ -124,6 +124,11 @@ Defaults for the oscillators are today's new sound. `sample` (for the custom sha
 | A link                              | `/app?sound=…`: the settings as JSON, `deflate-raw` with `CompressionStream` (in our browser floor and in Node), base64url. The `/app` route's loader decodes it, so the server renders the right knobs. Written by a Share button, not on every change | M1   |
 | A file                              | Export and import `*.vinskiano.json`, with `"$schema"` pointing to the published JSON Schema                                                                                                                                                            | M1   |
 
+## Decided later
+
+- **Abandoned guest accounts** and their presets are never removed. A guest's cookie lasts a year, so a cleanup of guests idle for about 13 months would lose nothing anyone can reach. Not worth doing before there's real traffic.
+- **React Aria's "Dismiss" strings in 34 languages** (0.8 kB gzip on `/app`) stay until removing them needs no build plugin.
+
 ## Milestones
 
 Each milestone is a few one-commit steps and ends in a minor release.

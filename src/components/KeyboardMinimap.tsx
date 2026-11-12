@@ -1,4 +1,4 @@
-import { type KeyboardEvent, type PointerEvent, useRef } from 'react'
+import { type KeyboardEvent, memo, type PointerEvent, useRef } from 'react'
 import { isWhite, KEYBOARD_NOTES, type Note, WHITE_NOTES } from '../music'
 
 /** What part of the keyboard is in view, in white keys from the left (fractions allowed). */
@@ -23,7 +23,6 @@ const BLACKS = KEYBOARD_NOTES.flatMap((note, index) => {
   const whitesBefore = KEYBOARD_NOTES.slice(0, index).filter(isWhite).length
   return [{ note, at: whitesBefore }]
 })
-const isHeld = (held: readonly string[], note: Note) => held.includes(note.toString())
 
 /**
  * The whole keyboard in miniature, with a window over the part in view. Tap or drag it to move
@@ -106,36 +105,7 @@ const KeyboardMinimap = ({ view, held, onMove }: KeyboardMinimapProps) => {
         preserveAspectRatio="none"
         className="h-7 w-full overflow-visible short:h-6"
       >
-        {WHITE_NOTES.map((note, index) => (
-          <rect
-            key={note.toString()}
-            x={index + 0.06}
-            y={0}
-            width={0.88}
-            height={6}
-            rx={0.2}
-            {...(isHeld(held, note) ? { 'data-held': '' } : {})}
-            vectorEffect="non-scaling-stroke"
-            strokeWidth={1}
-            className={
-              isHeld(held, note)
-                ? 'fill-primary stroke-primary'
-                : 'fill-key-white stroke-key-black/25'
-            }
-          />
-        ))}
-        {BLACKS.map(({ note, at: x }) => (
-          <rect
-            key={note.toString()}
-            x={x - 0.32}
-            y={0}
-            width={0.64}
-            height={3.8}
-            rx={0.15}
-            {...(isHeld(held, note) ? { 'data-held': '' } : {})}
-            className={isHeld(held, note) ? 'fill-primary' : 'fill-key-black'}
-          />
-        ))}
+        <Keys held={held} />
         <rect
           x={view.start}
           y={-0.5}
@@ -150,5 +120,43 @@ const KeyboardMinimap = ({ view, held, onMove }: KeyboardMinimapProps) => {
     </div>
   )
 }
+
+/** The miniature keys, lit where held. Only re-renders when the held notes change, not the view. */
+const Keys = memo(({ held }: { held: readonly string[] }) => {
+  const lit = new Set(held)
+  const isHeld = (note: Note) => lit.has(note.toString())
+  return (
+    <>
+      {WHITE_NOTES.map((note, index) => (
+        <rect
+          key={note.toString()}
+          x={index + 0.06}
+          y={0}
+          width={0.88}
+          height={6}
+          rx={0.2}
+          {...(isHeld(note) ? { 'data-held': '' } : {})}
+          vectorEffect="non-scaling-stroke"
+          strokeWidth={1}
+          className={
+            isHeld(note) ? 'fill-primary stroke-primary' : 'fill-key-white stroke-key-black/25'
+          }
+        />
+      ))}
+      {BLACKS.map(({ note, at: x }) => (
+        <rect
+          key={note.toString()}
+          x={x - 0.32}
+          y={0}
+          width={0.64}
+          height={3.8}
+          rx={0.15}
+          {...(isHeld(note) ? { 'data-held': '' } : {})}
+          className={isHeld(note) ? 'fill-primary' : 'fill-key-black'}
+        />
+      ))}
+    </>
+  )
+})
 
 export default KeyboardMinimap

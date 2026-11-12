@@ -41,8 +41,8 @@ export function instrumentWebAudio() {
     window.__audio.stopped++
     return stop.apply(this, args)
   }
-  const read = AnalyserNode.prototype.getByteTimeDomainData
-  AnalyserNode.prototype.getByteTimeDomainData = function (this: AnalyserNode, array) {
+  const read = AnalyserNode.prototype.getFloatTimeDomainData
+  AnalyserNode.prototype.getFloatTimeDomainData = function (this: AnalyserNode, array) {
     window.__audio.analyserReads++
     return read.call(this, array)
   }
@@ -59,8 +59,8 @@ export const resetAudioLog = (page: Page) =>
  * Open the synth and wait until it's hydrated (its audio engine exists). Before that the
  * server-rendered controls don't respond yet, and under load tests get there first.
  */
-export async function openApp(page: Page) {
-  await page.goto('/app')
+export async function openApp(page: Page, path = '/app') {
+  await page.goto(path)
   await page.waitForFunction(() => window.__audio.analysers > 0)
 }
 
@@ -109,6 +109,21 @@ export async function pageTransitionDone(page: Page) {
 /** A key of the keyboard by its note, e.g. "C4" or "A#3". */
 export const pianoKey = (page: Page, note: string) =>
   page.getByRole('button', { name: note, exact: true })
+
+/** The keyboard minimap (a slider for assistive tech). */
+export const minimap = (page: Page) => page.getByRole('slider', { name: 'Keyboard position' })
+
+/** Wait for the browser to paint a few frames: long enough for anything per-frame to run. */
+export const frames = (page: Page, count = 3) =>
+  page.evaluate(
+    (count) =>
+      new Promise<void>((resolve) => {
+        const next = (left: number) =>
+          left === 0 ? resolve() : requestAnimationFrame(() => next(left - 1))
+        next(count)
+      }),
+    count,
+  )
 
 /** The sound pages' tab bar (Oscillators, and later Envelope). */
 export const soundTabs = (page: Page) => page.getByRole('navigation', { name: 'Sound' })

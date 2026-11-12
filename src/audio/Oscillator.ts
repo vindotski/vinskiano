@@ -1,14 +1,18 @@
 export type Waveform = Exclude<OscillatorType, 'custom'>
 
-export interface OscillatorOptions {
+/** What can change on an oscillator while it plays. */
+export interface OscillatorSettings {
+  waveform: Waveform
+  /** Pitch offset in semitones. */
+  pitch: number
+  /** Level, 0..1. */
+  volume: number
+}
+
+export interface OscillatorOptions extends Partial<OscillatorSettings> {
   context: BaseAudioContext
   destination: AudioNode
   id?: number
-  waveform?: Waveform
-  /** Pitch offset in semitones. */
-  pitch?: number
-  /** Gain from 0 to 1. */
-  volume?: number
 }
 
 /** One playing (or ready-to-play) tone produced by an Oscillator. */
@@ -25,38 +29,47 @@ export interface Sound {
  */
 const FADE_IN = 0.002
 const FADE_OUT = 0.006
+/**
+ * How fast level and pitch follow a knob (a time constant, in seconds): quick enough to feel
+ * immediate, slow enough that a turn is a glide rather than a series of steps (zipper noise).
+ */
+const GLIDE = 0.01
 
 class Oscillator {
-  context: BaseAudioContext
-  destination: AudioNode
-  node: GainNode
-  id: number
+  readonly context: BaseAudioContext
+  /** This oscillator's level in the mix; every note it plays goes through it. */
+  readonly node: GainNode
+  readonly id: number
   waveform: Waveform
   pitch: number
   volume: number
-  sounds: Sound[]
+  /** The notes sounding now, so changes reach them too. */
+  private readonly playing = new Set<OscillatorNode>()
 
   constructor(options: OscillatorOptions) {
-    const { context, destination } = options
+    this.context = options.context
+    this.node = options.context.createGain()
+    this.node.connect(options.destination)
 
-    if (!context) {
-      throw new Error('Context is required in Oscillator')
+    // `??`, not `||`: a level or pitch of 0 is a real setting.
+    this.id = options.id ?? -1
+    this.waveform = options.waveform ?? 'sine'
+    this.pitch = options.pitch ?? 0
+    this.volume = options.volume ?? 0.5
+    this.node.gain.value = this.volume
+  }
+
+  /** New settings, heard at once: on the notes already sounding as well as the next ones. */
+  set({ waveform, pitch, volume }: OscillatorSettings): void {
+    const now = this.context.currentTime
+    if (volume !== this.volume) this.node.gain.setTargetAtTime(volume, now, GLIDE)
+    for (const signal of this.playing) {
+      if (waveform !== this.waveform) signal.type = waveform
+      if (pitch !== this.pitch) signal.detune.setTargetAtTime(pitch * 100, now, GLIDE)
     }
-
-    if (!destination) {
-      throw new Error('Destination is required in Oscillator')
-    }
-
-    this.context = context
-    this.destination = destination
-    this.node = context.createGain()
-    this.node.connect(destination)
-
-    this.id = options.id || -1
-    this.waveform = options.waveform || 'sine'
-    this.pitch = options.pitch || 0.0
-    this.volume = options.volume || 0.5
-    this.sounds = []
+    this.waveform = waveform
+    this.pitch = pitch
+    this.volume = volume
   }
 
   emit(hertz: number): Sound {
@@ -64,7 +77,6 @@ class Oscillator {
     signal.type = this.waveform
     signal.detune.value = this.pitch * 100
     signal.frequency.value = hertz
-    this.node.gain.value = this.volume
     // Each note has its own gain, so it can fade in and out without touching the others.
     const note = this.context.createGain()
     // Silent until it starts: anything that ever falls back to the gain's own value (rather
@@ -74,14 +86,14 @@ class Oscillator {
     note.connect(this.node)
 
     let stopped = false
-    const sound: Sound = {
+    return {
       frequency: hertz,
       start: () => {
         const now = this.context.currentTime
         note.gain.setValueAtTime(0, now)
         note.gain.setTargetAtTime(1, now, FADE_IN)
         signal.start()
-        this.sounds.push(sound)
+        this.playing.add(signal)
       },
       stop: () => {
         if (stopped) return
@@ -97,16 +109,8 @@ class Oscillator {
         }
         // Stop once the fade has died away (about eight time constants: inaudible).
         signal.stop(now + FADE_OUT * 8)
-        this.sounds = this.sounds.filter((s) => sound !== s)
+        this.playing.delete(signal)
       },
-    }
-
-    return sound
-  }
-
-  stop(): void {
-    for (const sound of [...this.sounds]) {
-      sound.stop()
     }
   }
 }

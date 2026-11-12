@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test, vi } from 'vitest'
+import { describe, expect, test, vi } from 'vitest'
 import Engine from './Engine'
 
 /**
@@ -36,17 +36,13 @@ class LeavingPageContext {
 }
 
 describe('Engine', () => {
-  afterEach(() => {
-    vi.unstubAllGlobals()
-  })
-
   // Vitest fails the run on any unhandled rejection, so these fail if the engine lets one
   // escape (which Firefox reports as a console error).
   test('ignores a resume() that fails because the page is going away', async () => {
     vi.stubGlobal('AudioContext', LeavingPageContext)
     const engine = new Engine(0.5, [])
-    engine.play(440)
-    await new Promise((resolve) => setTimeout(resolve, 10))
+    engine.noteOn('A4', 440)
+    await new Promise((resolve) => setImmediate(resolve)) // after the rejection's handlers
     expect(engine.context).toMatchObject({ calls: ['resume'] })
   })
 
@@ -54,7 +50,62 @@ describe('Engine', () => {
     vi.stubGlobal('AudioContext', LeavingPageContext)
     const engine = new Engine(0.5, [])
     engine.close()
-    await new Promise((resolve) => setTimeout(resolve, 10))
+    await new Promise((resolve) => setImmediate(resolve)) // after the rejection's handlers
     expect(engine.context).toMatchObject({ calls: ['close'] })
   })
+
+  test('letting go of a note stops only that note', () => {
+    vi.stubGlobal('AudioContext', RecordingContext)
+    const engine = new Engine(0.5, [{ id: 1, waveform: 'sine', pitch: 0, volume: 1 }])
+    engine.noteOn('A4', 440)
+    engine.noteOn('E5', 660)
+    engine.noteOff('A4')
+    const context = engine.context as unknown as RecordingContext
+    expect(context.stopped).toEqual([440])
+    engine.noteOff('A4') // already let go: nothing more
+    expect(context.stopped).toEqual([440])
+  })
+
+  test('the master volume glides to a new level instead of jumping', () => {
+    vi.stubGlobal('AudioContext', RecordingContext)
+    const engine = new Engine(0.5, [])
+    engine.setGain(0.2)
+    expect((engine.context as unknown as RecordingContext).events).toContain('gain → 0.2')
+  })
 })
+
+/** An AudioContext that plays nothing but records stops and parameter glides. */
+class RecordingContext extends LeavingPageContext {
+  currentTime = 1
+  state = 'running'
+  stopped: number[] = []
+  events: string[] = []
+  override createGain() {
+    return {
+      gain: {
+        value: 1,
+        setValueAtTime() {},
+        setTargetAtTime: (v: number) => this.events.push(`gain → ${v}`),
+      },
+      connect() {},
+      disconnect() {},
+    }
+  }
+  createOscillator() {
+    const stopped = this.stopped
+    const param = { value: 0, setTargetAtTime() {} }
+    const node = {
+      type: 'sine',
+      frequency: { ...param },
+      detune: { ...param },
+      onended: null as (() => void) | null,
+      connect() {},
+      disconnect() {},
+      start() {},
+      stop() {
+        stopped.push(node.frequency.value)
+      },
+    }
+    return node
+  }
+}

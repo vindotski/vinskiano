@@ -1,14 +1,13 @@
-import { GuestLimitError } from '@spotcraft/kit'
 import {
   appendResponseHeader,
   getRequest,
   getRequestHeader,
   getRequestIP,
   setResponseHeader,
-  setResponseStatus,
 } from '@tanstack/react-start/server'
 import { backend } from './backend.server'
-import { clientAddress } from './client-address'
+import { clientAddress, guestLimitWait } from './client-address'
+import { PublicError } from './public-error'
 
 /*
  * The visitor's guest account, inside a server function or route. Reading never creates a guest;
@@ -38,10 +37,13 @@ export async function guestId(): Promise<string> {
     sendCookies(headers)
     return guest.id
   } catch (error) {
-    if (error instanceof GuestLimitError) {
-      setResponseStatus(429)
-      setResponseHeader('retry-after', String(error.retryAfterSeconds))
-      throw new Error('Too many new visitors from your network; try again in a few minutes')
+    const wait = guestLimitWait(error)
+    if (wait !== null) {
+      setResponseHeader('retry-after', String(wait))
+      throw new PublicError(
+        'Too many new visitors from your network; try again in a few minutes',
+        429,
+      )
     }
     throw error
   }

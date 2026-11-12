@@ -39,7 +39,10 @@ RUN apt-get update \
 WORKDIR /app
 # Owned by root and only readable by the server, so it can't modify its own code.
 COPY --from=build /app/.output ./.output
+# NODE_OPTIONS caps V8's heap below the deploy's memory limit, so Node collects garbage
+# sooner instead of growing until the container is killed.
 ENV NODE_ENV=production \
+    NODE_OPTIONS=--max-old-space-size=160 \
     PORT=3000
 EXPOSE 3000
 # The base image's unprivileged user; the server needs no root (port 3000, no writes).

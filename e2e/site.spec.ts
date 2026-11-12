@@ -1,4 +1,4 @@
-import { audioLog, expect, openHome, test } from './fixtures'
+import { audioLog, expect, openApp, openHome, test } from './fixtures'
 
 test('the home page links to the synth', async ({ page }) => {
   await openHome(page)
@@ -166,6 +166,8 @@ for (const { width, deviceScaleFactor, expected } of [
     test('the app screenshot loads in a fitting size', async ({ page }) => {
       await page.goto('/')
       const image = page.getByRole('img', { name: /The Vinskiano synth/ })
+      // It loads lazily, and how far ahead browsers start differs: bring it into view.
+      await image.scrollIntoViewIfNeeded()
       await expect
         .poll(() => image.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth))
         .toBeGreaterThan(0)
@@ -194,3 +196,50 @@ for (const width of [360, 320]) {
     }
   })
 }
+
+test('the site can be zoomed; only the synth turns zoom off', async ({ page }) => {
+  const viewport = () => page.locator('meta[name="viewport"]').getAttribute('content')
+  await page.goto('/')
+  await expect(page.locator('meta[name="viewport"]')).toHaveCount(1)
+  expect(await viewport()).not.toMatch(/user-scalable|maximum-scale/)
+  await openApp(page)
+  await expect(page.locator('meta[name="viewport"]')).toHaveCount(1)
+  expect(await viewport()).toMatch(/user-scalable=0/)
+})
+
+test('the text font is preloaded, and only its Latin files are built', async ({
+  page,
+  request,
+}) => {
+  await page.goto('/')
+  const preload = page.locator('link[rel="preload"][as="font"]')
+  await expect(preload).toHaveCount(1)
+  const href = await preload.getAttribute('href')
+  expect(href).toMatch(/inter-latin-wght-normal/)
+  expect((await request.get(href ?? '')).ok()).toBe(true)
+  const css = await (
+    await request.get((await page.locator('link[rel="stylesheet"]').getAttribute('href')) ?? '')
+  ).text()
+  expect(css).not.toMatch(/cyrillic|greek|vietnamese/)
+})
+
+test('links to the site show a title, description and picture', async ({ page, request }) => {
+  await page.goto('/')
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    'href',
+    'https://vinskiano.app/',
+  )
+  for (const property of ['og:title', 'og:description', 'og:image', 'og:url']) {
+    await expect(page.locator(`meta[property="${property}"]`), property).toHaveCount(1)
+  }
+  const image = await page.locator('meta[property="og:image"]').getAttribute('content')
+  const path = new URL(image ?? '').pathname
+  expect((await request.get(path)).headers()['content-type']).toBe('image/webp')
+})
+
+test('crawlers find a favicon.ico and a sitemap', async ({ request }) => {
+  expect((await request.get('/favicon.ico')).headers()['content-type']).toMatch(/icon/)
+  const sitemap = await (await request.get('/sitemap.xml')).text()
+  expect(sitemap).toContain('<loc>https://vinskiano.app/app</loc>')
+  expect(await (await request.get('/robots.txt')).text()).toContain('Sitemap:')
+})

@@ -38,7 +38,7 @@ const frameRotation = (page: Page) =>
 
 test.beforeEach(async ({ page }) => {
   await openApp(page)
-  await page.waitForTimeout(500) // Motion's lazy features, fonts
+  await page.evaluate(() => document.fonts.ready) // positions are measured: the font must be in
 })
 
 test('upright, the app turns sideways; sideways, it stays as is', async ({ page }) => {

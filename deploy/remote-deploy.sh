@@ -12,7 +12,7 @@ fi
 cd "${VINSKIANO_DIR:-/opt/vinskiano}"
 
 if [ ! -f .env ]; then
-	echo "Missing $(pwd)/.env. Create it from deploy/.env.example first (see docs/deploy.md)." >&2
+	echo "Missing $(pwd)/.env. Create it from deploy/.env.example first (see docs/deploy-single-server.md)." >&2
 	exit 1
 fi
 

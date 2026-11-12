@@ -9,6 +9,8 @@ export default defineConfig({
   plugins: [react()],
   test: {
     include: ['src/**/*.test.{ts,tsx}'],
+    // Globals stubbed in a test (vi.stubGlobal) are restored after it.
+    unstubGlobals: true,
     // All of .env (not only VITE_ variables), so the database tests find DATABASE_URL.
     // Without it they are skipped.
     env: loadEnv('test', process.cwd(), ''),

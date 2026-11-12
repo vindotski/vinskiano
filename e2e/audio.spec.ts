@@ -3,6 +3,7 @@ import {
   backToKeyboard,
   chooseWaveform,
   expect,
+  frames,
   openApp,
   openSound,
   oscillatorRow,
@@ -124,7 +125,8 @@ test('the oscilloscope draws while playing and stops when you leave the app', as
   await expect(page.locator('canvas.oscilloscope')).toHaveCount(0)
   await pageTransitionDone(page)
   await resetAudioLog(page)
-  await page.waitForTimeout(500)
+  // The oscilloscope read the analyser every frame: a few frames with no reads mean it stopped.
+  await frames(page, 10)
   expect((await audioLog(page)).analyserReads).toBe(0)
 })
 
@@ -132,14 +134,15 @@ test('pressing at the very edge of a key keeps the note playing while held', asy
   // The press animation moves the key's face, never its hit area. If the hit area shrank,
   // a press near the bottom edge would end up outside it and release the note at once.
   await openApp(page)
-  await page.waitForTimeout(500) // let Motion's lazily loaded features arrive
   const key = pianoKey(page, 'D4')
   const box = await key.boundingBox()
   if (!box) throw new Error('key not visible')
 
   await page.mouse.move(box.x + box.width / 2, box.y + box.height - 2)
   await page.mouse.down()
-  await page.waitForTimeout(300) // longer than the press animation
+  // Until the press animation has finished: the face has dipped all the way.
+  const face = key.locator('span').first()
+  await expect.poll(() => face.evaluate((el) => getComputedStyle(el).scale)).toBe('1 0.985')
   // Real pointers are never perfectly still; boundary events only fire when they move.
   await page.mouse.move(box.x + box.width / 2 + 1, box.y + box.height - 2)
   expect(await audioLog(page)).toMatchObject({ stopped: 0 })

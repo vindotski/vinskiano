@@ -1,3 +1,4 @@
+import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { createRootRoute, HeadContent, Scripts } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
@@ -9,11 +10,8 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
-      {
-        name: 'viewport',
-        content:
-          'width=device-width, initial-scale=1, user-scalable=0, maximum-scale=1, minimum-scale=1',
-      },
+      // Zoom stays allowed (WCAG 1.4.4); only the synth (/app) turns it off, in its own head().
+      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { title: 'Vinskiano' },
       {
         name: 'description',
@@ -24,6 +22,15 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: 'stylesheet', href: appCss },
+      // Found only after the CSS otherwise; every page's text needs it.
+      {
+        rel: 'preload',
+        href: interLatin,
+        as: 'font',
+        type: 'font/woff2',
+        crossOrigin: 'anonymous',
+      },
+      { rel: 'icon', href: '/favicon.ico', sizes: '32x32' },
       { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
       { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
       { rel: 'manifest', href: '/manifest.json' },

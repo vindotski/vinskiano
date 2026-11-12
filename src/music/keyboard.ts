@@ -1,24 +1,16 @@
-import Note from './Note'
-import ScaleBuilder from './ScaleBuilder'
-import { ChromaticScaleStrategy } from './ScaleStrategy'
+import Note, { NOTE_NAMES } from './Note'
 
 /** The reference key: C4. */
 export const MIDDLE_C = new Note({ name: 'C', octave: 4 })
 
-const chromatic = new ChromaticScaleStrategy()
-/** The twelve notes from C in an octave. */
-const octave = (number: number) =>
-  new ScaleBuilder({
-    rootNote: new Note({ name: 'C', octave: number }),
-    strategy: chromatic,
-  }).build()
+/** The note with this MIDI number. */
+const fromMidi = (midi: number) =>
+  new Note({ name: NOTE_NAMES[midi % 12] ?? 'C', octave: Math.floor(midi / 12) - 1 })
 
-/** The playable keyboard: a piano's 88 keys, from A0 to C8. */
-export const KEYBOARD_NOTES: readonly Note[] = [
-  ...octave(0).slice(9), // A0, A#0, B0
-  ...[1, 2, 3, 4, 5, 6, 7].flatMap((number) => [...octave(number)]),
-  new Note({ name: 'C', octave: 8 }),
-]
+/** The playable keyboard: a piano's 88 keys, from A0 (MIDI 21) to C8 (MIDI 108). */
+export const KEYBOARD_NOTES: readonly Note[] = Array.from({ length: 88 }, (_, index) =>
+  fromMidi(21 + index),
+)
 
 /** Whether a note is a white key (no sharp or flat). */
 export const isWhite = (note: Note) => !note.name.includes('{')

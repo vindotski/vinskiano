@@ -1,10 +1,8 @@
 import type { Page } from '@playwright/test'
-import { audioLog, expect, openApp, pageTransitionDone, pianoKey, test } from './fixtures'
+import { audioLog, expect, minimap, openApp, pageTransitionDone, pianoKey, test } from './fixtures'
 
 // The keyboard has a real piano's 88 keys (A0–C8). They scroll sideways; the minimap under the
 // app bar shows where you are and moves the view (touching the keys plays, so it can't scroll).
-
-const minimap = (page: Page) => page.getByRole('slider', { name: 'Keyboard position' })
 
 /** Whether a key is fully inside the keyboard's visible area. */
 const inView = (page: Page, note: string) =>

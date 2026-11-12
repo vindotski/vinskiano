@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Radio, RadioGroup } from 'react-aria-components'
 import WaveformIcon from '@/components/icons/WaveformIcon'
 import PitchKnob from '@/components/knobs/PitchKnob'
@@ -110,4 +111,5 @@ const OscillatorRow = ({ oscillator, level, onChange }: OscillatorRowProps) => {
   )
 }
 
-export default OscillatorRow
+// Memoized: turning one oscillator's knob doesn't re-render the other rows' knobs.
+export default memo(OscillatorRow)
