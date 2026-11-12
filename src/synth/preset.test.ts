@@ -76,6 +76,25 @@ describe('parsePresetName', () => {
     expect(parsePresetName('  Warm\n\tbass  ')).toBe('Warm bass')
   })
 
+  test('normalizes to NFC, so one name typed two ways is the same name', () => {
+    const decomposed = 'Cafe\u0301' // e + combining acute
+    expect(parsePresetName(decomposed)).toBe('Caf\u00e9')
+    expect(parsePresetName(decomposed)).toHaveLength(4)
+  })
+
+  test('removes invisible control and format characters', () => {
+    expect(parsePresetName('Warm\u200Bbass')).toBe('Warmbass') // zero-width space
+    expect(parsePresetName('\u202Ebass\u202C')).toBe('bass') // bidi override and pop
+    expect(parsePresetName('Pad\u0000\u0007')).toBe('Pad') // NUL, bell
+    expect(parsePresetName('\u2066Lead\u2069 one')).toBe('Lead one') // bidi isolates
+  })
+
+  test('counts the length after cleaning', () => {
+    const padded = `${'a'.repeat(PRESET_NAME_MAX)}${'\u200B'.repeat(10)}`
+    expect(parsePresetName(padded)).toHaveLength(PRESET_NAME_MAX)
+    expect(parsePresetName(`${'e\u0301'.repeat(PRESET_NAME_MAX)}`)).toHaveLength(PRESET_NAME_MAX)
+  })
+
   test('accepts the longest name', () => {
     expect(parsePresetName('a'.repeat(PRESET_NAME_MAX))).toHaveLength(PRESET_NAME_MAX)
   })
@@ -84,6 +103,7 @@ describe('parsePresetName', () => {
     ['empty', ''],
     ['only spaces', '   '],
     ['too long', 'a'.repeat(PRESET_NAME_MAX + 1)],
+    ['only invisible characters', '\u200B\u200E\u202E'],
     ['not a string', 42],
   ])('rejects %s', (_, value) => {
     expect(() => parsePresetName(value)).toThrow()

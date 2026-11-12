@@ -1,3 +1,5 @@
+import { type APIRequestContext, request as http, type Page } from '@playwright/test'
+import { PRESETS_MAX } from '../src/synth/preset'
 import {
   asNewVisitor,
   audioLog,
@@ -17,8 +19,7 @@ test.beforeEach(async ({ page }) => {
   await asNewVisitor(page)
 })
 
-const masterVolume = (page: import('@playwright/test').Page) =>
-  page.getByRole('slider', { name: 'Master volume' })
+const masterVolume = (page: Page) => page.getByRole('slider', { name: 'Master volume' })
 
 test('a new visitor has no presets and gets no cookie until they save', async ({
   page,
@@ -219,5 +220,81 @@ test.describe('on a small phone in landscape', () => {
       return new Set(boxes.map((box) => Math.round((box.top + box.height / 2) / 10))).size
     })
     expect(rows).toBe(1)
+  })
+})
+
+test.describe('a save the server refuses', () => {
+  /** The save request the app sends (a sound named "Template"), to send variations of it. */
+  async function saveRequest(page: Page) {
+    await openApp(page)
+    const presets = await openPresets(page)
+    await presets.getByRole('textbox', { name: 'Save this sound as' }).fill('Template')
+    const [sent] = await Promise.all([
+      page.waitForRequest((r) => r.method() === 'POST' && r.url().includes('_serverFn')),
+      presets.getByRole('button', { name: 'Save' }).click(),
+    ])
+    await expect(presets.getByRole('status')).toHaveText('Saved “Template”')
+    const body = sent.postData() ?? ''
+    expect(body).toContain('{"t":1,"s":"Template"}')
+    /** Saves under another name, the way the app would. */
+    return (client: APIRequestContext, name: string) =>
+      client.post(sent.url(), {
+        headers: { 'content-type': 'application/json', 'x-tsr-serverfn': 'true' },
+        data: body.replace('{"t":1,"s":"Template"}', `{"t":1,"s":${JSON.stringify(name)}}`),
+      })
+  }
+
+  /** A client with no cookies (a new visitor) from one address. */
+  const visitor = (baseURL: string | undefined, address: string) =>
+    http.newContext({
+      ...(baseURL ? { baseURL } : {}),
+      ignoreHTTPSErrors: true,
+      extraHTTPHeaders: { origin: new URL(baseURL ?? '').origin, 'x-forwarded-for': address },
+    })
+  const randomAddress = () =>
+    `198.18.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 254) + 1}`
+
+  test('says why, with the right status, and nothing about the server', async ({
+    page,
+    baseURL,
+  }) => {
+    const save = await saveRequest(page)
+    const client = await visitor(baseURL, randomAddress())
+
+    const invalid = await save(client, 'x'.repeat(41))
+    expect(invalid.status()).toBe(400)
+    const body = await invalid.text()
+    expect(body).toContain('A preset needs a name of 1 to 40 characters')
+    expect(body).not.toContain('stack')
+    expect(body).not.toMatch(/\.(m?js|ts):\d+/)
+
+    // One visitor keeps at most PRESETS_MAX presets.
+    for (let i = 1; i <= PRESETS_MAX; i++)
+      expect((await save(client, `Sound ${i}`)).ok()).toBe(true)
+    const full = await save(client, 'One more')
+    expect(full.status()).toBe(409)
+    expect(await full.text()).not.toContain('stack')
+    await client.dispose()
+  })
+
+  test('too many new visitors from one network are told to wait', async ({ page, baseURL }) => {
+    const save = await saveRequest(page)
+    const address = randomAddress()
+    let status = 0
+    let retryAfter: string | undefined
+    let body = ''
+    // The kit's default limit is 30 new guests per address per 10 minutes.
+    for (let i = 0; i < 31; i++) {
+      const client = await visitor(baseURL, address)
+      const response = await save(client, 'Mine')
+      status = response.status()
+      retryAfter = response.headers()['retry-after']
+      body = await response.text()
+      await client.dispose()
+    }
+    expect(status).toBe(429)
+    expect(retryAfter).toMatch(/^\d+$/)
+    expect(body).toContain('Too many new visitors')
+    expect(body).not.toContain('stack')
   })
 })

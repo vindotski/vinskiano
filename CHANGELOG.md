@@ -28,6 +28,11 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 - Vinskiano now deploys on [Spotcraft](https://spotcraft.dev), with a Postgres database for the presets. The server needs `DATABASE_URL`, `AUTH_SECRET` and `PUBLIC_URL`, and stops at start, naming the one that's missing or wrong. See [docs/deploy.md](docs/deploy.md)
 - Running locally needs Postgres too: `pnpm exec spotcraft dev start` runs it in Docker, and `pnpm exec spotcraft dev env --write` adds its settings to `.env`. Without it, `pnpm dev` still plays (only presets fail), but `pnpm start` and the Docker image won't start
 - The Docker image applies Debian's security updates when it's built, instead of waiting for a new Node base image
+- The server connects to the database and applies its migrations when it starts, and exits if it can't, so a deploy with a broken database fails its health check instead of failing on the first save
+- Errors from the server say what went wrong in plain words, with the right HTTP status (400 for a bad name or sound, 409 at the preset limit, 429 for too many new visitors); anything unexpected is logged on the server and shows "Something went wrong; try again" instead of the database's message
+- Preset names are Unicode-normalized, and invisible characters (zero-width spaces, text-direction overrides) are removed before the length check
+- The limit on new guests counts an IPv6 address as its /64, so one network can't get round it by switching addresses
+- The Docker image caps Node's heap at 160 MB, below the container's memory limit, and its build context leaves out the docs, tests and deploy kit
 - The single-server deploy kit is retired: it has no database, so it can't run images with presets. It stays until the first Spotcraft deploy, then goes
 
 ## [1.0.0] - 2026-11-07
