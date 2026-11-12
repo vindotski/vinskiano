@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test, vi } from 'vitest'
+import { describe, expect, test, vi } from 'vitest'
 import Engine from './Engine'
 
 /**
@@ -36,17 +36,13 @@ class LeavingPageContext {
 }
 
 describe('Engine', () => {
-  afterEach(() => {
-    vi.unstubAllGlobals()
-  })
-
   // Vitest fails the run on any unhandled rejection, so these fail if the engine lets one
   // escape (which Firefox reports as a console error).
   test('ignores a resume() that fails because the page is going away', async () => {
     vi.stubGlobal('AudioContext', LeavingPageContext)
     const engine = new Engine(0.5, [])
     engine.noteOn('A4', 440)
-    await new Promise((resolve) => setTimeout(resolve, 10))
+    await new Promise((resolve) => setImmediate(resolve)) // after the rejection's handlers
     expect(engine.context).toMatchObject({ calls: ['resume'] })
   })
 
@@ -54,7 +50,7 @@ describe('Engine', () => {
     vi.stubGlobal('AudioContext', LeavingPageContext)
     const engine = new Engine(0.5, [])
     engine.close()
-    await new Promise((resolve) => setTimeout(resolve, 10))
+    await new Promise((resolve) => setImmediate(resolve)) // after the rejection's handlers
     expect(engine.context).toMatchObject({ calls: ['close'] })
   })
 

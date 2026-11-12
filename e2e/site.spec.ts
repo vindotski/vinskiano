@@ -166,6 +166,8 @@ for (const { width, deviceScaleFactor, expected } of [
     test('the app screenshot loads in a fitting size', async ({ page }) => {
       await page.goto('/')
       const image = page.getByRole('img', { name: /The Vinskiano synth/ })
+      // It loads lazily, and how far ahead browsers start differs: bring it into view.
+      await image.scrollIntoViewIfNeeded()
       await expect
         .poll(() => image.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth))
         .toBeGreaterThan(0)

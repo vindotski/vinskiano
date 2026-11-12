@@ -1,3 +1,4 @@
+import type { Page } from '@playwright/test'
 import {
   asNewVisitor,
   audioLog,
@@ -17,8 +18,7 @@ test.beforeEach(async ({ page }) => {
   await asNewVisitor(page)
 })
 
-const masterVolume = (page: import('@playwright/test').Page) =>
-  page.getByRole('slider', { name: 'Master volume' })
+const masterVolume = (page: Page) => page.getByRole('slider', { name: 'Master volume' })
 
 test('a new visitor has no presets and gets no cookie until they save', async ({
   page,

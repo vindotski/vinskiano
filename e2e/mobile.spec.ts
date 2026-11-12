@@ -1,3 +1,4 @@
+import type { Page } from '@playwright/test'
 import { audioLog, expect, openApp, pianoKey, test } from './fixtures'
 import { expectBigTargets, screens } from './targets'
 
@@ -32,7 +33,7 @@ for (const screen of screens) {
  * touch events (Chromium only, so the Pixel projects). Each finger has an id; touchEnd lifts the
  * fingers it lists. Points are on screen, so this also holds when the app is rotated.
  */
-async function fingers(page: import('@playwright/test').Page) {
+async function fingers(page: Page) {
   const cdp = await page.context().newCDPSession(page)
   /** Finger `id` on a key (nudged along the key's width, to put two fingers on one key). */
   const at = async (name: string, id: number, nudge = 0) => {
@@ -51,8 +52,7 @@ async function fingers(page: import('@playwright/test').Page) {
   return { at, send }
 }
 
-const started = async (page: import('@playwright/test').Page) =>
-  (await audioLog(page)).started.length
+const started = async (page: Page) => (await audioLog(page)).started.length
 
 test.describe('several fingers', () => {
   test.skip(({ browserName }) => browserName !== 'chromium', 'CDP touch events are Chromium-only')

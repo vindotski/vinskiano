@@ -1,9 +1,9 @@
 import type { Page } from '@playwright/test'
-import { audioLog, expect, openApp, resetAudioLog, test } from './fixtures'
+import { audioLog, expect, openApp, pianoKey, resetAudioLog, test } from './fixtures'
 
 // Playing the keyboard with a mouse. Phones (touch, several fingers) are in mobile.spec.ts.
 
-const key = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
+const key = pianoKey
 
 async function centerOf(page: Page, name: string) {
   const box = await key(page, name).boundingBox()

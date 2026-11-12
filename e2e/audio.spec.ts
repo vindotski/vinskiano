@@ -3,6 +3,7 @@ import {
   backToKeyboard,
   chooseWaveform,
   expect,
+  frames,
   openApp,
   openSound,
   oscillatorRow,
@@ -124,7 +125,8 @@ test('the oscilloscope draws while playing and stops when you leave the app', as
   await expect(page.locator('canvas.oscilloscope')).toHaveCount(0)
   await pageTransitionDone(page)
   await resetAudioLog(page)
-  await page.waitForTimeout(500)
+  // The oscilloscope read the analyser every frame: a few frames with no reads mean it stopped.
+  await frames(page, 10)
   expect((await audioLog(page)).analyserReads).toBe(0)
 })
 

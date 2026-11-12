@@ -1,3 +1,4 @@
+import type { Page } from '@playwright/test'
 import { expect, openApp, openSound, test } from './fixtures'
 
 // Oscillator knobs live on each oscillator's page (/app/oscillators/N); master is in the bar.
@@ -53,7 +54,7 @@ test('the focused knob shows a focus ring when reached by keyboard', async ({ pa
 })
 
 /** Drag a knob's dial from 12 o'clock to an angle (degrees, clockwise). */
-async function turnKnob(page: import('@playwright/test').Page, name: string, degrees: number[]) {
+async function turnKnob(page: Page, name: string, degrees: number[]) {
   const dial = page
     .getByRole('slider', { name })
     .locator('xpath=ancestor::div[contains(@class, "knob")]')
@@ -92,7 +93,7 @@ test('dragging through the bottom dead zone does not jump to the other end', asy
 })
 
 /** Where the knob's pointer dot is drawn, as a clock angle in degrees (0 = 12 o'clock). */
-const pointerAngle = (page: import('@playwright/test').Page, name: string) =>
+const pointerAngle = (page: Page, name: string) =>
   page
     .locator('.knob')
     .filter({ has: page.getByRole('slider', { name }) })

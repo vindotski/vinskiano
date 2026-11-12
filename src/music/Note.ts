@@ -1,7 +1,7 @@
 const NAME_PATTERN = /^[a-gA-G]({sharp}|{flat})?$/
 
 /** The twelve note names of an octave, from C. */
-export const NOTE_NAMES = [
+export const NOTE_NAMES: readonly string[] = [
   'C',
   'C{sharp}',
   'D',
@@ -14,7 +14,7 @@ export const NOTE_NAMES = [
   'A',
   'A{sharp}',
   'B',
-] as const
+]
 
 export interface NoteOptions {
   name?: string
@@ -41,7 +41,7 @@ class Note {
 
   /** The note's MIDI number (C4 = 60, A4 = 69). Only for the names in NOTE_NAMES. */
   midi(): number {
-    const index = NOTE_NAMES.findIndex((name) => name === this.name)
+    const index = NOTE_NAMES.indexOf(this.name)
     if (index < 0) throw new Error(`No MIDI number for ${this.label}`)
     return (this.octave + 1) * 12 + index
   }

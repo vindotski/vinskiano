@@ -48,8 +48,7 @@ test('the bar has no oscillator controls; its Sound button opens the oscillators
 })
 
 test('the mix always adds up to 100%: oscillator 1 gets what 2 and 3 leave', async ({ page }) => {
-  await page.goto('/app/oscillators')
-  await page.waitForFunction(() => window.__audio.analysers > 0)
+  await openApp(page, '/app/oscillators')
   const level = page.getByRole('meter', { name: 'Oscillator 1 level' })
   const mix = (n: number) => page.getByRole('slider', { name: `Oscillator ${n} mix` })
   // A new sound is an equal mix: 2 at 50%, 3 at a third, so 1 is a third too.
@@ -124,8 +123,7 @@ test('changes apply right away, and all three sound back on the keyboard', async
 })
 
 test('each row’s waveforms work with arrow keys, on their own', async ({ page }) => {
-  await page.goto('/app/oscillators')
-  await page.waitForFunction(() => window.__audio.analysers > 0)
+  await openApp(page, '/app/oscillators')
   const row = oscillatorRow(page, 1)
   await row.getByRole('radio', { name: 'Sine' }).focus()
   await page.keyboard.press('ArrowRight')

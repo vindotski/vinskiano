@@ -1,10 +1,17 @@
 import type { Page } from '@playwright/test'
-import { audioLog, expect, openApp, openPresets, pianoKey, resetAudioLog, test } from './fixtures'
+import {
+  audioLog,
+  expect,
+  minimap,
+  openApp,
+  openPresets,
+  pianoKey,
+  resetAudioLog,
+  test,
+} from './fixtures'
 
 // Playing from the computer keyboard, with FL Studio's layout: Z S X D C V G B H N J M , is the
 // octave from the first C in view, Q 2 W 3 E R 5 T 6 Y 7 U I 9 O 0 P the one above and on.
-
-const minimap = (page: Page) => page.getByRole('slider', { name: 'Keyboard position' })
 
 /** The held keys' names. */
 const held = (page: Page) =>
