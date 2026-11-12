@@ -212,6 +212,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 
 - Every control needs an accessible name: knobs take a `label` ("Oscillator 2 pitch", "Master volume"); groups of controls get one too (each oscillator is a `fieldset` named "Oscillator 1", the master section a region named "Master").
 - Controls work by keyboard and show a visible focus ring. Knobs are native range inputs underneath (arrows, Page Up/Down, Home/End).
+- **Every tap target is at least 44 × 44 px** (Apple's minimum for a fingertip; WCAG 2.5.5), with a mouse too: the button and select sizes in `ui/` start there (`h-11`, `size-11`), knobs are `size-11` or bigger, and text links get a padded hit area (`inline-flex min-h-11 items-center`). `e2e/targets.spec.ts` checks every screen and open popover on desktop, and `e2e/mobile.spec.ts` on phones both ways up.
 - Browser tests find controls by role and name (`getByRole('slider', { name })`), never by DOM position.
 
 ## Tests

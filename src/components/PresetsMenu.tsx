@@ -61,12 +61,7 @@ const PresetsMenu = ({
 
   return (
     <DialogTrigger onOpenChange={(open) => open && onOpen()}>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        aria-label="Presets"
-        className="size-7 md:size-8 xl:size-9"
-      >
+      <Button variant="ghost" size="icon-sm" aria-label="Presets">
         <BookmarkIcon className="size-5 text-primary" />
       </Button>
       <SelectPopover placement="bottom end" rotatedWidth={WIDTH + 8} className="w-72 bg-popover/90">
@@ -90,7 +85,7 @@ const PresetsMenu = ({
               <Input
                 ref={input}
                 placeholder="Name"
-                className="h-8 rounded-3xl border border-transparent bg-input/50 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+                className="h-11 rounded-3xl border border-transparent bg-input/50 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
               />
             </TextField>
             <Button type="submit" size="sm" isPending={pending}>

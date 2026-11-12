@@ -53,7 +53,7 @@ const Oscillator = ({
           label={`${name} volume`}
           value={volume}
           onChange={(v) => update({ volume: v })}
-          className="size-8 md:size-9 xl:size-12"
+          className="size-11 xl:size-12"
         />
         <Caption>Vol</Caption>
       </div>
@@ -67,7 +67,7 @@ const Oscillator = ({
           label={`${name} pitch`}
           value={pitch}
           onChange={(p) => update({ pitch: p })}
-          className="size-8 md:size-9 xl:size-12"
+          className="size-11 xl:size-12"
         />
         <Caption>Pitch</Caption>
       </div>

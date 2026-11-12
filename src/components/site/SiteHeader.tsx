@@ -7,7 +7,7 @@ const SiteHeader = () => (
     <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4">
       <Link
         to="/"
-        className="flex items-center gap-2 rounded-full font-heading text-base font-semibold outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+        className="flex min-h-11 items-center gap-2 rounded-full font-heading text-base font-semibold outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
       >
         <Logo className="size-6" />
         Vinskiano

@@ -15,6 +15,7 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 
 ### Changed
 
+- Every button, link and control is at least 44 × 44 px, Apple's minimum for a fingertip, in the app and on the site. The app bar is a little taller, and the menus' rows are easier to hit on a phone
 - The app bar shows one oscillator at a time, with a select for the other two. All three keep sounding; only the view changes, and the URL remembers the choice (`/app?osc=2`). This leaves room in the bar for the controls to come
 - The old `/oscillators` URL now opens oscillator 1's page instead of the keyboard
 - Vinskiano now deploys on [Spotcraft](https://spotcraft.dev), with a Postgres database for the presets. The server needs `DATABASE_URL`, `AUTH_SECRET` and `PUBLIC_URL`, and stops at start, naming the one that's missing or wrong. See [docs/deploy.md](docs/deploy.md)

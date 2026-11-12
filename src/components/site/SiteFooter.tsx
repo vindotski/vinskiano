@@ -3,13 +3,16 @@ const SiteFooter = () => (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-2 px-4 py-6 text-sm text-muted-foreground sm:flex-row sm:justify-between">
       <p>
         © 2020–2026{' '}
-        <a className="underline-offset-4 hover:underline" href="https://www.vin.ski">
+        <a
+          className="inline-flex min-h-11 items-center underline-offset-4 hover:underline"
+          href="https://www.vin.ski"
+        >
           Ivan Vinski
         </a>
         . Apache-2.0.
       </p>
       <a
-        className="underline-offset-4 hover:underline"
+        className="inline-flex min-h-11 items-center underline-offset-4 hover:underline"
         href="https://github.com/vindotski/vinskiano"
       >
         Source on GitHub

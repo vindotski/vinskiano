@@ -1,4 +1,5 @@
 import { audioLog, expect, openApp, test } from './fixtures'
+import { expectBigTargets, screens } from './targets'
 
 test('a tap plays a key exactly once', async ({ page }) => {
   await openApp(page)
@@ -15,5 +16,13 @@ for (const path of ['/', '/app']) {
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     )
     expect(overflow).toBe(0)
+  })
+}
+
+// The same 44 px floor as targets.spec.ts, on phones held both ways (upright, the app rotates).
+for (const screen of screens) {
+  test(`targets on ${screen.name} are big enough for a finger`, async ({ page }) => {
+    await screen.open(page)
+    await expectBigTargets(page)
   })
 }

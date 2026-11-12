@@ -70,7 +70,7 @@ const AppBar = ({
             label="Master volume"
             value={master.gain}
             onChange={(gain) => onMasterChange({ gain })}
-            className="size-8 md:size-9 xl:size-12"
+            className="size-11 xl:size-12"
           />
           <span
             aria-hidden="true"
@@ -79,10 +79,7 @@ const AppBar = ({
             Master
           </span>
         </div>
-        <Oscilloscope
-          oscilloscope={oscilloscope}
-          className="h-8 w-12 md:h-9 md:w-24 xl:h-12 xl:w-32"
-        />
+        <Oscilloscope oscilloscope={oscilloscope} className="h-11 w-12 md:w-24 xl:h-12 xl:w-32" />
       </section>
     </div>
   </header>

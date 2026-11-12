@@ -85,18 +85,14 @@ function SynthBar() {
           resetScroll: false,
           viewTransition: false,
         })
-  const linkStyle = buttonVariants({
-    variant: 'ghost',
-    size: 'icon-sm',
-    className: 'size-7 md:size-8',
-  })
+  const linkStyle = buttonVariants({ variant: 'ghost', size: 'icon-sm' })
   return (
     <AppBar
       start={
         <Link
           to="/"
           aria-label="Vinskiano home"
-          className="rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+          className="grid size-11 place-items-center rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
         >
           <Logo className="size-7" />
         </Link>

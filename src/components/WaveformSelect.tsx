@@ -38,7 +38,7 @@ const WaveformSelect = ({ label, value, onChange = () => {} }: WaveformSelectPro
       if (isWaveform(key)) onChange(key)
     }}
   >
-    <SelectTrigger size="sm" className="w-auto gap-1 px-2 xl:h-9 xl:px-2.5">
+    <SelectTrigger size="sm" className="w-auto gap-1 px-2 xl:px-2.5">
       <SelectValue>
         {() => (
           <>

@@ -38,7 +38,7 @@ const OscillatorSelect = ({ value, onChange }: OscillatorSelectProps) => (
       if (id) onChange(id)
     }}
   >
-    <SelectTrigger size="sm" className="w-auto gap-1 pr-1.5 pl-1.5 xl:h-9">
+    <SelectTrigger size="sm" className="w-auto gap-1 pr-1.5 pl-1.5">
       <SelectValue>
         {() => (
           <>
