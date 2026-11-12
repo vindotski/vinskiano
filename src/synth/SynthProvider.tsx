@@ -8,11 +8,12 @@ import {
   useRef,
   useState,
 } from 'react'
-import { Engine, type OscillatorConfig, type Oscilloscope, type Sound } from '../audio'
+import { Engine, type Oscilloscope, type Sound } from '../audio'
 import { Frequency, KEYBOARD_NOTES, type Note } from '../music'
 import type { MasterSettings, OscillatorSettings, OscillatorState } from '../types/synth'
 import { disableContextMenu } from '../utils/disable-context-menu'
-import { mixLevels } from './mix'
+import { forEngine } from './engine-settings'
+import { INIT } from './factory'
 import type { PresetSettings } from './preset'
 
 /** Everything the pages need from the synth: its state and how to play and change it. */
@@ -39,26 +40,6 @@ export interface Synth {
 /** A sound that is currently playing, tagged with the note that started it. */
 type PlayingSound = Sound & { note: Note }
 
-const INITIAL_MASTER: MasterSettings = { gain: 0.5 }
-
-/** A new sound: an equal mix of three sines an octave apart. */
-const INITIAL_OSCILLATORS: OscillatorState[] = [
-  { id: 1, waveform: 'sine', pitch: -12 },
-  { id: 2, waveform: 'sine', pitch: 0, mix: 0.5 },
-  { id: 3, waveform: 'sine', pitch: 12, mix: 1 / 3 },
-]
-
-/** What the engine plays: each oscillator at its level in the mix. */
-const forEngine = (oscillators: readonly OscillatorState[]): OscillatorConfig[] => {
-  const levels = mixLevels(oscillators)
-  return oscillators.map(({ id, waveform, pitch }, index) => ({
-    id,
-    waveform,
-    pitch,
-    volume: levels[index] ?? 0,
-  }))
-}
-
 const SynthContext = createContext<Synth | null>(null)
 
 /**
@@ -67,8 +48,8 @@ const SynthContext = createContext<Synth | null>(null)
  * provider also renders on the server.
  */
 export function SynthProvider({ children }: { children: ReactNode }) {
-  const [master, setMaster] = useState(INITIAL_MASTER)
-  const [oscillators, setOscillators] = useState(INITIAL_OSCILLATORS)
+  const [master, setMaster] = useState(INIT.settings.master)
+  const [oscillators, setOscillators] = useState(INIT.settings.oscillators)
   const [engine, setEngine] = useState<Engine | null>(null)
   // The same engine, for playing: set the moment it exists. State only catches up on the next
   // render, and a note played in between (a key pressed right as the page loads) was dropped.

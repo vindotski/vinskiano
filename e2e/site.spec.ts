@@ -1,4 +1,4 @@
-import { expect, openHome, test } from './fixtures'
+import { audioLog, expect, openHome, test } from './fixtures'
 
 test('the home page links to the synth', async ({ page }) => {
   await openHome(page)
@@ -8,27 +8,54 @@ test('the home page links to the synth', async ({ page }) => {
   await expect(page.locator('.piano-key')).toHaveCount(88)
 })
 
-test('the site never creates an audio engine', async ({ page }) => {
-  await page.addInitScript(() => {
-    const Original = window.AudioContext
-    ;(window as unknown as { __contexts: number }).__contexts = 0
-    window.AudioContext = class extends Original {
-      constructor(...args: ConstructorParameters<typeof AudioContext>) {
-        super(...args)
-        ;(window as unknown as { __contexts: number }).__contexts++
-      }
-    }
-  })
-  await page.goto('/')
-  await page.waitForTimeout(500)
-  expect(await page.evaluate(() => (window as unknown as { __contexts: number }).__contexts)).toBe(
-    0,
-  )
-  // The synth creates one as soon as it mounts.
-  await page.getByRole('main').getByRole('link', { name: 'Open the synth' }).first().click()
-  await expect
-    .poll(() => page.evaluate(() => (window as unknown as { __contexts: number }).__contexts))
-    .toBeGreaterThan(0)
+test('the site creates no audio engine until a demo key is played', async ({ page }) => {
+  await openHome(page)
+  const demo = page.locator('#play')
+  await demo.scrollIntoViewIfNeeded()
+  const key = demo.getByRole('button', { name: 'C4', exact: true })
+  await expect(key).toBeVisible()
+  // The demo's keyboard has loaded, and still nothing has made an AudioContext.
+  expect((await audioLog(page)).analysers).toBe(0)
+
+  await key.hover()
+  await page.mouse.down()
+  await expect.poll(async () => (await audioLog(page)).started.length).toBe(3)
+  expect((await audioLog(page)).analysers).toBe(1)
+  await page.mouse.up()
+  await expect.poll(async () => (await audioLog(page)).stopped).toBe(3)
+})
+
+test('the demo plays the sound that is picked', async ({ page }) => {
+  await openHome(page)
+  const demo = page.locator('#play')
+  await demo.getByText('Square lead').click()
+  await expect(demo.getByRole('radio', { name: 'Square lead' })).toBeChecked()
+  await demo.getByRole('button', { name: 'C4', exact: true }).hover()
+  await page.mouse.down()
+  await expect.poll(async () => (await audioLog(page)).started.length).toBe(3)
+  await page.mouse.up()
+  const types = (await audioLog(page)).started.map((s) => s.type)
+  expect(types).toEqual(['square', 'square', 'triangle'])
+})
+
+test('typing plays the demo, from its first C', async ({ page }) => {
+  await openHome(page)
+  const demo = page.locator('#play')
+  await demo.scrollIntoViewIfNeeded()
+  const first = demo.locator('.piano-key').first()
+  await expect(first).toBeVisible()
+  const base = await first.getAttribute('data-note')
+  await page.keyboard.down('z')
+  await expect(demo.locator(`[data-note="${base}"]`)).toHaveClass(/piano-key--active/)
+  await expect.poll(async () => (await audioLog(page)).started.length).toBe(3)
+  await page.keyboard.up('z')
+})
+
+test('"Play it here" goes to the demo', async ({ page }) => {
+  await openHome(page)
+  await page.getByRole('link', { name: 'Play it here' }).click()
+  await expect(page).toHaveURL('/#play')
+  await expect(page.getByRole('heading', { name: 'Play it here' })).toBeInViewport()
 })
 
 test('the home page is server-rendered with a link to the synth', async ({ request }) => {
@@ -45,12 +72,24 @@ test('old /oscillators links redirect into the app', async ({ page, request }) =
   await expect(page).toHaveURL('/app/oscillators')
 })
 
-test('the home page has a hero, a screenshot and three steps', async ({ page }) => {
+test('the home page has a hero, the demo, features, the roadmap and a FAQ', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1)
-  await expect(page.getByRole('img', { name: /The Vinskiano synth/ })).toBeVisible()
-  const steps = page.getByRole('region', { name: /how it works/i }).getByRole('listitem')
-  await expect(steps).toHaveCount(3)
+  await expect(page.getByRole('region', { name: 'Play it here' })).toBeVisible()
+  await expect(page.getByRole('img', { name: /The Vinskiano synth/ })).toBeAttached()
+  await expect(
+    page.getByRole('region', { name: 'What it does' }).getByRole('listitem'),
+  ).toHaveCount(6)
+  await expect(page.getByRole('region', { name: 'For FL Studio users' })).toBeVisible()
+  await expect(
+    page.getByRole('region', { name: 'Coming next' }).getByRole('listitem'),
+  ).not.toHaveCount(0)
+
+  const faq = page.getByRole('region', { name: 'Questions' })
+  const answer = faq.getByText(/MIDI is planned/)
+  await expect(answer).toBeHidden()
+  await faq.getByText('Can I use a MIDI keyboard?').click()
+  await expect(answer).toBeVisible()
 })
 
 test('outline buttons keep their border', async ({ page }) => {
@@ -77,7 +116,7 @@ test('the first Tab stop skips to the content', async ({ page, browserName }) =>
 test('the home page has its real copy, no placeholders', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-    'A three-oscillator synth that lives in your browser',
+    'A synth that plays in your browser',
   )
   await expect(page.getByRole('main')).not.toContainText('[')
 })
@@ -134,5 +173,24 @@ for (const { width, deviceScaleFactor, expected } of [
       expect(source).toMatch(/\.webp$/)
       expect(source).toContain(expected)
     })
+  })
+}
+
+for (const width of [360, 320]) {
+  test(`at ${width} px wide, every demo key can be reached`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 740 })
+    await openHome(page)
+    const demo = page.locator('#play')
+    await demo.scrollIntoViewIfNeeded()
+    const keys = demo.locator('.piano-key--white')
+    await expect(keys.first()).toBeVisible()
+    for (const key of await keys.all()) {
+      // Scrolled to if it has to be, then wholly on screen: not cut off by the card.
+      await key.scrollIntoViewIfNeeded()
+      const box = await key.boundingBox()
+      expect(box?.x).toBeGreaterThanOrEqual(0)
+      expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(width)
+      await expect(key).toBeInViewport({ ratio: 1 })
+    }
   })
 }
