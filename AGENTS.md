@@ -34,9 +34,9 @@ Before editing files for a substantial task:
 
 ```
 src/
-  music/       Pure music theory: Note, Octave, Frequency, Scale, ScaleBuilder, ScaleStrategy, KEYBOARD_NOTES (88, A0–C8), WHITE_NOTES, MIDDLE_C
+  music/       Pure music theory: Note (with its MIDI number), NOTE_NAMES, Frequency (equal temperament from A4 = 440 Hz), KEYBOARD_NOTES (88, A0–C8), WHITE_NOTES, MIDDLE_C, the typing keyboard
   audio/       Web Audio: Engine (context + oscillators + oscilloscope), Context (master gain → limiter → speakers), Oscillator (a gain per note, for click-free fades), Oscilloscope
-  components/  React UI: AppBar (left: master knob + oscilloscope; right: an `end` slot with the presets dropdown and the Sound/keyboard link), OscillatorRow (one row of the oscillator rack), PresetsMenu, Piano, PianoKey, KeyboardMinimap, knobs/, toolbars/, site/ (header, footer), home/ (the home page's demo: PlaySection, and DemoPlayer, its lazily loaded keyboard)
+  components/  React UI: AppBar (left: master knob + oscilloscope; right: an `end` slot with the presets dropdown and the Sound/keyboard link), OscillatorRow (one row of the oscillator rack), PresetsMenu, Piano, PianoKey, KeyboardMinimap, knobs/, site/ (header, footer), home/ (the home page's demo: PlaySection, and DemoPlayer, its lazily loaded keyboard)
   routes/      File-based routes, two sections:
                  __root      HTML document (shellComponent + head()), 404 (NotFound brings the site chrome)
                  _site.tsx   pathless site layout (header, scrolling page, footer); _site/index.tsx = /

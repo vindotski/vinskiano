@@ -1,5 +1,21 @@
 const NAME_PATTERN = /^[a-gA-G]({sharp}|{flat})?$/
 
+/** The twelve note names of an octave, from C. */
+export const NOTE_NAMES = [
+  'C',
+  'C{sharp}',
+  'D',
+  'D{sharp}',
+  'E',
+  'F',
+  'F{sharp}',
+  'G',
+  'G{sharp}',
+  'A',
+  'A{sharp}',
+  'B',
+] as const
+
 export interface NoteOptions {
   name?: string
   octave?: number
@@ -21,6 +37,13 @@ class Note {
     this.name = name
     this.octave = options.octave ?? 4
     this.label = `${name.replace('{sharp}', '#').replace('{flat}', 'b')}${this.octave}`
+  }
+
+  /** The note's MIDI number (C4 = 60, A4 = 69). Only for the names in NOTE_NAMES. */
+  midi(): number {
+    const index = NOTE_NAMES.findIndex((name) => name === this.name)
+    if (index < 0) throw new Error(`No MIDI number for ${this.label}`)
+    return (this.octave + 1) * 12 + index
   }
 
   /** Same pitch: equal name and octave (notes are compared by value, not identity). */

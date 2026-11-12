@@ -8,8 +8,5 @@ export const WAVEFORMS: readonly { value: Waveform; label: string }[] = [
   { value: 'sawtooth', label: 'Sawtooth' },
 ]
 
-export const waveformLabel = (waveform: Waveform) =>
-  WAVEFORMS.find((option) => option.value === waveform)?.label ?? waveform
-
 export const isWaveform = (value: unknown): value is Waveform =>
   WAVEFORMS.some((option) => option.value === value)
