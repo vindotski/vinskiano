@@ -186,3 +186,24 @@ test('asks for media playback, so an iPhone on silent still plays (where support
   const hasApi = browserName === 'webkit' && process.platform === 'darwin'
   expect(sessionType).toBe(hasApi ? 'playback' : null)
 })
+
+// BUG (CI, WebKit on Linux): the engine is built in an effect, but the keyboard reached it
+// through React state, which only catches up on the next render; a note played in between was
+// dropped. This plays one in exactly that gap: as the engine builds its oscilloscope.
+test('a note played the moment the engine exists still sounds', async ({ page }) => {
+  await page.addInitScript(() => {
+    const createAnalyser = BaseAudioContext.prototype.createAnalyser
+    BaseAudioContext.prototype.createAnalyser = function (this: BaseAudioContext) {
+      queueMicrotask(() =>
+        window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyZ', key: 'z' })),
+      )
+      return createAnalyser.call(this)
+    }
+  })
+  await page.goto('/app')
+  await expect.poll(async () => (await audioLog(page)).started.length).toBe(3)
+  await page.evaluate(() =>
+    window.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyZ', key: 'z' })),
+  )
+  await expect.poll(async () => (await audioLog(page)).stopped).toBe(3)
+})
