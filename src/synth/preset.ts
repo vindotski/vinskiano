@@ -70,3 +70,21 @@ export function parsePresetName(value: unknown): string {
   }
   return name
 }
+
+/** Whether two sounds are the same, e.g. the synth now and the preset it was loaded from. */
+export function sameSettings(a: PresetSettings, b: PresetSettings): boolean {
+  return (
+    a.master.gain === b.master.gain &&
+    a.oscillators.length === b.oscillators.length &&
+    a.oscillators.every((oscillator, index) => {
+      const other = b.oscillators[index]
+      return (
+        other !== undefined &&
+        oscillator.id === other.id &&
+        oscillator.waveform === other.waveform &&
+        oscillator.pitch === other.pitch &&
+        oscillator.volume === other.volume
+      )
+    })
+  )
+}

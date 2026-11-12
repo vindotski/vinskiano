@@ -151,3 +151,75 @@ test('a list that loads on a retry clears the earlier error', async ({ browser }
   await expect(presets.getByRole('status')).toBeHidden() // hidden while empty
   await page.close()
 })
+
+test('the presets button names the current sound, and says when it has changed', async ({
+  page,
+}) => {
+  await openApp(page)
+  const button = page.getByRole('button', { name: /^Presets/ })
+  await expect(button).toHaveAccessibleName('Presets: New sound')
+
+  let presets = await openPresets(page)
+  const name = presets.getByRole('textbox', { name: 'Save this sound as' })
+  const save = presets.getByRole('button', { name: 'Save' })
+  await expect(name).toHaveValue('')
+  await name.fill('Bright lead')
+  await save.click()
+  await expect(presets.getByRole('status')).toHaveText('Saved “Bright lead”')
+  await name.fill('Soft pad')
+  await save.click()
+  await expect(presets.getByRole('status')).toHaveText('Saved “Soft pad”')
+  await expect(button).toHaveAccessibleName('Presets: Soft pad')
+  await expect(presets.getByRole('button', { name: 'Load Soft pad' })).toHaveAttribute(
+    'aria-current',
+    'true',
+  )
+  await page.keyboard.press('Escape')
+
+  // Any change to the sound marks it edited; saving it again (the field offers its name) clears that.
+  await masterVolume(page).focus()
+  await page.keyboard.press('ArrowDown')
+  await expect(button).toHaveAccessibleName('Presets: Soft pad, edited')
+  presets = await openPresets(page)
+  await expect(name).toHaveValue('Soft pad')
+  await save.click()
+  await expect(presets.getByRole('status')).toHaveText('Updated “Soft pad”')
+  await expect(button).toHaveAccessibleName('Presets: Soft pad')
+
+  // Loading another names that one; deleting it leaves the sound, but nameless.
+  await presets.getByRole('button', { name: 'Load Bright lead' }).click()
+  await expect(button).toHaveAccessibleName('Presets: Bright lead')
+  await expect(presets.getByRole('button', { name: 'Load Bright lead' })).toHaveAttribute(
+    'aria-current',
+    'true',
+  )
+  await presets.getByRole('button', { name: 'Delete Bright lead' }).click()
+  await expect(presets.getByRole('status')).toHaveText('Deleted “Bright lead”')
+  await expect(button).toHaveAccessibleName('Presets: New sound')
+})
+
+test.describe('on a small phone in landscape', () => {
+  test.use({ viewport: { width: 667, height: 375 } })
+
+  test('a long preset name is cut off, and the bar stays on one row', async ({ page }) => {
+    const long = 'An extremely long name for a warm evening pad'.slice(0, 40)
+    await openApp(page)
+    const presets = await openPresets(page)
+    await presets.getByRole('textbox', { name: 'Save this sound as' }).fill(long)
+    await presets.getByRole('button', { name: 'Save' }).click()
+    await expect(presets.getByRole('status')).toHaveText(`Saved “${long}”`)
+    await page.keyboard.press('Escape')
+
+    const shown = page.getByRole('button', { name: /^Presets/ }).getByText(long)
+    expect(await shown.evaluate((span) => span.scrollWidth > span.clientWidth)).toBe(true)
+    const rows = await page.evaluate(() => {
+      const parts = document.querySelectorAll('header > *, header section > *')
+      // Zero-size parts (a React Aria <template>) take no room in a row.
+      const boxes = [...parts]
+        .map((part) => part.getBoundingClientRect())
+        .filter((box) => box.width)
+      return new Set(boxes.map((box) => Math.round((box.top + box.height / 2) / 10))).size
+    })
+    expect(rows).toBe(1)
+  })
+})

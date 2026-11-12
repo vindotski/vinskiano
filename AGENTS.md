@@ -36,7 +36,7 @@ Before editing files for a substantial task:
 src/
   music/       Pure music theory: Note, Octave, Frequency, Scale, ScaleBuilder, ScaleStrategy, KEYBOARD_NOTES
   audio/       Web Audio: Engine (context + oscillators + oscilloscope), Context, Oscillator, Oscilloscope
-  components/  React UI: AppBar (oscillator select + the shown oscillator's strip + presets + master knob + oscilloscope), Oscillator, OscillatorSelect, WaveformSelect, PresetsMenu, Piano, PianoKey, knobs/, toolbars/, site/ (header, footer)
+  components/  React UI: AppBar (left: presets dropdown naming the current sound + master knob + oscilloscope; right: oscillator select + the shown oscillator's strip), Oscillator, OscillatorSelect, WaveformSelect, PresetsMenu, Piano, PianoKey, knobs/, toolbars/, site/ (header, footer)
   routes/      File-based routes, two sections:
                  __root      HTML document (shellComponent + head()), 404 (NotFound brings the site chrome)
                  _site.tsx   pathless site layout (header, scrolling page, footer); _site/index.tsx = /

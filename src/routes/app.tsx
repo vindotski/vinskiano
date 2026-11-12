@@ -15,6 +15,7 @@ import Logo from '../components/icons/Logo'
 import PresetsMenu from '../components/PresetsMenu'
 import { buttonVariants } from '../components/ui/button-variants'
 import { type OscillatorId, toOscillatorId } from '../synth/oscillators'
+import { sameSettings } from '../synth/preset'
 import { SynthProvider, useSynth } from '../synth/SynthProvider'
 import { usePresets } from '../synth/usePresets'
 
@@ -97,9 +98,17 @@ function SynthBar() {
           <Logo className="size-7" />
         </Link>
       }
-      end={
+      presets={
         <PresetsMenu
           presets={presets.presets}
+          current={presets.current?.name ?? null}
+          edited={
+            presets.current !== null &&
+            !sameSettings(presets.current.settings, {
+              master: synth.master,
+              oscillators: synth.oscillators,
+            })
+          }
           pending={presets.pending}
           message={presets.message}
           onOpen={presets.load}
@@ -108,6 +117,7 @@ function SynthBar() {
           }
           onLoad={(preset) => {
             synth.loadSettings(preset.settings)
+            presets.choose(preset)
             presets.announce(`Loaded “${preset.name}”`)
           }}
           onDelete={presets.remove}

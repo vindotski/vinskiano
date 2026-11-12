@@ -77,6 +77,14 @@ test.describe('dark mode', () => {
   })
 })
 
+test('the bar puts master on the left and the oscillator on the right', async ({ page }) => {
+  await openApp(page)
+  const master = await page.getByRole('region', { name: 'Master' }).boundingBox()
+  const oscillators = await page.getByRole('region', { name: 'Oscillators' }).boundingBox()
+  if (!master || !oscillators) throw new Error('not visible')
+  expect(master.x + master.width).toBeLessThan(oscillators.x)
+})
+
 for (const viewport of [
   { width: 1280, height: 720 },
   { width: 1024, height: 700 },
