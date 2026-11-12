@@ -30,6 +30,10 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 - The Docker image applies Debian's security updates when it's built, instead of waiting for a new Node base image
 - The single-server deploy kit is retired: it has no database, so it can't run images with presets. It stays until the first Spotcraft deploy, then goes
 
+### Security
+
+- The server sends security headers itself (a content security policy, no framing, `nosniff`, HSTS, a strict referrer policy and permissions policy), refuses request bodies over 16 KB, and tells browsers to revalidate pages, so a cached page never points at files a new release removed
+
 ## [1.0.0] - 2026-11-07
 
 Vinskiano, back after six years: rebuilt on a current stack, redesigned as a single screen, and ready to deploy. The sound engine and the music are the same three oscillators as 0.1.0.
