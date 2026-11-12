@@ -9,6 +9,8 @@ interface PianoKeyProps {
   active: boolean
   /** The keyboard's one tab stop (0), or reached with arrow keys from there (-1). */
   tabIndex: 0 | -1
+  /** The computer key that plays it (FL Studio's layout), shown only where there's a mouse. */
+  hint?: string | undefined
   /** Space or Enter went down (or up) on the focused key. */
   onPlayKey: (note: Note, down: boolean) => void
 }
@@ -22,7 +24,7 @@ const PRESS = { type: 'spring', stiffness: 900, damping: 32 } as const
  * One key. Presentational: the keyboard (`Piano`) handles pointers for all keys at once, so a
  * finger can slide from key to key; this only reports Space/Enter while the key has focus.
  */
-const PianoKey = ({ note, active, tabIndex, onPlayKey }: PianoKeyProps) => {
+const PianoKey = ({ note, active, tabIndex, hint, onPlayKey }: PianoKeyProps) => {
   const white = isWhite(note)
   const play = (down: boolean) => (event: KeyboardEvent) => {
     if (!PLAY_KEYS.includes(event.key)) return
@@ -65,11 +67,19 @@ const PianoKey = ({ note, active, tabIndex, onPlayKey }: PianoKeyProps) => {
         transition={PRESS}
         style={{ originY: 0 }}
       >
+        {hint ? (
+          <span
+            data-hint
+            className="hidden text-[10px] font-semibold opacity-50 pointer-fine:block"
+          >
+            {hint}
+          </span>
+        ) : null}
         {note.equals(MIDDLE_C) ? (
           <span data-middle-c className="size-1.5 rounded-full bg-current opacity-60" />
         ) : null}
         {/* Like a DAW's piano roll: only the Cs are labelled, with their octave. */}
-        {note.name === 'C' ? note.toString() : null}
+        {note.name === 'C' ? <span data-label>{note.toString()}</span> : null}
       </m.span>
     </button>
   )

@@ -33,7 +33,7 @@ const STEPS: Step[] = [
     icon: KeyboardMusic,
     title: 'Play the keyboard',
     description:
-      'All 88 keys of a piano, from A0 to C8: the minimap above them shows where you are and moves you along. Click, tap with as many fingers as you like, slide across the keys, or Tab to a key and hold Space.',
+      "All 88 keys of a piano, from A0 to C8: the minimap above them shows where you are and moves you along. Click, tap with as many fingers as you like, slide across the keys, or type: the bottom two letter rows play like FL Studio's.",
   },
   {
     icon: AudioWaveform,

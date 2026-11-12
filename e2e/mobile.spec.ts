@@ -132,3 +132,8 @@ test.describe('several fingers', () => {
     ).toBe(1)
   })
 })
+
+test('touch screens don’t show the typing-keyboard letters', async ({ page }) => {
+  await openApp(page)
+  await expect(page.locator('[data-hint]').first()).toBeHidden()
+})

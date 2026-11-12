@@ -1,9 +1,9 @@
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import KeyboardMinimap, { type KeyboardView } from '../components/KeyboardMinimap'
 import Piano from '../components/Piano'
 import { buttonVariants } from '../components/ui/button-variants'
-import { MIDDLE_C, type Note, WHITE_NOTES } from '../music'
+import { MIDDLE_C, type Note, typingHints, WHITE_NOTES } from '../music'
 
 interface PianoRollProps {
   notes: readonly Note[]
@@ -17,6 +17,17 @@ interface PianoRollProps {
 
 const WHITES = WHITE_NOTES.length
 const MIDDLE_C_WHITE = WHITE_NOTES.findIndex((note) => note.equals(MIDDLE_C))
+
+/**
+ * The C the typing keyboard starts from: the first C fully in view (or the last one before the
+ * view, if none is), so what you type is what you see.
+ */
+function firstCInView(view: KeyboardView): Note {
+  const first = Math.ceil(view.start - 0.01)
+  const inView = WHITE_NOTES.find((note, index) => index >= first && note.name === 'C')
+  const before = WHITE_NOTES.findLast((note, index) => index < first && note.name === 'C')
+  return inView ?? before ?? MIDDLE_C
+}
 
 const OCTAVE_BUTTON = buttonVariants({ variant: 'ghost', size: 'icon-sm', className: 'shrink-0' })
 
@@ -35,6 +46,9 @@ const PianoRoll = ({
   const [view, setView] = useState<KeyboardView>({ start: MIDDLE_C_WHITE - 2, size: 8 })
   const [positioned, setPositioned] = useState(false)
   const [held, setHeld] = useState<readonly string[]>([])
+  const base = firstCInView(view)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: notes compare by value; the name is the key.
+  const hints = useMemo(() => typingHints(base), [base.toString()])
 
   /** One white key's width on screen right now (it changes with the breakpoints). */
   const whiteWidth = () => (scroller.current ? scroller.current.scrollWidth / WHITES : 0)
@@ -118,7 +132,14 @@ const PianoRoll = ({
         // Hidden until it's scrolled to its place, so it doesn't jump from A0 on load.
         className={`mx-4 mt-2 mb-4 min-h-0 flex-1 overflow-x-auto overflow-y-hidden [scrollbar-width:none] short:mx-2 short:mb-2 [&::-webkit-scrollbar]:hidden ${positioned ? '' : 'invisible'}`}
       >
-        <Piano notes={notes} onTrigger={onTrigger} onRelease={onRelease} onHeldChange={setHeld} />
+        <Piano
+          notes={notes}
+          onTrigger={onTrigger}
+          onRelease={onRelease}
+          onHeldChange={setHeld}
+          typingBase={base}
+          hints={hints}
+        />
       </div>
     </>
   )

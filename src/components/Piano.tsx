@@ -1,5 +1,5 @@
 import { type PointerEvent, useCallback, useEffect, useRef, useState } from 'react'
-import { MIDDLE_C, type Note } from '../music'
+import { MIDDLE_C, type Note, TYPING_KEYS, typedNote } from '../music'
 import HeldNotes, { type Change } from '../synth/held-notes'
 import PianoKey from './PianoKey'
 
@@ -9,7 +9,18 @@ interface PianoProps {
   onRelease: (note: Note) => void
   /** The held notes changed (their names), e.g. for the minimap. */
   onHeldChange?: (notes: readonly string[]) => void
+  /** The C the typing keyboard's Z plays (FL Studio's layout); null turns it off. */
+  typingBase?: Note | null
+  /** The typing keyboard's letter for each key (by note name), shown where there's a mouse. */
+  hints?: ReadonlyMap<string, string>
 }
+
+/**
+ * Where typed letters aren't notes: fields, and controls that take keys themselves (a knob's
+ * arrows, a radio group, the minimap, an open menu or dialog).
+ */
+const OWN_KEYS =
+  'input, textarea, select, [contenteditable], [role="slider"], [role="radio"], [role="dialog"], [role="listbox"], [role="menu"]'
 
 const MOVE_KEYS = ['ArrowLeft', 'ArrowRight', 'Home', 'End']
 
@@ -24,7 +35,14 @@ const tick = () => {
  * key to key (a glissando), and each finger plays its own note. `HeldNotes` decides what starts
  * and stops. The browser's own touch gestures (scroll, zoom, callout) are off on the keys.
  */
-const Piano = ({ notes, onTrigger, onRelease, onHeldChange }: PianoProps) => {
+const Piano = ({
+  notes,
+  onTrigger,
+  onRelease,
+  onHeldChange,
+  typingBase = null,
+  hints,
+}: PianoProps) => {
   const keyboard = useRef<HTMLFieldSetElement>(null)
   const held = useRef(new HeldNotes())
   /** Pointers that went down on the keyboard and haven't come up. */
@@ -75,6 +93,30 @@ const Piano = ({ notes, onTrigger, onRelease, onHeldChange }: PianoProps) => {
       releaseAll()
     }
   }, [releaseAll])
+
+  // The computer keyboard plays too (FL Studio's layout), from anywhere on the page but fields
+  // and controls with keys of their own. Each key is its own source, so chords work.
+  const base = useRef(typingBase)
+  base.current = typingBase
+  useEffect(() => {
+    const down = (event: KeyboardEvent) => {
+      if (!base.current || event.ctrlKey || event.metaKey || event.altKey) return
+      if (event.target instanceof Element && event.target.closest(OWN_KEYS)) return
+      const note = typedNote(event.code, base.current)
+      if (!note) return
+      event.preventDefault()
+      if (!event.repeat) apply(held.current.press(`key:${event.code}`, note))
+    }
+    const up = (event: KeyboardEvent) => {
+      if (event.code in TYPING_KEYS) release(`key:${event.code}`)
+    }
+    window.addEventListener('keydown', down)
+    window.addEventListener('keyup', up)
+    return () => {
+      window.removeEventListener('keydown', down)
+      window.removeEventListener('keyup', up)
+    }
+  }, [apply, release])
 
   /** The key under a point on screen (black keys sit on top, so they win), if any. */
   const noteAt = (x: number, y: number) => {
@@ -140,6 +182,7 @@ const Piano = ({ notes, onTrigger, onRelease, onHeldChange }: PianoProps) => {
           note={note}
           active={active.includes(note.toString())}
           tabIndex={note.toString() === focusable ? 0 : -1}
+          hint={hints?.get(note.toString())}
           onPlayKey={(played, down) =>
             down ? apply(held.current.press('focus', played)) : release('focus')
           }

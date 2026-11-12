@@ -22,8 +22,8 @@ test('there are 88 keys, A0 to C8, labelled only on the Cs', async ({ page }) =>
   await expect(keys).toHaveCount(88)
   await expect(keys.first()).toHaveAccessibleName('A0')
   await expect(keys.last()).toHaveAccessibleName('C8')
-  await expect(pianoKey(page, 'C4')).toHaveText('C4')
-  await expect(pianoKey(page, 'D4')).toHaveText('')
+  await expect(pianoKey(page, 'C4').locator('[data-label]')).toHaveText('C4')
+  await expect(pianoKey(page, 'D4').locator('[data-label]')).toHaveCount(0)
   // Middle C is marked.
   await expect(pianoKey(page, 'C4').locator('[data-middle-c]')).toHaveCount(1)
 })

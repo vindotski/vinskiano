@@ -225,6 +225,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - **88 keys that scroll** (`PianoRoll`): keys have fixed widths, so the keyboard scrolls sideways (hidden scrollbar; a mouse wheel scrolls it sideways). Touching keys plays, so on touch screens the view moves only through the minimap (`KeyboardMinimap`, a `role="slider"` measured in white keys) and the octave buttons. The view opens with middle C a third in, set before paint; `SynthProvider.keyboardPosition` (a ref) brings it back after the Sound pages. Only C keys are labelled; middle C has a dot.
 - **One tab stop for the keyboard** (roving tabindex: middle C, or the last key moved to); arrows, Home and End move along the keys.
 - **Black keys keep piano proportions** (at least 28 × 44 px): the 44 px check in `e2e/targets.ts` allows that for `.piano-key--black` only.
+- **The computer keyboard plays too** (FL Studio's layout, `music/typing-keyboard.ts`, by `event.code`): the Z row from the first C fully in view, the Q row an octave up. `Piano` listens on `window` and skips fields and controls with keys of their own (`OWN_KEYS`); each key is its own `HeldNotes` source (`key:<code>`). Letter hints show only with a fine pointer (`pointer-fine:`).
 - **Tests find keys by note** (`pianoKey(page, 'C4')` in `e2e/fixtures.ts`), never by position: there are 88 and most are scrolled out of view.
 - **Tests:** several fingers at once go through CDP `Input.dispatchTouchEvent` (Chromium only; `e2e/mobile.spec.ts`), where `touchEnd` lifts the fingers it lists.
 

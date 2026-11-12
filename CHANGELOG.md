@@ -10,6 +10,7 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 
 ### Added
 
+- Play from the computer keyboard, in FL Studio's layout: Z S X D C V G B H N J M , is an octave from the first C in view, and Q 2 W 3 E R 5 T 6 Y 7 U I 9 O 0 P the octave above and on. It goes by key position, so it's the same keys on AZERTY or QWERTZ, and follows the view as you move along the keyboard. Where there's a mouse, each key shows its letter. Typing into a field or using a control's own keys plays nothing
 - A Sound page for editing the sound, opened from the sliders button in the app bar. Its first tab, Oscillators (`/app/oscillators`), shows all three as a rack: one row each, with the waveform, volume and pitch lined up in columns. There's no keyboard there; changes apply right away and are heard back on the keyboard
 - Presets: save the current sound under a name, then load or delete it, from the presets dropdown in the app bar. It names the current sound ("New sound" until you save or load one) and shows a dot once you've changed it; saving again offers the same name, which updates it. They're kept on the server in a guest account, with no sign-up: your first save sets a cookie that lasts a year. Clearing cookies or switching browsers starts a new, empty list
 
