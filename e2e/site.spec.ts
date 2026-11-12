@@ -175,3 +175,22 @@ for (const { width, deviceScaleFactor, expected } of [
     })
   })
 }
+
+for (const width of [360, 320]) {
+  test(`at ${width} px wide, every demo key can be reached`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 740 })
+    await openHome(page)
+    const demo = page.locator('#play')
+    await demo.scrollIntoViewIfNeeded()
+    const keys = demo.locator('.piano-key--white')
+    await expect(keys.first()).toBeVisible()
+    for (const key of await keys.all()) {
+      // Scrolled to if it has to be, then wholly on screen: not cut off by the card.
+      await key.scrollIntoViewIfNeeded()
+      const box = await key.boundingBox()
+      expect(box?.x).toBeGreaterThanOrEqual(0)
+      expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(width)
+      await expect(key).toBeInViewport({ ratio: 1 })
+    }
+  })
+}

@@ -99,14 +99,18 @@ const DemoPlayer = ({ settings }: DemoPlayerProps) => {
   return (
     <LazyMotion features={loadMotionFeatures} strict>
       <MotionConfig reducedMotion="user">
-        <div ref={frame} className="flex h-full justify-center overflow-hidden">
-          <Piano
-            notes={notes}
-            onTrigger={trigger}
-            onRelease={release}
-            typingBase={base}
-            {...(hints ? { hints } : {})}
-          />
+        {/* Centred, and scrollable if even the narrowest range doesn't fit (a phone under
+            336 px): auto margins centre without cutting off the ends, as justify-center would. */}
+        <div ref={frame} className="h-full overflow-x-auto overflow-y-hidden">
+          <div className="mx-auto h-full w-max">
+            <Piano
+              notes={notes}
+              onTrigger={trigger}
+              onRelease={release}
+              typingBase={base}
+              {...(hints ? { hints } : {})}
+            />
+          </div>
         </div>
       </MotionConfig>
     </LazyMotion>

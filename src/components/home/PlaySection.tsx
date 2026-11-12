@@ -51,7 +51,8 @@ const PlaySection = ({ footer }: PlaySectionProps) => {
       aria-labelledby="play-heading"
       className="mx-auto w-full max-w-5xl scroll-mt-20 px-4 pb-20"
     >
-      <div className="overflow-hidden rounded-2xl border bg-card shadow-xl">
+      {/* Edge to edge on phones, so a whole octave of finger-sized keys fits on a 360 px screen. */}
+      <div className="overflow-hidden rounded-2xl border bg-card shadow-xl max-sm:-mx-4 max-sm:rounded-none max-sm:border-x-0">
         <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <h2 id="play-heading" className="font-heading text-xl font-semibold">
             Play it here
