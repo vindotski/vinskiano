@@ -1,8 +1,9 @@
 import { type Backend, backendFromEnv } from '@spotcraft/kit'
+import { migrateApp } from '@spotcraft/kit/migrate'
 import { sql } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { PRESETS_MAX, type PresetSettings } from '../synth/preset'
-import { migrate } from './migrate.server'
+import { MIGRATIONS } from './migrations'
 import { deletePreset, listPresets, PresetLimitError, savePreset } from './presets.server'
 
 // Runs against a real Postgres with Spotcraft's `auth` schema: locally the one from
@@ -37,7 +38,7 @@ describe.skipIf(!hasDatabase)('presets in Postgres', () => {
   beforeAll(async () => {
     // PUBLIC_URL only matters for cookies, which these tests never send.
     kit = backendFromEnv({ PUBLIC_URL: 'http://localhost:3000', ...process.env })
-    await migrate(kit.db)
+    await migrateApp(kit.db, MIGRATIONS)
   })
 
   afterAll(async () => {
@@ -46,7 +47,7 @@ describe.skipIf(!hasDatabase)('presets in Postgres', () => {
   })
 
   test('migrating again changes nothing', async () => {
-    await migrate(kit.db)
+    await migrateApp(kit.db, MIGRATIONS)
     const { rows } = await kit.db.execute<{ version: number }>(
       sql`SELECT version FROM app_migrations ORDER BY version`,
     )

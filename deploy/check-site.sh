@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Checks a deployed Vinskiano from the outside: the home page, its stylesheet (compressed),
-# the synth page, and the www redirect. Used by the deploy workflow; works by hand too:
+# the synth page, and the www redirect. Run it after a deploy:
 #   deploy/check-site.sh https://vinskiano.app
 # CURL_OPTS adds curl flags (e.g. CURL_OPTS=-k for a local rehearsal with Caddy's own CA).
 set -euo pipefail

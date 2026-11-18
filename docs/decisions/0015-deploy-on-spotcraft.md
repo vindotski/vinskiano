@@ -2,10 +2,10 @@
 title: Deploy on Spotcraft
 number: 15
 status: accepted
-implementation: in progress
+implementation: done
 date: 2026-11-11
 supersedes: [13]
-superseded_by: []
+superseded_by: [24]
 notes: "Written retroactively on 2026-11-12, from commit f5a6474, docs/deploy.md and AGENTS.md (Deploy). The old kit's workflow lost its manual trigger later, on 2026-11-12 (6d3ac64)."
 ---
 
