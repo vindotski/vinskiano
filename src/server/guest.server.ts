@@ -1,45 +1,28 @@
-import {
-  appendResponseHeader,
-  getRequest,
-  getRequestHeader,
-  getRequestIP,
-  setResponseHeader,
-} from '@tanstack/react-start/server'
+import { isGuestLimitError } from '@spotcraft/kit'
+import { guestHelpers } from '@spotcraft/kit/tanstack-start'
 import { backend } from './backend.server'
-import { clientAddress, guestLimitWait } from './client-address'
 import { PublicError } from './public-error'
 
 /*
- * The visitor's guest account, inside a server function or route. Reading never creates a guest;
- * only a save does (else every first request, favicon and crawler would make one).
+ * The visitor's guest account, inside a server function or route, through the kit's TanStack
+ * Start helpers. Reading never creates a guest; only a save does (else every first request,
+ * favicon and crawler would make one). Answers that depend on the visitor are sent
+ * `cache-control: private, no-store`. The client address for the limit on new guests is the last
+ * `X-Forwarded-For` entry, the one Spotcraft's Caddy adds; an IPv6 address counts as its /64.
  */
-
-/** Sends the kit's cookie (set or renewed) with the response, next to any other cookies. */
-function sendCookies(headers: Headers) {
-  for (const cookie of headers.getSetCookie()) appendResponseHeader('set-cookie', cookie)
-  // The answer depends on who asks: never cache it anywhere.
-  setResponseHeader('cache-control', 'private, no-store')
-}
+const helpers = guestHelpers(backend)
 
 /** The visitor's guest id, or null if they have never saved anything. */
-export async function currentGuestId(): Promise<string | null> {
-  const { guest, headers } = await backend().currentGuest(getRequest())
-  sendCookies(headers)
-  return guest?.id ?? null
-}
+export const currentGuestId = helpers.currentGuestId
 
 /** The visitor's guest id, creating the guest (and its cookie) on their first save. */
 export async function guestId(): Promise<string> {
   try {
-    const { guest, headers } = await backend().guest(getRequest(), {
-      clientAddress: clientAddress(getRequestHeader('x-forwarded-for') ?? null, getRequestIP()),
-    })
-    sendCookies(headers)
-    return guest.id
+    return await helpers.guestId()
   } catch (error) {
-    const wait = guestLimitWait(error)
-    if (wait !== null) {
-      setResponseHeader('retry-after', String(wait))
+    // The kit has set Retry-After. Checked by shape, not `instanceof`: the server is bundled
+    // more than once, and another bundle's copy of the kit's error would fail `instanceof`.
+    if (isGuestLimitError(error)) {
       throw new PublicError(
         'Too many new visitors from your network; try again in a few minutes',
         429,
