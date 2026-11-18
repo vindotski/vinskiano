@@ -8,6 +8,20 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 
 ## [Unreleased]
 
+### Added
+
+- CI deploys `main` to Spotcraft through the app's deploy hook and waits until the new version is live. It stays off until GitHub's `production` environment has the variable `SPOTCRAFT_HOOK_URL` and the secret `SPOTCRAFT_DEPLOY_TOKEN` (see [docs/deploy.md](docs/deploy.md), [ADR 0024](docs/decisions/0024-deploy-from-ci-on-spotcraft-0-5.md))
+
+### Changed
+
+- `@spotcraft/kit` 0.4.0 does the server's guest and database work: the guest helpers, the client address for the limit on new guests, the migration runner and the start-up check. Nothing changes for visitors or in the database: the same rules, the same `app_migrations` table and lock
+- The kit has its own version now; it no longer has to match Spotcraft's (Spotcraft 0.5)
+- docs/deploy.md describes Spotcraft 0.5: DNS through the dashboard, releases without downtime, the deploy hook and backups
+
+### Removed
+
+- The single-server deploy kit (`deploy/`, its workflow and `docs/deploy-single-server.md`), retired since 2.0.0. `deploy/check-site.sh` stays
+
 ## [2.0.0] - 2026-11-12
 
 Presets, a full piano and a Sound page. You can save sounds as presets (a guest account, no sign-up), play 88 keys with the mouse, your fingers or the computer keyboard, and edit the three oscillators together, mixed the way FL Studio's 3x Osc mixes them. Notes no longer click, and the server sends its own security headers.
