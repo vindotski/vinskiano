@@ -28,7 +28,7 @@ Before editing files for a substantial task:
 - React Aria hooks (`react-aria`, `react-stately`) for accessible controls; the rotary `Knob` is built on its slider hooks
 - Motion (motion.dev) for the knobs' spring, in the app only (see Animation); simple transitions are CSS
 - Guest accounts and the app's Postgres through Spotcraft's backend kit (`@spotcraft/kit`: Better Auth's anonymous plugin, server-only), with Drizzle ORM for queries; Postgres 18, locally from `pnpm exec spotcraft dev start` (see Server data)
-- Tailwind CSS v4 (`@tailwindcss/vite`) with a shadcn/ui theme (`components.json`: style aria-luma, preset b51FfLcNG; tokens in `src/styles.css`). Dark mode follows `prefers-color-scheme` via the `dark:` variant.
+- Tailwind CSS v4 (`@tailwindcss/vite`); theme tokens from Spotstrap (`@kodentuzo/spotstrap`, the owner's library: `tailwind.css` plus `themes/vinskiano.css`, imported in `src/styles.css`; [ADR 0025](docs/decisions/0025-theme-from-spotstrap.md)), shadcn/ui components on top (`components.json`: style aria-luma). Dark mode follows `prefers-color-scheme` via the `dark:` variant.
 
 ## Layout
 
@@ -196,8 +196,8 @@ pnpm fix        # Biome: apply formatting and safe fixes
 
 ## Styling
 
-- Use theme tokens (`bg-background`, `text-primary`, `border-border`…), never raw colors, so light and dark both work.
-- Add shadcn/ui components with `pnpm exec shadcn add <name>` (the pinned CLI, React Aria base). They land in `src/components/ui/`; edit them freely after adding.
+- Use theme tokens (`bg-background`, `text-primary`, `border-border`…), never raw colors, so light and dark both work. Colors change in Spotstrap's `vinskiano` theme, not here. In CSS or arbitrary values, read `var(--color-primary)`; the unprefixed shadcn variables (`--primary`) don't exist.
+- Add shadcn/ui components with `pnpm exec shadcn add <name>` (the pinned CLI, React Aria base). They land in `src/components/ui/`; edit them freely after adding. If one reads unprefixed variables (`var(--secondary)`) or the CLI adds a theme block to `styles.css`, switch it to `--color-*` and drop the block.
 - `@/` is an alias for `src/`. Merge classes with `cn()` from `@/lib/utils` (in the app; see below for the site).
 - Tailwind only scans `src/` for class names (`source(".")` in `styles.css`). Classes written anywhere else (docs, skills, tests) are not generated; keep class names in `src/` as complete literal strings.
 - Piano keys use their own tokens (`bg-key-white`, `bg-key-black`, …) so they stay ivory/ebony in dark mode.
