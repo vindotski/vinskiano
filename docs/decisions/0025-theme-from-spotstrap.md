@@ -6,7 +6,7 @@ implementation: done
 date: 2026-11-19
 supersedes: [4]
 superseded_by: []
-notes: "Partly supersedes 0004: only its theme (the shadcn/ui preset's tokens in styles.css). React Aria, Tailwind v4, shadcn components in src/components/ui/ and tokens-only colours stay. @kodentuzo/spotstrap 0.1.0."
+notes: "Partly supersedes 0004: only its theme (the shadcn/ui preset's tokens in styles.css). React Aria, Tailwind v4, shadcn components in src/components/ui/ and tokens-only colours stay. @kodentuzo/spotstrap 0.1.0, then 0.1.1 (a lighter dark primary; shadcn's unprefixed variables aliased)."
 ---
 
 # Theme tokens from Spotstrap
@@ -35,22 +35,27 @@ theme with this app's colours, radius and font.
   chaining, the pointer cursor.
 - **Ours stays in `styles.css`:** the Inter `@font-face` rules and their fallback, the `short:`
   variant, the piano key tokens and the page transitions.
-- **Code reads `--color-*` variables**, never the unprefixed shadcn ones, which no longer exist.
+- **Code reads `--color-*` variables.** Since 0.1.1 Spotstrap aliases shadcn's unprefixed ones
+  (`--secondary`) for copied components, but ours use the theme's names.
 - The installed `@kodentuzo/spotstrap` is exempt from pnpm's one-day `minimumReleaseAge` (the
   owner's explicit exception: our own package, published from CI with provenance, needed the
   same day). `trustPolicy` still checks it.
 
 ## Consequences
 
-- The same colours, radii and font in both themes; body text is 17 px instead of 16 px, so the
-  app bar is a few pixels taller.
-- CSS grows from 10.30 to 12.53 kB gzip. Part of that is Spotstrap's component classes whose
-  names are ordinary words (`input`, `select`, `dialog`, `label`, `menu`, `tabs`, `switch`…):
+- The same colours, radii and font in both themes, except dark mode's primary: from 0.1.1 it is a
+  lighter crimson with dark text on it, so primary also reads as text (5.7:1, was 2.5:1). Body
+  text is 17 px instead of 16 px, so the app bar is a few pixels taller.
+- CSS grows from 10.30 to about 12.8 kB gzip (0.1.1's aliases add about 0.3 kB). Part of that
+  is Spotstrap's component classes whose names are ordinary words (`input`, `select`, `dialog`, `label`, `menu`, `tabs`, `switch`…):
   Tailwind generates them whenever the word appears in `src/`, used or not.
 - shadcn's `data-*` variants (`data-selected:`, `data-disabled:`) fall back to Tailwind's own,
   which match React Aria's attributes.
-- `pnpm exec shadcn add` still works (`components.json` is unchanged), but a new component may
-  read unprefixed variables or add a theme block to `styles.css`; switch it to `--color-*` and
-  drop the block.
+- `pnpm exec shadcn add` still works (`components.json` is unchanged), but the CLI may add a theme
+  block to `styles.css`; drop it. Unprefixed variables in a new component work through the
+  aliases; prefer `--color-*`.
+- In dark mode, primary (oklch 0.65 0.188 13.7) and destructive (0.704 0.191 22.2) are close in
+  hue and lightness. The app shows no destructive control today; one next to a primary needs more
+  than colour to tell them apart.
 - Moving the buttons and other controls onto Spotstrap's classes (`btn`, `field`, `menu`…) is
   later work.

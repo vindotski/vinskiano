@@ -196,8 +196,8 @@ pnpm fix        # Biome: apply formatting and safe fixes
 
 ## Styling
 
-- Use theme tokens (`bg-background`, `text-primary`, `border-border`…), never raw colors, so light and dark both work. Colors change in Spotstrap's `vinskiano` theme, not here. In CSS or arbitrary values, read `var(--color-primary)`; the unprefixed shadcn variables (`--primary`) don't exist.
-- Add shadcn/ui components with `pnpm exec shadcn add <name>` (the pinned CLI, React Aria base). They land in `src/components/ui/`; edit them freely after adding. If one reads unprefixed variables (`var(--secondary)`) or the CLI adds a theme block to `styles.css`, switch it to `--color-*` and drop the block.
+- Use theme tokens (`bg-background`, `text-primary`, `border-border`…), never raw colors, so light and dark both work. Colors change in Spotstrap's `vinskiano` theme, not here. In CSS or arbitrary values, read `var(--color-primary)`; the unprefixed shadcn variables (`--primary`) are only aliases for copied components.
+- Add shadcn/ui components with `pnpm exec shadcn add <name>` (the pinned CLI, React Aria base). They land in `src/components/ui/`; edit them freely after adding. If the CLI adds a theme block to `styles.css`, drop it; prefer `--color-*` over the unprefixed variables in new code.
 - `@/` is an alias for `src/`. Merge classes with `cn()` from `@/lib/utils` (in the app; see below for the site).
 - Tailwind only scans `src/` for class names (`source(".")` in `styles.css`). Classes written anywhere else (docs, skills, tests) are not generated; keep class names in `src/` as complete literal strings.
 - Piano keys use their own tokens (`bg-key-white`, `bg-key-black`, …) so they stay ivory/ebony in dark mode.

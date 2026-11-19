@@ -17,7 +17,7 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 - `@spotcraft/kit` 0.4.0 does the server's guest and database work: the guest helpers, the client address for the limit on new guests, the migration runner and the start-up check. Nothing changes for visitors or in the database: the same rules, the same `app_migrations` table and lock
 - The kit has its own version now; it no longer has to match Spotcraft's (Spotcraft 0.5)
 - docs/deploy.md describes Spotcraft 0.5: DNS through the dashboard, releases without downtime, the deploy hook and backups
-- The theme comes from Spotstrap (`@kodentuzo/spotstrap`, its `vinskiano` theme) instead of a copied shadcn/ui preset: the same colours in light and dark, and body text at 17 px instead of 16 px, so the app bar is a few pixels taller. The stylesheet is 2.2 kB gzip bigger ([ADR 0025](docs/decisions/0025-theme-from-spotstrap.md))
+- The theme comes from Spotstrap (`@kodentuzo/spotstrap`, its `vinskiano` theme) instead of a copied shadcn/ui preset (Spotstrap 0.1.1). Light mode looks the same; in dark mode the crimson is lighter, with dark text on it (the logo, the pressed key, the selected waveform), so it also reads as text. Body text is 17 px instead of 16 px, so the app bar is a few pixels taller. The stylesheet is 2.5 kB gzip bigger ([ADR 0025](docs/decisions/0025-theme-from-spotstrap.md))
 
 ### Removed
 
