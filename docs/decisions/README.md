@@ -24,7 +24,7 @@ work since. All of them up to 0023 were written retroactively on 2026-11-12, fro
 | 0013 | [A single-server deploy kit (cloud-init, Caddy, a manual deploy workflow)](0013-single-server-deploy-kit.md)                      | superseded by 0015                  |
 | 0014 | [Presets in guest accounts, in Postgres, through Spotcraft's backend kit](0014-presets-in-guest-accounts.md)                      | accepted, partly superseded by 0026 |
 | 0015 | [Deploy on Spotcraft](0015-deploy-on-spotcraft.md)                                                                                | accepted, partly superseded by 0024 |
-| 0016 | [Parity with FL Studio's 3x Osc and its channel settings, on native Web Audio nodes](0016-3x-osc-parity.md)                       | accepted                            |
+| 0016 | [Parity with FL Studio's 3x Osc and its channel settings, on native Web Audio nodes](0016-3x-osc-parity.md)                       | accepted, partly superseded by 0027 |
 | 0017 | [A preset format that keeps loading: physical units, optional fields, a version for breaking changes only](0017-preset-format.md) | accepted                            |
 | 0018 | [A scrolling site with a playable demo, and a one-screen app](0018-site-with-demo-and-app.md)                                     | accepted                            |
 | 0019 | [The server owns its security headers, caching and body limit](0019-server-owns-headers.md)                                       | accepted                            |
@@ -35,3 +35,5 @@ work since. All of them up to 0023 were written retroactively on 2026-11-12, fro
 | 0024 | [CI deploys `main` through Spotcraft's deploy hook; the kit runs the server's glue](0024-deploy-from-ci-on-spotcraft-0-5.md)      | accepted, partly superseded by 0026 |
 | 0025 | [Theme tokens from Spotstrap](0025-theme-from-spotstrap.md)                                                                       | accepted                            |
 | 0026 | [Guests in Spotcraft's user pool, tables in the app's schema, migrations run by Spotcraft](0026-spotcraft-user-pool.md)           | accepted                            |
+| 0027 | [One product loop orders the roadmap: start, play, shape, keep, send](0027-product-loop.md)                                       | accepted                            |
+| 0028 | [Usage counted by Spotcraft's Umami, plus one event per step of the loop](0028-loop-analytics.md)                                 | accepted                            |

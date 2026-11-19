@@ -10,12 +10,14 @@ import {
   useState,
 } from 'react'
 import { Engine, type Oscilloscope } from '../audio'
+import { trackOnce } from '../lib/track'
 import { Frequency, type Note } from '../music'
 import type { MasterSettings, OscillatorSettings, OscillatorState } from '../types/synth'
 import { disableContextMenu } from '../utils/disable-context-menu'
 import { forEngine } from './engine-settings'
 import { INIT } from './factory'
 import type { PresetSettings } from './preset'
+import { shapedControl } from './shaped'
 
 /** How to play and change the synth. Never changes, so reading it never re-renders a page. */
 export interface SynthActions {
@@ -68,6 +70,7 @@ export function SynthProvider({ children }: { children: ReactNode }) {
     playing.current = created
     setEngine(created)
     const enableContextMenu = disableContextMenu()
+    trackOnce({ name: 'start', data: { from: 'new' } })
     return () => {
       enableContextMenu()
       playing.current = null
@@ -77,6 +80,15 @@ export function SynthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => engine?.setGain(master.gain), [engine, master.gain])
   useEffect(() => engine?.configure(forEngine(oscillators)), [engine, oscillators])
+
+  // Count the first change to the sound (the loop's "shape" step). A loaded preset isn't one:
+  // loadSettings moves `shapedFrom` along with it.
+  const shapedFrom = useRef(oscillators)
+  useEffect(() => {
+    const control = shapedControl(shapedFrom.current, oscillators)
+    shapedFrom.current = oscillators
+    if (control) trackOnce({ name: 'shape', data: { control } })
+  }, [oscillators])
 
   const trigger = useCallback((note: Note) => {
     playing.current?.noteOn(note.toString(), Frequency.fromNote(note).hertz)
@@ -96,6 +108,7 @@ export function SynthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const loadSettings = useCallback((settings: PresetSettings) => {
+    shapedFrom.current = settings.oscillators
     setMaster(settings.master)
     setOscillators(settings.oscillators)
   }, [])

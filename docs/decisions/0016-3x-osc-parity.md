@@ -5,7 +5,7 @@ status: accepted
 implementation: planned
 date: 2026-11-12
 supersedes: []
-superseded_by: []
+superseded_by: [27]
 notes: "Written retroactively on 2026-11-12, from commits 9313835, 05fc46f and docs/parity.md, docs/roadmap.md."
 ---
 

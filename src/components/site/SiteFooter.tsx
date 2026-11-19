@@ -11,12 +11,21 @@ const SiteFooter = () => (
         </a>
         . Apache-2.0.
       </p>
-      <a
-        className="inline-flex min-h-11 items-center underline-offset-4 hover:underline"
-        href="https://github.com/vindotski/vinskiano"
-      >
-        Source on GitHub
-      </a>
+      <div className="flex gap-6">
+        {/* Spotcraft's page: what its analytics counts here, and the switch to opt out. */}
+        <a
+          className="inline-flex min-h-11 items-center underline-offset-4 hover:underline"
+          href="/_spotcraft/privacy"
+        >
+          Privacy
+        </a>
+        <a
+          className="inline-flex min-h-11 items-center underline-offset-4 hover:underline"
+          href="https://github.com/vindotski/vinskiano"
+        >
+          Source on GitHub
+        </a>
+      </div>
     </div>
   </footer>
 )

@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
+import { trackOnce } from '../lib/track'
 import type { Preset, PresetSettings } from './preset'
 import { deletePreset, listPresets, savePreset } from './presets.functions'
 import { ensureGuest } from './user-pool'
@@ -105,6 +106,7 @@ export function usePresets(): Presets {
         const replaced = presets?.some((p) => p.id === saved.id) ?? false
         change((list) => [...list.filter((p) => p.id !== saved.id), saved].sort(byName))
         setCurrent(saved)
+        trackOnce({ name: 'keep' })
         return `${replaced ? 'Updated' : 'Saved'} “${saved.name}”`
       }),
     [run, change, presets],

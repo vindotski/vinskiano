@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Engine } from '../../audio'
+import { type PlayedBy, trackOnce } from '../../lib/track'
 import { Frequency, isWhite, KEYBOARD_NOTES, type Note, typingHints } from '../../music'
 import { forEngine } from '../../synth/engine-settings'
 import type { PresetSettings } from '../../synth/preset'
@@ -40,10 +41,11 @@ function useDemoSynth(settings: PresetSettings) {
     [],
   )
 
-  const trigger = useCallback((note: Note) => {
+  const trigger = useCallback((note: Note, by: PlayedBy) => {
     const { master, oscillators } = latest.current
     engine.current ??= new Engine(master.gain, forEngine(oscillators))
     engine.current.noteOn(note.toString(), Frequency.fromNote(note).hertz)
+    trackOnce({ name: 'play', data: { where: 'home', by } }, 'play:home')
   }, [])
 
   const release = useCallback((note: Note) => {
