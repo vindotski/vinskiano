@@ -6,7 +6,7 @@ implementation: done
 date: 2026-11-19
 supersedes: [4]
 superseded_by: []
-notes: "Partly supersedes 0004: only its theme (the shadcn/ui preset's tokens in styles.css). React Aria, Tailwind v4, shadcn components in src/components/ui/ and tokens-only colours stay. @kodentuzo/spotstrap 0.1.0, then 0.1.1 (a lighter dark primary; shadcn's unprefixed variables aliased)."
+notes: "Partly supersedes 0004: only its theme (the shadcn/ui preset's tokens in styles.css). React Aria, Tailwind v4, shadcn components in src/components/ui/ and tokens-only colours stay. @kodentuzo/spotstrap 0.1.0, then 0.1.1 (a lighter dark primary; shadcn's unprefixed variables aliased) and 0.1.2 (an orange-red destructive)."
 ---
 
 # Theme tokens from Spotstrap
@@ -47,15 +47,16 @@ theme with this app's colours, radius and font.
   lighter crimson with dark text on it, so primary also reads as text (5.7:1, was 2.5:1). Body
   text is 17 px instead of 16 px, so the app bar is a few pixels taller.
 - CSS grows from 10.30 to about 12.8 kB gzip (0.1.1's aliases add about 0.3 kB). Part of that
-  is Spotstrap's component classes whose names are ordinary words (`input`, `select`, `dialog`, `label`, `menu`, `tabs`, `switch`…):
-  Tailwind generates them whenever the word appears in `src/`, used or not.
+  is Spotstrap's component classes whose names are ordinary words (`input`, `select`, `dialog`,
+  `label`, `menu`, `tabs`, `switch`…): Tailwind generates them whenever the word appears in
+  `src/`, used or not.
 - shadcn's `data-*` variants (`data-selected:`, `data-disabled:`) fall back to Tailwind's own,
   which match React Aria's attributes.
 - `pnpm exec shadcn add` still works (`components.json` is unchanged), but the CLI may add a theme
   block to `styles.css`; drop it. Unprefixed variables in a new component work through the
   aliases; prefer `--color-*`.
-- In dark mode, primary (oklch 0.65 0.188 13.7) and destructive (0.704 0.191 22.2) are close in
-  hue and lightness. The app shows no destructive control today; one next to a primary needs more
-  than colour to tell them apart.
+- Destructive is orange-red (hue 45) from 0.1.2, about 30° from the crimson primary, so the two
+  stay apart side by side (in 0.1.1's dark mode they were 8.5° apart); Spotstrap's tests keep
+  them at least 25° apart. The app shows no destructive control today.
 - Moving the buttons and other controls onto Spotstrap's classes (`btn`, `field`, `menu`…) is
   later work.
