@@ -8,6 +8,12 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-11-19
+
+Guests and their presets move into Spotcraft's user pool, shared by every app on the server, and the presets into the app's own schema. Spotcraft runs the migrations, CI deploys `main`, and the theme and buttons come from Spotstrap.
+
+**Breaking:** this image needs Spotcraft 0.6. It no longer migrates or checks its settings at start, and it reads guests from the user pool, so a 2.x deploy moves into the pool once through the dashboard's **Move** (see [docs/deploy.md](docs/deploy.md)). Local development needs `spotcraft dev` from `@kodentuzo/spotcraft` 0.6.1.
+
 ### Added
 
 - CI deploys `main` to Spotcraft through the app's deploy hook and waits until the new version is live. It stays off until GitHub's `production` environment has the variable `SPOTCRAFT_HOOK_URL` and the secret `SPOTCRAFT_DEPLOY_TOKEN` (see [docs/deploy.md](docs/deploy.md), [ADR 0024](docs/decisions/0024-deploy-from-ci-on-spotcraft-0-5.md))
@@ -16,7 +22,7 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 
 - **Guests live in Spotcraft's user pool** (Spotcraft 0.6), shared by every app on the server: the browser makes the guest before a save, and the server reads it with `@kodentuzo/spotkit`. `@spotcraft/kit` is gone. Existing guests move with their presets and keep their cookies when the app moves ([docs/deploy.md](docs/deploy.md), [ADR 0026](docs/decisions/0026-spotcraft-user-pool.md))
 - **The presets are in the `app_vinskiano` schema** of Spotcraft's shared database, and **Spotcraft runs the migrations** before a new version starts, through the image's `dev.spotcraft.migrate` label. The server no longer migrates or checks its settings at start
-- **Local development and CI use `spotcraft dev`** from `@kodentuzo/spotcraft` 0.6: one command for Postgres, the user pool, `.env` and the migrations. Locally, the app passes `/_spotcraft/auth` on to the pool, so the browser uses its own origin as on Spotcraft
+- **Local development and CI use `spotcraft dev`** from `@kodentuzo/spotcraft` 0.6.1: one command for Postgres, the user pool, `.env` and the migrations. Locally, the app passes `/_spotcraft/auth` on to the pool, so the browser uses its own origin as on Spotcraft. `compose.yaml` joins the stack's network from `SPOTCRAFT_DEV_NETWORK` (in `.env`), by default `spotcraft-dev-vinskiano_default`; a stack made by 0.6.1 or later has a hash in its name, which `pnpm exec spotcraft dev status` prints
 - docs/deploy.md describes Spotcraft 0.6: DNS through the dashboard, releases without downtime, the deploy hook, backups, and moving the app into the user pool once
 - The theme comes from Spotstrap (`@kodentuzo/spotstrap`, its `vinskiano` theme) instead of a copied shadcn/ui preset (Spotstrap 0.1.6). Light mode looks the same; in dark mode the crimson is lighter, with dark text on it (the logo, the pressed key, the selected waveform), so it also reads as text. Destructive colours are orange-red, set apart from the crimson. Body text is 17 px instead of 16 px. The stylesheet is 2.5 kB gzip bigger ([ADR 0025](docs/decisions/0025-theme-from-spotstrap.md))
 - Buttons use Spotstrap's `btn` classes: the same pills and colours, with 17 px text, and every button 44 px tall (the home page's large ones were 48 px). An open presets menu's button shows as open instead of pressed
@@ -24,6 +30,10 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 ### Removed
 
 - The single-server deploy kit (`deploy/`, its workflow and `docs/deploy-single-server.md`), retired since 2.0.0. `deploy/check-site.sh` stays
+
+### Fixed
+
+- The preset browser tests pass against the live site (`E2E_BASE_URL=https://vinskiano.app`): the requests Playwright sends itself carry `Sec-Fetch-Site`, as a browser's do, which Start's CSRF check needs behind HTTPS.
 
 ## [2.0.0] - 2026-11-12
 
