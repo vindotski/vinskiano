@@ -112,7 +112,11 @@ test('a save while the list is still loading stays in the list', async ({ page }
   })
   await page.route('**/_serverFn/**', async (route) => {
     if (route.request().method() !== 'GET') return route.continue()
-    const response = await route.fetch()
+    // Playwright sends this request again itself, without the browser's Sec-Fetch-Site; behind
+    // HTTPS, Start's CSRF check refuses it without that header.
+    const response = await route.fetch({
+      headers: { ...route.request().headers(), 'sec-fetch-site': 'same-origin' },
+    })
     await save
     await route.fulfill({ response })
   })
@@ -251,6 +255,9 @@ test.describe('a save the server refuses', () => {
       ignoreHTTPSErrors: true,
       extraHTTPHeaders: {
         origin: new URL(baseURL ?? '').origin,
+        // As a browser sends it. Behind HTTPS the server sees an http:// URL, so Start's CSRF
+        // check can't match the Origin and needs this.
+        'sec-fetch-site': 'same-origin',
         'x-forwarded-for': address,
         // What Caddy sets on Spotcraft, for the pool's limit on new guests per address.
         'x-spotcraft-client-ip': address,
