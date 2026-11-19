@@ -20,6 +20,8 @@
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "noEmit": true,
+    // scripts/ run under Node's type stripping, which needs the `.ts` in imports.
+    "allowImportingTsExtensions": true,
     "skipLibCheck": true
   },
   "include": ["src", "e2e", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"]

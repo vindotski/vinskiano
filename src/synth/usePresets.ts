@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import type { Preset, PresetSettings } from './preset'
 import { deletePreset, listPresets, savePreset } from './presets.functions'
+import { ensureGuest } from './user-pool'
 
 /** The visitor's presets, loaded on demand (the first time the menu opens), and what to say. */
 export interface Presets {
@@ -98,6 +99,8 @@ export function usePresets(): Presets {
   const save = useCallback(
     (name: string, settings: PresetSettings) =>
       run(async () => {
+        // Presets belong to a guest in Spotcraft's user pool, which the browser makes first.
+        await ensureGuest()
         const saved = await savePreset({ data: { name, settings } })
         const replaced = presets?.some((p) => p.id === saved.id) ?? false
         change((list) => [...list.filter((p) => p.id !== saved.id), saved].sort(byName))

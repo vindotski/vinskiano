@@ -2,6 +2,9 @@
 
 # Supply-chain safety
 minimumReleaseAge: 1440 # never install a release younger than one day
+# Our own packages, published from CI with provenance (trustPolicy still checks them);
+# releases are needed the same day: the UI library, Spotcraft's app helpers and its CLI.
+minimumReleaseAgeExclude: ["@kodentuzo/spotstrap", "@kodentuzo/spotkit", "@kodentuzo/spotcraft"]
 trustPolicy: no-downgrade # fail if a package's publishing trust level drops
 blockExoticSubdeps: true # transitive deps must come from the registry
 strictDepBuilds: true # fail on unreviewed install scripts

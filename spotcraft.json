@@ -1,0 +1,1 @@
+{ "name": "vinskiano", "migrate": "pnpm db:migrate" }

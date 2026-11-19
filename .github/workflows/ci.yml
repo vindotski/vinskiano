@@ -46,9 +46,9 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 1
-      # Guest accounts need Postgres with Spotcraft's auth schema: the same local stack as on a
-      # laptop (Docker), with DATABASE_URL and AUTH_SECRET written to .env.
-      - run: pnpm exec spotcraft dev start && pnpm exec spotcraft dev env --write
+      # Presets need Spotcraft's local stack, as on a laptop (Docker): Postgres with the app's
+      # schema and the user pool. It also applies the migrations and writes .env.
+      - run: pnpm exec spotcraft dev
       - run: pnpm test
 
   e2e:
@@ -78,9 +78,9 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # Guest accounts need Postgres with Spotcraft's auth schema: the same local stack as on a
-      # laptop (Docker), with DATABASE_URL and AUTH_SECRET written to .env.
-      - run: pnpm exec spotcraft dev start && pnpm exec spotcraft dev env --write
+      # Presets need Spotcraft's local stack, as on a laptop (Docker): Postgres with the app's
+      # schema and the user pool. It also applies the migrations and writes .env.
+      - run: pnpm exec spotcraft dev
       # Browsers are cached per Playwright version; their system packages (apt) are not.
       - id: playwright
         run: echo "version=$(jq -r .version node_modules/@playwright/test/package.json)" >> "$GITHUB_OUTPUT"
@@ -142,9 +142,9 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # Guest accounts need Postgres with Spotcraft's auth schema: the same local stack as on a
-      # laptop (Docker), with DATABASE_URL and AUTH_SECRET written to .env.
-      - run: pnpm exec spotcraft dev start && pnpm exec spotcraft dev env --write
+      # Presets need Spotcraft's local stack, as on a laptop (Docker): Postgres with the app's
+      # schema and the user pool. It also applies the migrations and writes .env.
+      - run: pnpm exec spotcraft dev
       # Browsers are cached per Playwright version; their system packages (apt) are not.
       - id: playwright
         run: echo "version=$(jq -r .version node_modules/@playwright/test/package.json)" >> "$GITHUB_OUTPUT"

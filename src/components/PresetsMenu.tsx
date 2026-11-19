@@ -76,12 +76,7 @@ const PresetsMenu = ({
         onOpen()
       }}
     >
-      <Button
-        variant="ghost"
-        size="sm"
-        aria-label={`Presets: ${shown}${edited ? ', edited' : ''}`}
-        className="gap-1 bg-input/50 pr-2 pl-3 hover:bg-input/80"
-      >
+      <Button variant="secondary" aria-label={`Presets: ${shown}${edited ? ', edited' : ''}`}>
         <span title={shown} className="max-w-24 truncate md:max-w-40 xl:max-w-56">
           {shown}
         </span>
@@ -114,7 +109,7 @@ const PresetsMenu = ({
                 className="h-11 rounded-3xl border border-transparent bg-input/50 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
               />
             </TextField>
-            <Button type="submit" size="sm" isPending={pending}>
+            <Button type="submit" isPending={pending}>
               Save
             </Button>
           </Form>
@@ -129,7 +124,6 @@ const PresetsMenu = ({
                 <li key={preset.id} className="flex items-center gap-1">
                   <Button
                     variant="ghost"
-                    size="sm"
                     aria-label={`Load ${preset.name}`}
                     aria-current={preset.name === current}
                     onPress={() => onLoad(preset)}
@@ -142,7 +136,7 @@ const PresetsMenu = ({
                   </Button>
                   <Button
                     variant="ghost"
-                    size="icon-sm"
+                    size="icon"
                     aria-label={`Delete ${preset.name}`}
                     isPending={pending}
                     onPress={() => remove(preset)}

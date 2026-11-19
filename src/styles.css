@@ -2,7 +2,11 @@
    pulled in classes from docs and agent skills (e.g. the shadcn skill's example markup). */
 @import "tailwindcss" source(".");
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
+/* Spotstrap: shadcn's token names as static theme values, touch sizes, the iOS type scale and
+   its component classes; then our theme (crimson on mauve, Inter). Dark mode follows the OS
+   setting (prefers-color-scheme): no script, no flash. */
+@import "@kodentuzo/spotstrap/tailwind.css";
+@import "@kodentuzo/spotstrap/themes/vinskiano.css";
 
 /* Inter, Latin and Latin Extended only (the site is in English; other scripts fall back to the
    system font). The Latin file is preloaded from __root.tsx. "Inter Fallback" is Arial resized to
@@ -39,9 +43,6 @@
   size-adjust: 107.12%;
 }
 
-/* Dark mode follows the OS setting: no script, no flash. */
-@custom-variant dark (@media (prefers-color-scheme: dark));
-
 /* Short screens: a phone in landscape, or held upright (the app turns sideways then, so its
    height is the phone's width). Tightens spacing so everything fits. */
 @custom-variant short {
@@ -50,82 +51,6 @@
   }
   @media (orientation: portrait) and (max-width: 500px) {
     @slot;
-  }
-}
-
-/* shadcn/ui theme: preset b51FfLcNG (style aria-luma, base color mauve). */
-@theme inline {
-  --font-heading: var(--font-sans);
-  --font-sans: "Inter Variable", "Inter Fallback", sans-serif;
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-foreground: var(--foreground);
-  --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-}
-
-:root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0.008 326);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0.008 326);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0.008 326);
-  --primary: oklch(0.514 0.222 16.935);
-  --primary-foreground: oklch(0.969 0.015 12.422);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.96 0.003 325.6);
-  --muted-foreground: oklch(0.542 0.034 322.5);
-  --accent: oklch(0.96 0.003 325.6);
-  --accent-foreground: oklch(0.212 0.019 322.12);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0.005 325.62);
-  --input: oklch(0.922 0.005 325.62);
-  --ring: oklch(0.711 0.019 323.02);
-  --radius: 0.875rem;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: oklch(0.145 0.008 326);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.212 0.019 322.12);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.212 0.019 322.12);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.455 0.188 13.697);
-    --primary-foreground: oklch(0.969 0.015 12.422);
-    --secondary: oklch(0.274 0.006 286.033);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.263 0.024 320.12);
-    --muted-foreground: oklch(0.711 0.019 323.02);
-    --accent: oklch(0.263 0.024 320.12);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.542 0.034 322.5);
   }
 }
 
@@ -153,17 +78,15 @@
   }
 }
 
+/* Buttons (Spotstrap's `btn`) are pills, as before. */
+:root {
+  --btn-radius: var(--radius-4xl);
+}
+
+/* Spotstrap's base sets borders, the focus outline, and the body's colors, font and size. */
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-
-  html {
-    @apply font-sans;
-  }
-
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply antialiased;
     overscroll-behavior: contain;
   }
 

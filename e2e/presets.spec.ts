@@ -249,10 +249,18 @@ test.describe('a save the server refuses', () => {
     http.newContext({
       ...(baseURL ? { baseURL } : {}),
       ignoreHTTPSErrors: true,
-      extraHTTPHeaders: { origin: new URL(baseURL ?? '').origin, 'x-forwarded-for': address },
+      extraHTTPHeaders: {
+        origin: new URL(baseURL ?? '').origin,
+        'x-forwarded-for': address,
+        // What Caddy sets on Spotcraft, for the pool's limit on new guests per address.
+        'x-spotcraft-client-ip': address,
+      },
     })
   const randomAddress = () =>
     `198.18.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 254) + 1}`
+  /** Makes the visitor a guest in the user pool, as the page does before its first save. */
+  const becomeGuest = async (client: APIRequestContext) =>
+    expect((await client.post('/_spotcraft/auth/sign-in/anonymous', { data: {} })).ok()).toBe(true)
 
   test('says why, with the right status, and nothing about the server', async ({
     page,
@@ -260,6 +268,12 @@ test.describe('a save the server refuses', () => {
   }) => {
     const save = await saveRequest(page)
     const client = await visitor(baseURL, randomAddress())
+
+    // Without a guest in the user pool, there's no one to save for.
+    const anonymous = await save(client, 'Mine')
+    expect(anonymous.status()).toBe(401)
+    expect(await anonymous.text()).toContain('No guest account yet')
+    await becomeGuest(client)
 
     const invalid = await save(client, 'x'.repeat(41))
     expect(invalid.status()).toBe(400)
@@ -277,24 +291,27 @@ test.describe('a save the server refuses', () => {
     await client.dispose()
   })
 
-  test('too many new visitors from one network are told to wait', async ({ page, baseURL }) => {
-    const save = await saveRequest(page)
-    const address = randomAddress()
-    let status = 0
-    let retryAfter: string | undefined
-    let body = ''
-    // The kit's default limit is 30 new guests per address per 10 minutes.
-    for (let i = 0; i < 31; i++) {
-      const client = await visitor(baseURL, address)
-      const response = await save(client, 'Mine')
-      status = response.status()
-      retryAfter = response.headers()['retry-after']
-      body = await response.text()
-      await client.dispose()
-    }
-    expect(status).toBe(429)
-    expect(retryAfter).toMatch(/^\d+$/)
-    expect(body).toContain('Too many new visitors')
-    expect(body).not.toContain('stack')
+  test('too many new visitors from one network are told to wait', async ({
+    page,
+    consoleErrors,
+  }) => {
+    // The user pool limits new guests per address (Spotcraft tests that); here it says no.
+    await page.route('**/_spotcraft/auth/sign-in/anonymous', (route) =>
+      route.fulfill({
+        status: 429,
+        headers: { 'retry-after': '60' },
+        json: { message: 'Too many requests' },
+      }),
+    )
+    await openApp(page)
+    const presets = await openPresets(page)
+    await presets.getByRole('textbox', { name: 'Save this sound as' }).fill('Mine')
+    await presets.getByRole('button', { name: 'Save' }).click()
+    await expect(presets.getByRole('status')).toHaveText(
+      'Too many new visitors from your network; try again in a few minutes',
+    )
+    // Chromium and WebKit log the refused request themselves (Firefox doesn't); that's expected.
+    const others = consoleErrors.filter((error) => !error.includes('429'))
+    consoleErrors.splice(0, consoleErrors.length, ...others)
   })
 })

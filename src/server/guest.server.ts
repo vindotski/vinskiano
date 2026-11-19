@@ -1,33 +1,34 @@
-import { isGuestLimitError } from '@spotcraft/kit'
-import { guestHelpers } from '@spotcraft/kit/tanstack-start'
-import { backend } from './backend.server'
+import { spotkit } from '@kodentuzo/spotkit'
+import { getRequest } from '@tanstack/react-start/server'
 import { PublicError } from './public-error'
 
 /*
- * The visitor's guest account, inside a server function or route, through the kit's TanStack
- * Start helpers. Reading never creates a guest; only a save does (else every first request,
- * favicon and crawler would make one). Answers that depend on the visitor are sent
- * `cache-control: private, no-store`. The client address for the limit on new guests is the last
- * `X-Forwarded-For` entry, the one Spotcraft's Caddy adds; an IPv6 address counts as its /64.
+ * The visitor's guest in Spotcraft's user pool, inside a server function or route. The browser
+ * makes the guest (`ensureGuest` in synth/user-pool.ts) before its first save; the server only
+ * reads the pool's session cookie, through spotkit, which asks the pool once per session and
+ * keeps the answer until its token expires. Reads AUTH_URL, AUTH_ISSUER and AUTH_JWKS_URL
+ * (Spotcraft sets them; `spotcraft dev` writes them to .env).
  */
-const helpers = guestHelpers(backend)
+const KEY: unique symbol = Symbol.for('vinskiano.userPool')
+const global = globalThis as typeof globalThis & { [KEY]?: ReturnType<typeof spotkit> }
+const pool = () => {
+  global[KEY] ??= spotkit()
+  return global[KEY]
+}
 
-/** The visitor's guest id, or null if they have never saved anything. */
-export const currentGuestId = helpers.currentGuestId
-
-/** The visitor's guest id, creating the guest (and its cookie) on their first save. */
-export async function guestId(): Promise<string> {
+/** The visitor's guest id, or null if they have no session in the pool. */
+export async function currentGuestId(): Promise<string | null> {
   try {
-    return await helpers.guestId()
+    return (await pool().user(getRequest()))?.id ?? null
   } catch (error) {
-    // The kit has set Retry-After. Checked by shape, not `instanceof`: the server is bundled
-    // more than once, and another bundle's copy of the kit's error would fail `instanceof`.
-    if (isGuestLimitError(error)) {
-      throw new PublicError(
-        'Too many new visitors from your network; try again in a few minutes',
-        429,
-      )
-    }
-    throw error
+    console.error('The user pool did not answer:', error)
+    throw new PublicError("Can't reach your account right now; try again in a moment", 503)
   }
+}
+
+/** The visitor's guest id, for a save: 401 if the browser hasn't made one yet. */
+export async function guestId(): Promise<string> {
+  const id = await currentGuestId()
+  if (!id) throw new PublicError('No guest account yet', 401)
+  return id
 }
