@@ -225,8 +225,8 @@ importers:
         specifier: 2.6.5
         version: 2.6.5
       '@kodentuzo/spotcraft':
-        specifier: 0.6.0
-        version: 0.6.0
+        specifier: 0.6.1
+        version: 0.6.1
       '@playwright/test':
         specifier: ~1.65.0
         version: 1.65.0
@@ -599,8 +599,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@kodentuzo/spotcraft@0.6.0':
-    resolution: {integrity: sha512-db5hUph8a7Z4M8xaC1sOUCcMVgdwI+qreFges9zcUkYVbe4BcZW0plQL/N6+4LxoqAAvbZ3LgalAjD7subKH/w==}
+  '@kodentuzo/spotcraft@0.6.1':
+    resolution: {integrity: sha512-QCeFVFGS1URK2EBGzt/deFcRrJvIkEf2nNKuRUMyq8S250osdNc7wrezT/lteFrHe6kmRkwVLVPFklk4+4pa5w==}
     engines: {node: '>=24'}
     hasBin: true
 
@@ -3317,7 +3317,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@kodentuzo/spotcraft@0.6.0':
+  '@kodentuzo/spotcraft@0.6.1':
     dependencies:
       pg: 8.23.1
     transitivePeerDependencies:

@@ -60,7 +60,9 @@ volumes:
   node_modules:
 
 networks:
-  # Created by `pnpm exec spotcraft dev`, named after the repository's folder.
+  # Created by `pnpm exec spotcraft dev`: `<stack>_default`, where `spotcraft dev status` prints
+  # the stack's name. Set SPOTCRAFT_DEV_NETWORK in .env when it isn't the default below (a stack
+  # made by spotcraft 0.6.1 or later has a hash in its name).
   spotcraft:
-    name: spotcraft-dev-vinskiano_default
+    name: ${SPOTCRAFT_DEV_NETWORK:-spotcraft-dev-vinskiano_default}
     external: true

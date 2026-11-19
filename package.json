@@ -56,7 +56,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.5",
-    "@kodentuzo/spotcraft": "0.6.0",
+    "@kodentuzo/spotcraft": "0.6.1",
     "@playwright/test": "~1.65.0",
     "@tailwindcss/vite": "4.3.4",
     "@tanstack/devtools-vite": "^0.8.6",
