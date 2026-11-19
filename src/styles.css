@@ -78,6 +78,11 @@
   }
 }
 
+/* Buttons (Spotstrap's `btn`) are pills, as before. */
+:root {
+  --btn-radius: var(--radius-4xl);
+}
+
 /* Spotstrap's base sets borders, the focus outline, and the body's colors, font and size. */
 @layer base {
   body {

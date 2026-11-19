@@ -29,7 +29,7 @@ function firstCInView(view: KeyboardView): Note {
   return inView ?? before ?? MIDDLE_C
 }
 
-const OCTAVE_BUTTON = buttonVariants({ variant: 'ghost', size: 'icon-sm', className: 'shrink-0' })
+const OCTAVE_BUTTON = buttonVariants({ variant: 'ghost', size: 'icon', className: 'shrink-0' })
 
 /**
  * The keyboard page: the minimap (with octave buttons) above the 88 keys, which scroll

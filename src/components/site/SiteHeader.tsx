@@ -12,7 +12,7 @@ const SiteHeader = () => (
         <Logo className="size-6" />
         Vinskiano
       </Link>
-      <Link to="/app" className={buttonVariants({ size: 'sm' })}>
+      <Link to="/app" className={buttonVariants()}>
         Open the synth
       </Link>
     </div>

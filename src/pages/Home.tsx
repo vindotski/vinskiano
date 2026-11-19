@@ -133,7 +133,7 @@ const SECTION_HEADING =
   'scroll-mt-20 font-heading text-3xl font-semibold tracking-tight text-balance'
 
 const OpenSynth = ({ variant }: { variant?: 'default' | 'outline' }) => (
-  <Link to="/app" className={buttonVariants({ size: 'lg', variant })}>
+  <Link to="/app" className={buttonVariants({ variant })}>
     Open the synth
     <ArrowRight data-icon="inline-end" />
   </Link>
@@ -153,7 +153,7 @@ const Home = () => (
         computer keyboard. No install, no account: press a key.
       </p>
       <div className="flex flex-col items-center gap-3 sm:flex-row">
-        <a href="#play" className={buttonVariants({ size: 'lg' })}>
+        <a href="#play" className={buttonVariants()}>
           Play it here
         </a>
         <OpenSynth variant="outline" />
@@ -299,7 +299,7 @@ const Home = () => (
         </h2>
         <div className="flex flex-col items-center gap-3 sm:flex-row">
           <OpenSynth />
-          <a href={REPO} className={buttonVariants({ size: 'lg', variant: 'outline' })}>
+          <a href={REPO} className={buttonVariants({ variant: 'outline' })}>
             Source on GitHub
           </a>
         </div>
