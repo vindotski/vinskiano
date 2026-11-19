@@ -1,6 +1,6 @@
 # Roadmap
 
-Where Vinskiano is going after the release of what's now under `[Unreleased]`: parity with FL Studio's 3x Osc and the channel settings around it. [parity.md](parity.md) lists every parameter; this file covers the technology, the preset format, and the order.
+Where Vinskiano is going: [the product loop](product.md) (pick a sound, make it yours, send it to a friend) sets the order, and parity with FL Studio's 3x Osc and the channel settings around it sets how each feature behaves. [parity.md](parity.md) lists every parameter; this file covers the technology, the preset format, and the order.
 
 ## Technology
 
@@ -18,7 +18,7 @@ We re-checked the stack against the whole parity list. Decisions (recorded in [A
   The `Engine` keeps the voices, steals the oldest when `maxPoly` is reached, and handles mono and portamento.
 - **`PeriodicWave` for shapes and phase.** `OscillatorNode` can't start at a phase, but a periodic wave whose Fourier coefficients are rotated starts wherever we want. The same mechanism gives rounded saw and phase rand. Waves are cached per shape and phase step, because creating one per note is too slow.
 - **`AudioWorklet` only where native nodes can't do it:** the aliased non-HQ oscillators, and perhaps FL-like SVF filters later. It loads in an effect (server-safe), from a Vite `?url` import.
-- **Envelope release from wherever the note is.** `cancelAndHoldAtTime` does this, but check it on MDN against our browser floor before M3 (Firefox has lacked it). The fallback is to compute the envelope's current value ourselves and ramp from there.
+- **Envelope release from wherever the note is.** `cancelAndHoldAtTime` does this, but check it on MDN against our browser floor before M2 (Firefox has lacked it). The fallback is to compute the envelope's current value ourselves and ramp from there.
 - **Filter sweeps in cents.** `BiquadFilterNode.detune` takes cents, so envelopes and LFOs on cutoff are exponential, like FL's, without converting to Hz.
 - **A hand-written lookahead scheduler** (a timer that schedules on `AudioContext.currentTime` a little ahead) for the arpeggiator and tempo-synced times. About a hundred lines; no library.
 - **Valibot for the preset schema** (from M1). Today `synth/preset.ts` checks five fields by hand; the full format has about eighty. Valibot is small and tree-shakable, infers the TypeScript types (replacing `types/synth.ts`), implements Standard Schema (which TanStack Start's validators take directly), and `@valibot/to-json-schema` publishes a JSON Schema for preset files. Check `trustPolicy` and `minimumReleaseAge` when adding it.
@@ -122,7 +122,7 @@ Defaults for the oscillators are today's new sound. `sample` (for the custom sha
 | In the app (`synth/factory/*.json`) | Factory presets: Init and a few classic 3x Osc–style sounds, read-only in the presets menu. A unit test checks each one                                                                                                                                 | M1   |
 | The browser (`localStorage`)        | The current sound, so a reload doesn't lose unsaved changes. Read through the same checker                                                                                                                                                              | M1   |
 | A link                              | `/app?sound=…`: the settings as JSON, `deflate-raw` with `CompressionStream` (in our browser floor and in Node), base64url. The `/app` route's loader decodes it, so the server renders the right knobs. Written by a Share button, not on every change | M1   |
-| A file                              | Export and import `*.vinskiano.json`, with `"$schema"` pointing to the published JSON Schema                                                                                                                                                            | M1   |
+| A file                              | Export and import `*.vinskiano.json`, with `"$schema"` pointing to the published JSON Schema                                                                                                                                                            | M8   |
 
 ## Decided later
 
@@ -131,14 +131,13 @@ Defaults for the oscillators are today's new sound. `sample` (for the custom sha
 
 ## Milestones
 
-Each milestone is a few one-commit steps and ends in a minor release.
+The order follows [the product loop](product.md): start, play, shape, keep, send ([ADR 0027](decisions/0027-product-loop.md)). Each milestone is a few one-commit steps and ends in a minor release.
 
-0. **Release `[Unreleased]`** (presets, sound pages, the FL mix, the 88-key keyboard). Before any of the below.
-1. **Foundation:** Valibot schema of the complete version 1 with defaults; `version` written on save; fixtures; the `Voice` refactor (no change in sound); fine tune; factory presets; the current sound kept in `localStorage`; share links; file export and import.
-2. **The 3x Osc panel:** pan (oscillators and master), invert, stereo detune, phase and stereo phase, rounded saw, noise, AM, phase rand. After this, the plugin itself is at parity except non-HQ and the sample shape.
-3. **Envelopes:** volume and pitch, with every stage, tension and amount, and release from the current level.
-4. **Filter:** the eight types, cutoff and resonance, the Mod X and Mod Y envelopes, keyboard tracking.
+1. **Start, keep, send:** Valibot schema of the complete version 1 with defaults; `version` written on save; fixtures; factory presets in the presets menu, and "Open in the synth" from the home page's demo; the current sound kept in `localStorage`; share links, with a preview that names the sound and a "Shared sound" notice that offers to save it, and the `send` and `start: shared` events ([measuring](product.md#measuring-it)).
+2. **Shape: envelopes.** The `Voice` refactor (no change in sound), then volume and pitch envelopes, with every stage, tension and amount, and release from the current level. Factory sounds that use them (a pluck, a pad).
+3. **Shape: the filter.** The eight types, cutoff and resonance, the Mod X and Mod Y envelopes, keyboard tracking. Factory sounds that use it (a bass).
+4. **The rest of the 3x Osc panel:** fine tune, pan (oscillators and master), invert, stereo detune, phase and stereo phase, rounded saw, noise, AM, phase rand. After this, the plugin itself is at parity except non-HQ and the sample shape.
 5. **LFOs:** all five targets, global or per note.
 6. **Voices and playing:** max polyphony with stealing, mono, portamento and slide, velocity, Web MIDI, velocity tracking.
 7. **Arpeggiator and tempo:** the scheduler, every direction and chord, tempo sync for envelopes and LFOs.
-8. **Extras:** the sample shape, the non-HQ oscillators (`AudioWorklet`), a bank of factory presets, and knob ranges from the FL measurements.
+8. **Extras:** the sample shape, the non-HQ oscillators (`AudioWorklet`), file export and import, a bank of factory presets, and knob ranges from the FL measurements.
