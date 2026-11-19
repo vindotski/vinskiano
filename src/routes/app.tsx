@@ -65,7 +65,7 @@ function SynthBar() {
   const synth = useSynth()
   const presets = usePresets()
   const onSoundPage = useMatch({ from: '/app/_sound', shouldThrow: false }) !== undefined
-  const linkStyle = buttonVariants({ variant: 'ghost', size: 'icon-sm' })
+  const linkStyle = buttonVariants({ variant: 'ghost', size: 'icon' })
   return (
     <AppBar
       start={
