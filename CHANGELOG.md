@@ -8,6 +8,10 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 
 ## [Unreleased]
 
+### Changed
+
+- The home page says what Vinskiano is for: pick a sound, play it, make it yours, keep it and, next, send it to a friend. "How it works" shows those five steps, each with what it does today and what's coming; the roadmap list follows the new order (sounds to start from and share links first, then envelopes and a filter). Accessibility moved into the questions
+
 ## [3.0.0] - 2026-11-19
 
 Guests and their presets move into Spotcraft's user pool, shared by every app on the server, and the presets into the app's own schema. Spotcraft runs the migrations, CI deploys `main`, and the theme and buttons come from Spotstrap.

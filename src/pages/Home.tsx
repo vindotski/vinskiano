@@ -1,13 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import {
-  Accessibility,
-  ArrowRight,
-  AudioWaveform,
-  Keyboard,
-  KeyboardMusic,
-  Save,
-  Smartphone,
-} from 'lucide-react'
+import { ArrowRight, AudioWaveform, KeyboardMusic, ListMusic, Save, Send } from 'lucide-react'
 import type { ComponentType } from 'react'
 import dark640 from '@/assets/screenshots/app-dark-640.webp'
 import dark1280 from '@/assets/screenshots/app-dark-1280.webp'
@@ -30,48 +22,53 @@ const REPO = 'https://github.com/vindotski/vinskiano'
 const PARITY = `${REPO}/blob/HEAD/docs/parity.md`
 const ROADMAP = `${REPO}/blob/HEAD/docs/roadmap.md`
 
-interface Feature {
+/**
+ * The product loop (docs/product.md): what a visitor does, step by step. `coming` names what a
+ * step still lacks; a step with `soon` isn't built at all yet.
+ */
+interface Step {
   icon: ComponentType<{ className?: string }>
   title: string
   description: string
+  coming?: string
+  soon?: true
 }
 
-const FEATURES: Feature[] = [
+const STEPS: Step[] = [
   {
-    icon: AudioWaveform,
-    title: 'Three oscillators',
+    icon: ListMusic,
+    title: 'Pick a sound',
     description:
-      'Each with a waveform (sine, square, triangle or sawtooth) and a pitch up to two octaves up or down. Their mix always adds up to 100%, so changing the balance never changes the volume.',
+      'Try four ready-made sounds right here on this page, or open the synth on a new one: three sine waves an octave apart.',
+    coming: 'more sounds to start from, in the synth itself',
   },
   {
     icon: KeyboardMusic,
-    title: 'All 88 keys',
+    title: 'Play it',
     description:
-      'A piano’s whole range, A0 to C8, with a minimap that shows where you are and the notes you hold. Play with as many fingers as you like, or slide across the keys.',
+      'All 88 keys, with as many fingers as you like, the mouse, or your computer keyboard in FL Studio’s layout. On a phone too, held either way.',
+    coming: 'MIDI keyboards',
   },
   {
-    icon: Keyboard,
-    title: 'Your keyboard is a piano',
+    icon: AudioWaveform,
+    title: 'Make it yours',
     description:
-      'The two bottom letter rows play an octave each, as in FL Studio, on any layout. Where there’s a mouse, every key shows its letter.',
+      'Three oscillators, each with a waveform and a pitch up to two octaves up or down, mixed like 3x Osc: the levels always add up to 100%.',
+    coming: 'envelopes and a filter',
   },
   {
     icon: Save,
-    title: 'Presets, no sign-up',
+    title: 'Keep it',
     description:
-      'Save a sound under a name and load it later. Your first save makes you a guest account, kept by a cookie: no email, no password.',
+      'Save it as a preset and load it later. Your first save makes you a guest, kept by a cookie: no email, no password.',
+    coming: 'your sound kept when you reload, even unsaved',
   },
   {
-    icon: Smartphone,
-    title: 'On your phone too',
+    icon: Send,
+    title: 'Send it to a friend',
     description:
-      'Everything fits on one screen, down to a small phone held sideways. Hold it upright and the synth turns itself so the keys stay wide.',
-  },
-  {
-    icon: Accessibility,
-    title: 'For everyone',
-    description:
-      'Every control has a name for screen readers and works by keyboard. Animations respect reduced motion, and dark mode follows your system.',
+      'One tap makes a link. Your friend hears your sound, makes it theirs, and sends it back.',
+    soon: true,
   },
 ]
 
@@ -81,14 +78,17 @@ const FL_POINTS = [
   'The computer keyboard plays in FL Studio’s layout: Z S X D C… and Q 2 W 3 E….',
 ]
 
+// In the order of docs/roadmap.md's milestones.
 const COMING = [
+  'Sounds to start from, in the synth itself',
+  'Links that send a sound to a friend',
+  'Your sound kept when you reload',
   'Envelopes for volume and pitch',
   'A filter with cutoff and resonance envelopes',
-  'LFOs',
   'Fine tuning, stereo detune, phase and pan per oscillator',
-  'Mono, portamento and an arpeggiator',
-  'Sounds to start from, and links that share a sound',
-  'MIDI keyboards',
+  'LFOs',
+  'Mono, portamento, velocity and MIDI keyboards',
+  'An arpeggiator',
 ]
 
 interface Question {
@@ -123,6 +123,11 @@ const FAQ: Question[] = [
       'Not yet. MIDI is planned; until then, play with the mouse, by touch or with your computer keyboard.',
   },
   {
+    question: 'Can I use it with a screen reader or without a mouse?',
+    answer:
+      'Yes. Every control has a name for screen readers and works by keyboard: knobs take the arrows, Page Up and Down, Home and End. Animations respect reduced motion, and dark mode follows your system.',
+  },
+  {
     question: 'Which browsers does it run in?',
     answer:
       'Chrome or Edge 111 and later, Safari 16.4 and later (Mac and iPhone), Firefox 128 and later.',
@@ -146,11 +151,14 @@ const Home = () => (
         Free and open source · Runs in your browser
       </p>
       <h1 className="max-w-3xl font-heading text-4xl font-semibold tracking-tight text-balance sm:text-6xl">
-        A synth that plays in your browser
+        {/* With share links (docs/roadmap.md, milestone 1) this becomes the whole loop:
+            "Pick a sound, make it yours, send it to a friend". */}
+        Pick a sound and make it yours
       </h1>
       <p className="max-w-2xl text-lg text-pretty text-muted-foreground">
-        Three oscillators, mixed like FL Studio’s 3x Osc. All 88 keys, by touch, mouse or your
-        computer keyboard. No install, no account: press a key.
+        A three-oscillator synth in your browser, mixed like FL Studio’s 3x Osc. Start from a sound,
+        play it on any keys you have, and shape it until it’s yours. Soon, send it to a friend as a
+        link. No install, no account: press a key.
       </p>
       <div className="flex flex-col items-center gap-3 sm:flex-row">
         <a href="#play" className={buttonVariants()}>
@@ -196,20 +204,38 @@ const Home = () => (
       </picture>
     </section>
 
-    <section aria-labelledby="features" className="border-t bg-muted/40">
+    <section aria-labelledby="how-it-works" className="border-t bg-muted/40">
       <div className="mx-auto w-full max-w-5xl px-4 py-20">
-        <h2 id="features" className={`${SECTION_HEADING} text-center`}>
-          What it does
+        <h2 id="how-it-works" className={`${SECTION_HEADING} text-center`}>
+          How it works
         </h2>
-        <ul className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map(({ icon: Icon, title, description }) => (
+        <p className="mx-auto mt-3 max-w-2xl text-center text-pretty text-muted-foreground">
+          Five steps, and the last one starts the first again, for someone else.
+        </p>
+        <ol className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {STEPS.map(({ icon: Icon, title, description, coming, soon }, index) => (
             <li key={title} className="flex flex-col gap-3 rounded-2xl border bg-card p-6">
-              <Icon className="size-6 text-primary" aria-hidden="true" />
-              <h3 className="font-heading text-lg font-semibold">{title}</h3>
+              <div className="flex items-center justify-between gap-3">
+                <Icon className="size-6 text-primary" aria-hidden="true" />
+                {soon && (
+                  <span className="rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground">
+                    Coming next
+                  </span>
+                )}
+              </div>
+              <h3 className="font-heading text-lg font-semibold">
+                <span className="text-muted-foreground">{index + 1}. </span>
+                {title}
+              </h3>
               <p className="text-sm text-muted-foreground">{description}</p>
+              {coming && (
+                <p className="mt-auto text-sm">
+                  <span className="font-medium">Coming:</span> {coming}
+                </p>
+              )}
             </li>
           ))}
-        </ul>
+        </ol>
       </div>
     </section>
 
@@ -247,7 +273,7 @@ const Home = () => (
           Coming next
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-center text-pretty text-muted-foreground">
-          Vinskiano is growing into a full subtractive synth, toward everything 3x Osc does.
+          First what closes the loop, then what makes sounds differ, then the rest of 3x Osc.
           Planned, in about this order:
         </p>
         <ol className="mx-auto mt-10 flex max-w-2xl flex-col gap-2">

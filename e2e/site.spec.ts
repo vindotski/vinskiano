@@ -72,14 +72,14 @@ test('old /oscillators links redirect into the app', async ({ page, request }) =
   await expect(page).toHaveURL('/app/oscillators')
 })
 
-test('the home page has a hero, the demo, features, the roadmap and a FAQ', async ({ page }) => {
+test('the home page has a hero, the demo, the loop, the roadmap and a FAQ', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1)
   await expect(page.getByRole('region', { name: 'Play it here' })).toBeVisible()
   await expect(page.getByRole('img', { name: /The Vinskiano synth/ })).toBeAttached()
   await expect(
-    page.getByRole('region', { name: 'What it does' }).getByRole('listitem'),
-  ).toHaveCount(6)
+    page.getByRole('region', { name: 'How it works' }).getByRole('listitem'),
+  ).toHaveCount(5)
   await expect(page.getByRole('region', { name: 'For FL Studio users' })).toBeVisible()
   await expect(
     page.getByRole('region', { name: 'Coming next' }).getByRole('listitem'),
@@ -115,9 +115,7 @@ test('the first Tab stop skips to the content', async ({ page, browserName }) =>
 
 test('the home page has its real copy, no placeholders', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-    'A synth that plays in your browser',
-  )
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Pick a sound and make it yours')
   await expect(page.getByRole('main')).not.toContainText('[')
 })
 

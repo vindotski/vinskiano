@@ -16,7 +16,7 @@ export const Route = createRootRoute({
       {
         name: 'description',
         content:
-          'A free synth that plays in your browser: three oscillators mixed like FL Studio’s 3x Osc, 88 keys, and your computer keyboard as a piano.',
+          'A free synth in your browser: pick a sound, play it on 88 keys or your computer keyboard, and make it yours with three oscillators mixed like FL Studio’s 3x Osc.',
       },
       { name: 'color-scheme', content: 'light dark' },
     ],

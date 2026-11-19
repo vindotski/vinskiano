@@ -3,9 +3,9 @@ import screenshot from '@/assets/screenshots/app-light-1280.webp'
 import Home from '../../pages/Home'
 
 const SITE = 'https://vinskiano.app'
-const TITLE = 'Vinskiano: a synth that plays in your browser'
+const TITLE = 'Vinskiano: pick a sound and make it yours'
 const DESCRIPTION =
-  'Three oscillators mixed like FL Studio’s 3x Osc, 88 keys, and your computer keyboard as a piano. Free, open source, no install.'
+  'A free synth in your browser: start from a sound, play it on 88 keys or your computer keyboard, and shape it with three oscillators mixed like FL Studio’s 3x Osc.'
 
 export const Route = createFileRoute('/_site/')({
   // What links to the home page show (chat apps, social sites) and its one canonical address.
