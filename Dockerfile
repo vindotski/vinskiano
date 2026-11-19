@@ -47,6 +47,9 @@ ENV NODE_ENV=production \
 EXPOSE 3000
 # The base image's unprivileged user; the server needs no root (port 3000, no writes).
 USER node
+# Spotcraft runs this once per deploy, before the new version starts: it applies the migrations
+# and exits (src/server/startup.ts).
+LABEL dev.spotcraft.migrate='["node", ".output/server/index.mjs", "migrate"]'
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
   CMD ["node", "-e", "fetch('http://localhost:' + process.env.PORT + '/').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
 CMD ["node", ".output/server/index.mjs"]

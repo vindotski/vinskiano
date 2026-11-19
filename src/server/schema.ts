@@ -1,9 +1,10 @@
-import { users } from '@spotcraft/kit/schema'
 import { jsonb, pgTable, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core'
+import { users } from './auth'
 
 /**
- * The app's own tables, in `public`. Drizzle definitions for queries only: the tables are created
- * by the SQL files in ./migrations, which this has to match. `auth.*` belongs to Spotcraft.
+ * The app's own tables, in its schema on Spotcraft (`app_vinskiano`, the role's search path).
+ * Drizzle definitions for queries only: the tables are created by the SQL in ./migrations, which
+ * this has to match. `auth.users` is Spotcraft's user pool.
  */
 export const presets = pgTable(
   'presets',

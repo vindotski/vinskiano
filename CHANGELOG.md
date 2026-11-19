@@ -14,9 +14,10 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 
 ### Changed
 
-- `@spotcraft/kit` 0.4.0 does the server's guest and database work: the guest helpers, the client address for the limit on new guests, the migration runner and the start-up check. Nothing changes for visitors or in the database: the same rules, the same `app_migrations` table and lock
-- The kit has its own version now; it no longer has to match Spotcraft's (Spotcraft 0.5)
-- docs/deploy.md describes Spotcraft 0.5: DNS through the dashboard, releases without downtime, the deploy hook and backups
+- **Guests live in Spotcraft's user pool** (Spotcraft 0.6), shared by every app on the server: the browser makes the guest before a save, and the server reads it with `@kodentuzo/spotkit`. `@spotcraft/kit` is gone. Existing guests move with their presets and keep their cookies when the app moves ([docs/deploy.md](docs/deploy.md), [ADR 0026](docs/decisions/0026-spotcraft-user-pool.md))
+- **The presets are in the `app_vinskiano` schema** of Spotcraft's shared database, and **Spotcraft runs the migrations** before a new version starts, through the image's `dev.spotcraft.migrate` label. The server no longer migrates or checks its settings at start
+- **Local development and CI use `spotcraft dev`** from `@kodentuzo/spotcraft` 0.6: one command for Postgres, the user pool, `.env` and the migrations. Locally, the app passes `/_spotcraft/auth` on to the pool, so the browser uses its own origin as on Spotcraft
+- docs/deploy.md describes Spotcraft 0.6: DNS through the dashboard, releases without downtime, the deploy hook, backups, and moving the app into the user pool once
 - The theme comes from Spotstrap (`@kodentuzo/spotstrap`, its `vinskiano` theme) instead of a copied shadcn/ui preset (Spotstrap 0.1.6). Light mode looks the same; in dark mode the crimson is lighter, with dark text on it (the logo, the pressed key, the selected waveform), so it also reads as text. Destructive colours are orange-red, set apart from the crimson. Body text is 17 px instead of 16 px. The stylesheet is 2.5 kB gzip bigger ([ADR 0025](docs/decisions/0025-theme-from-spotstrap.md))
 - Buttons use Spotstrap's `btn` classes: the same pills and colours, with 17 px text, and every button 44 px tall (the home page's large ones were 48 px). An open presets menu's button shows as open instead of pressed
 

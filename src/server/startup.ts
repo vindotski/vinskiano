@@ -1,19 +1,26 @@
-import { startup } from '@spotcraft/kit/tanstack-start'
 import { definePlugin } from 'nitro'
-import { backend, PREPARE } from './backend.server'
+import { closeDatabase } from './database.server'
+import { migrate } from './migrate.server'
+import { MIGRATIONS } from './migrations'
 
 /**
- * When the production server starts, the kit checks its settings (DATABASE_URL, AUTH_SECRET,
- * PUBLIC_URL) and the database, and applies the app's migrations. If any of that fails, the
- * server exits naming the problem, so the deploy's health check fails and the previous version
- * keeps running. (Otherwise the server would start, pass its health check, since the home page
- * needs no database, and only fail on the first save.) Nitro holds requests until this is done.
- * On shutdown, it closes the database connections.
- *
- * Skipped while prerendering at build time (no settings there) and in dev, so `pnpm dev` works
- * without a database (the first save migrates instead).
+ * `node .output/server/index.mjs migrate` applies the migrations and exits: the image's
+ * dev.spotcraft.migrate label, which Spotcraft runs once per deploy, before the new version
+ * starts. If they fail, it exits 1, the deploy fails and the previous version keeps serving.
+ * Otherwise this only closes the database connections on shutdown. Skipped while prerendering
+ * at build time.
  */
 export default definePlugin(async (nitroApp) => {
-  if (import.meta.prerender || import.meta.dev) return
-  await startup(nitroApp, backend, PREPARE)
+  if (import.meta.prerender) return
+  nitroApp.hooks.hook('close', closeDatabase)
+  if (process.argv[2] !== 'migrate') return
+  try {
+    const url = process.env.DATABASE_URL
+    if (!url) throw new Error('DATABASE_URL is not set')
+    console.info(`Migrated: ${await migrate(url, MIGRATIONS)} new`)
+    process.exit(0)
+  } catch (error) {
+    console.error('The migrations failed:', error)
+    process.exit(1)
+  }
 })

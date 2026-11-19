@@ -14,7 +14,7 @@ A three-oscillator synth that lives in your browser. Free and open source, no in
 - **Three oscillators**, each with its own waveform (sine, square, triangle or sawtooth), and pitch (up to two octaves up or down, in semitones), mixed like FL Studio's 3x Osc: oscillators 2 and 3 each have a mix knob, oscillator 1 gets the rest, and the three always add up to 100%. Layer them to build a tone. They're edited together on the Sound page, one row each, with the controls lined up in columns.
 - **An 88-key keyboard**, A0 to C8, that scrolls sideways, with a minimap above it to see where you are and move along (or the octave buttons). Play it with a mouse, with as many fingers as you like, by sliding across the keys, or from the computer keyboard in FL Studio's layout (Z S X D C… and Q 2 W 3 E…, from the first C in view; letters show on the keys). Or Tab to the keys, move with the arrows, and hold Space or Enter.
 - **A master volume knob and an oscilloscope** that draws what you hear.
-- **Presets:** save the sound you made under a name, and load it back later. No sign-up: your first save gives this browser a guest account (a cookie that lasts a year). Clearing cookies or using another browser starts a fresh list.
+- **Presets:** save the sound you made under a name, and load it back later. No sign-up: your first save makes this browser a guest (a cookie that lasts a year). Clearing cookies or using another browser starts a fresh list.
 - **One screen, any device.** The controls fit in a single bar above the keyboard, down to a small phone held sideways. Held upright, a phone turns the synth sideways so the keyboard stays wide.
 - **Accessible:** every control has a name for screen readers and works by keyboard (knobs take arrows, Page Up/Down, Home/End). Animations respect reduced motion, and dark mode follows your system.
 
@@ -33,8 +33,7 @@ npm install --global pnpm@12.18.0
 git clone https://github.com/vindotski/vinskiano.git
 cd vinskiano
 pnpm install
-pnpm exec spotcraft dev start       # Postgres for the presets, in Docker
-pnpm exec spotcraft dev env --write # its DATABASE_URL and an AUTH_SECRET, into .env
+pnpm exec spotcraft dev   # Postgres and guests for the presets, in Docker; settings into .env
 echo PUBLIC_URL=http://localhost:3000 >> .env
 pnpm dev
 ```
@@ -48,7 +47,7 @@ pnpm build   # into .output/
 pnpm start   # the production server on PORT (default 3000), with the settings from .env
 ```
 
-The build is a standalone Node server: the home page is prerendered, the synth is rendered on the server and then runs entirely in the browser. All sound is made by the browser's Web Audio API. The only thing the server keeps is the presets you save, in Postgres. The production server won't start without its settings (`DATABASE_URL`, `AUTH_SECRET`, `PUBLIC_URL`).
+The build is a standalone Node server: the home page is prerendered, the synth is rendered on the server and then runs entirely in the browser. All sound is made by the browser's Web Audio API. The only thing the server keeps is the presets you save, in Postgres. On Spotcraft, the presets live in the app's own schema, and visitors are guests of Spotcraft's user pool.
 
 ### With Docker
 
@@ -76,11 +75,11 @@ vinskiano.app runs on [Spotcraft](https://spotcraft.dev); [docs/deploy.md](docs/
 | `pnpm verify`          | All of the above except Docker; run it before opening a PR |
 | `pnpm screenshots`     | Recapture the app screenshots (start the app first)        |
 
-Browser tests run in Chromium, Firefox and WebKit, and on phones held both ways. The first run needs the browsers: `pnpm exec playwright install`. The tests that touch presets (and the database unit tests) need the local Postgres from `pnpm exec spotcraft dev start`.
+Browser tests run in Chromium, Firefox and WebKit, and on phones held both ways. The first run needs the browsers: `pnpm exec playwright install`. The tests that touch presets (and the database unit tests) need the local stack from `pnpm exec spotcraft dev`.
 
-**Built with** [TanStack Start](https://tanstack.com/start) (React 19, TanStack Router, server rendering with Nitro), TypeScript, Postgres with [Drizzle](https://orm.drizzle.team) and [Spotcraft's backend kit](https://spotcraft.dev) for the guest accounts, [Tailwind CSS](https://tailwindcss.com) with [shadcn/ui](https://ui.shadcn.com) on [React Aria](https://react-spectrum.adobe.com/react-aria/), [Motion](https://motion.dev), and the Web Audio API.
+**Built with** [TanStack Start](https://tanstack.com/start) (React 19, TanStack Router, server rendering with Nitro), TypeScript, Postgres with [Drizzle](https://orm.drizzle.team) and [Spotcraft](https://spotcraft.dev)'s user pool for the guests, [Tailwind CSS](https://tailwindcss.com) with [shadcn/ui](https://ui.shadcn.com) on [React Aria](https://react-spectrum.adobe.com/react-aria/), [Motion](https://motion.dev), and the Web Audio API.
 
-**Where things are:** `src/music/` is plain music theory (notes, scales), `src/audio/` the Web Audio engine, `src/components/` the UI, `src/routes/` the pages, `src/server/` the server-only code (guest accounts, the presets' table and migrations). [AGENTS.md](AGENTS.md) describes the architecture and conventions in detail; it's written for coding agents and works just as well for people. Why it's built this way is recorded in the [decision records](docs/decisions).
+**Where things are:** `src/music/` is plain music theory (notes, scales), `src/audio/` the Web Audio engine, `src/components/` the UI, `src/routes/` the pages, `src/server/` the server-only code (guests, the presets' table and migrations). [AGENTS.md](AGENTS.md) describes the architecture and conventions in detail; it's written for coding agents and works just as well for people. Why it's built this way is recorded in the [decision records](docs/decisions).
 
 ## Contributing
 

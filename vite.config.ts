@@ -1,6 +1,4 @@
-import { cpSync, readdirSync, readFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { readdirSync } from 'node:fs'
 import tailwindcss from '@tailwindcss/vite'
 import { devtools } from '@tanstack/devtools-vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
@@ -42,25 +40,6 @@ const SECURITY_HEADERS = {
 /** Revalidate on every visit (a cheap 304), so a cached page never points at deleted assets. */
 const REVALIDATE = { 'cache-control': 'no-cache' }
 
-/**
- * Spotcraft's backend kit reads its `auth` migrations from `./migrations/` next to its own file
- * when it's imported (to know its schema version). Bundled into the server, that folder isn't
- * there and the import throws ENOENT, so this copies it next to every server chunk that reads it.
- * (Leaving the kit unbundled instead makes Nitro's tracer copy all of node_modules.)
- */
-function copyKitMigrations(serverDir: string) {
-  const migrations = join(
-    dirname(fileURLToPath(import.meta.resolve('@spotcraft/kit'))),
-    'migrations',
-  )
-  const reads = /new URL\(["']\.\/migrations\/["'], import\.meta\.url\)/
-  for (const file of readdirSync(serverDir, { recursive: true, encoding: 'utf8' })) {
-    if (file.endsWith('.mjs') && reads.test(readFileSync(join(serverDir, file), 'utf8'))) {
-      cpSync(migrations, join(serverDir, dirname(file), 'migrations'), { recursive: true })
-    }
-  }
-}
-
 export default defineConfig({
   server: { port: 3000 },
   // Only the browser bundle; the server bundle runs on Node.
@@ -79,9 +58,10 @@ export default defineConfig({
     nitro({
       prerender: { routes: ['/'], crawlLinks: false, failOnError: true },
       compressPublicAssets: { gzip: true, brotli: true },
-      hooks: { compiled: (app) => copyKitMigrations(app.options.output.serverDir) },
-      // Checks the guest accounts' settings at start (see the file).
+      // Runs the migrations for Spotcraft's migrate label, and closes the database (see the file).
       plugins: ['src/server/startup.ts'],
+      // Locally, the user pool on the app's origin, as Caddy gives it on Spotcraft (see the file).
+      routes: { '/_spotcraft/auth/**': 'src/server/pool-proxy.ts' },
       routeRules: {
         '/**': { headers: SECURITY_HEADERS },
         // Pages: the prerendered home page and the server-rendered app.

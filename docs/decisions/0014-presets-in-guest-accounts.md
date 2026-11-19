@@ -5,7 +5,7 @@ status: accepted
 implementation: done
 date: 2026-11-08
 supersedes: []
-superseded_by: []
+superseded_by: [26]
 notes: "Written retroactively on 2026-11-12, from commits 76330c9, b57f520, 576bdac, AGENTS.md (Server data) and the build journal."
 ---
 

@@ -167,14 +167,16 @@ export async function pickWaveform(page: Page, oscillator: number, waveform: str
 export { expect }
 
 /**
- * Makes the page a new visitor from its own address. The app trusts the last X-Forwarded-For
- * entry (in production, the one Caddy adds), and allows 30 new guests per address per 10
- * minutes, which a test run on one machine would otherwise use up. Behind a real proxy (an
- * E2E_BASE_URL run) the proxy replaces the header, and the limit applies as usual.
+ * Makes the page a new visitor from its own address. Spotcraft's user pool allows 30 new guests
+ * per address per 10 minutes, which a test run on one machine would otherwise use up. It reads
+ * the address from X-Spotcraft-Client-IP, which Caddy sets on Spotcraft and the app's local
+ * pass-through to the pool forwards; the app itself reads the last X-Forwarded-For entry. Behind
+ * a real proxy (an E2E_BASE_URL run) the proxy replaces both, and the limit applies as usual.
  */
 export async function asNewVisitor(page: Page) {
   const byte = () => Math.floor(Math.random() * 254) + 1
-  await page.setExtraHTTPHeaders({ 'x-forwarded-for': `10.${byte()}.${byte()}.${byte()}` })
+  const address = `10.${byte()}.${byte()}.${byte()}`
+  await page.setExtraHTTPHeaders({ 'x-forwarded-for': address, 'x-spotcraft-client-ip': address })
 }
 
 /** Open the presets popover (loading the list) and return it. */
