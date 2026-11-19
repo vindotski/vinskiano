@@ -8,6 +8,12 @@ Each release is a git tag `vX.Y.Z`, published as the Docker image `vindotski/vin
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-11-19
+
+Guests and their presets move into Spotcraft's user pool, shared by every app on the server, and the presets into the app's own schema. Spotcraft runs the migrations, CI deploys `main`, and the theme and buttons come from Spotstrap.
+
+**Breaking:** this image needs Spotcraft 0.6. It no longer migrates or checks its settings at start, and it reads guests from the user pool, so a 2.x deploy moves into the pool once through the dashboard's **Move** (see [docs/deploy.md](docs/deploy.md)). Local development needs `spotcraft dev` from `@kodentuzo/spotcraft` 0.6.1.
+
 ### Added
 
 - CI deploys `main` to Spotcraft through the app's deploy hook and waits until the new version is live. It stays off until GitHub's `production` environment has the variable `SPOTCRAFT_HOOK_URL` and the secret `SPOTCRAFT_DEPLOY_TOKEN` (see [docs/deploy.md](docs/deploy.md), [ADR 0024](docs/decisions/0024-deploy-from-ci-on-spotcraft-0-5.md))
