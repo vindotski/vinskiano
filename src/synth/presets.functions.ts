@@ -1,6 +1,6 @@
 import { createMiddleware, createServerFn } from '@tanstack/react-start'
 import { setResponseStatus } from '@tanstack/react-start/server'
-import { database } from '../server/backend.server'
+import { database } from '../server/database.server'
 import { currentGuestId, guestId } from '../server/guest.server'
 import * as store from '../server/presets.server'
 import { badRequest, PublicError, toPublicError } from '../server/public-error'
@@ -8,7 +8,7 @@ import { parsePresetName, parsePresetSettings } from './preset'
 
 /*
  * The presets API. Server functions: the browser gets RPC stubs, the bodies run on the server
- * (and the server-only imports above go with them). Presets belong to the visitor's guest account.
+ * (and the server-only imports above go with them). Presets belong to the visitor's guest in Spotcraft's user pool.
  * Start's CSRF middleware only lets same-origin pages call these.
  */
 
@@ -34,7 +34,7 @@ export const listPresets = createServerFn({ method: 'GET' })
   .middleware([publicErrors])
   .handler(async () => {
     const userId = await currentGuestId()
-    return userId ? store.listPresets(await database(), userId) : []
+    return userId ? store.listPresets(database(), userId) : []
   })
 
 export const savePreset = createServerFn({ method: 'POST' })
@@ -47,7 +47,7 @@ export const savePreset = createServerFn({ method: 'POST' })
     }))
   })
   .handler(async ({ data }) =>
-    store.savePreset(await database(), await guestId(), data.name, data.settings),
+    store.savePreset(database(), await guestId(), data.name, data.settings),
   )
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -62,5 +62,5 @@ export const deletePreset = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     // Deleting needs no new guest: a visitor without one has nothing to delete.
     const userId = await currentGuestId()
-    if (userId) await store.deletePreset(await database(), userId, data.id)
+    if (userId) await store.deletePreset(database(), userId, data.id)
   })

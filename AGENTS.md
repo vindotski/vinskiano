@@ -1,6 +1,6 @@
 # Vinskiano
 
-A browser-based subtractive synthesizer built on the Web Audio API. Today it has an 88-key keyboard (A0–C8) that scrolls, with a minimap, three oscillators (waveform, pitch, and a 3x Osc–style mix), a master gain and an oscilloscope. A TanStack Start app: pages are server-rendered by a Node server (Nitro), then hydrate; all sound happens in the browser. Visitors can save presets, which the server keeps in Postgres under a guest account (no sign-up).
+A browser-based subtractive synthesizer built on the Web Audio API. Today it has an 88-key keyboard (A0–C8) that scrolls, with a minimap, three oscillators (waveform, pitch, and a 3x Osc–style mix), a master gain and an oscilloscope. A TanStack Start app: pages are server-rendered by a Node server (Nitro), then hydrate; all sound happens in the browser. Visitors can save presets, which the server keeps in Postgres under a guest of Spotcraft's user pool (no sign-up).
 
 The project is being modernized step by step; see [MODERN_TOOLING.md](MODERN_TOOLING.md) for the playbook. This file describes the **current** state. Update it whenever the stack or a convention changes.
 
@@ -27,7 +27,7 @@ Before editing files for a substantial task:
 - pnpm (pinned via `packageManager`), Node 26 (`.nvmrc`)
 - React Aria hooks (`react-aria`, `react-stately`) for accessible controls; the rotary `Knob` is built on its slider hooks
 - Motion (motion.dev) for the knobs' spring, in the app only (see Animation); simple transitions are CSS
-- Guest accounts and the app's Postgres through Spotcraft's backend kit (`@spotcraft/kit`: Better Auth's anonymous plugin, server-only), with Drizzle ORM for queries; Postgres 18, locally from `pnpm exec spotcraft dev start` (see Server data)
+- Guests from Spotcraft's user pool (Better Auth's client in the browser, `@kodentuzo/spotkit` on the server) and the app's schema in Spotcraft's Postgres, with Drizzle ORM for queries; Postgres 18 and the pool, locally from `pnpm exec spotcraft dev` (see Server data)
 - Tailwind CSS v4 (`@tailwindcss/vite`); theme tokens from Spotstrap (`@kodentuzo/spotstrap`, the owner's library: `tailwind.css` plus `themes/vinskiano.css`, imported in `src/styles.css`; [ADR 0025](docs/decisions/0025-theme-from-spotstrap.md)), shadcn/ui components on top (`components.json`: style aria-luma). Dark mode follows `prefers-color-scheme` via the `dark:` variant.
 
 ## Layout
@@ -49,13 +49,15 @@ src/
   synth/       SynthProvider: owns the synth settings (state) and the audio Engine (created after mount); useSynthActions() (stable: play, change) and useSynth() (state too) for routes
                preset.ts (checks a preset's settings and name; shared by browser and server),
                presets.functions.ts (the server functions), usePresets (the browser side),
+               user-pool.ts (ensureGuest: the browser makes the guest before a save),
                factory.ts (sounds that come with the app; INIT is a new sound), engine-settings.ts (settings → what the engine plays),
                oscillators.ts (the oscillator ids), mix.ts (the mix: oscillators 2 and 3 have a mix,
                1 gets the rest, levels always add up to one; the engine plays levels)
-  server/      Server-only: backend.server.ts (the kit, one per process; database() runs migrations),
-               guest.server.ts (the visitor's guest, through the kit), presets.server.ts (queries),
-               schema.ts (Drizzle tables), migrations/ (numbered SQL modules), public-error.ts,
-               startup.ts (Nitro plugin: the kit's start-up check and migrations)
+  server/      Server-only: database.server.ts (Drizzle over the app's schema, one pool per process),
+               guest.server.ts (the visitor's guest, through spotkit), presets.server.ts (queries),
+               schema.ts and auth.ts (Drizzle tables), migrations/ (numbered SQL modules),
+               migrate.server.ts (their runner), public-error.ts, startup.ts (Nitro plugin: the
+               `migrate` mode for Spotcraft's label), pool-proxy.ts (locally, /_spotcraft/auth to the pool)
   types/       Shared app types (synth.ts): plain settings data, no audio nodes
   utils/       Browser helpers that return a cleanup (context menu)
   router.tsx   getRouter() (called per request on the server, once in the browser) and type registration
@@ -70,7 +72,8 @@ tsconfig.json
 .output/       Build output (gitignored): .output/public (assets) + .output/server/index.mjs
 Dockerfile     Stages: base (Node + pinned pnpm), deps, dev, build, production (Node running .output/)
 compose.yaml   app / dev / test services (all on the local Spotcraft Postgres's network)
-.env.example   The server's settings (DATABASE_URL, AUTH_SECRET, PUBLIC_URL); .env is gitignored
+.env.example   The server's settings (DATABASE_URL, PUBLIC_URL, AUTH_*), which `spotcraft dev` writes to .env (gitignored)
+spotcraft.json The app's name and its `migrate` command, for `spotcraft dev`
 docs/          decisions/ (architecture decision records, see Decisions), deploy.md (Spotcraft), parity.md (every 3x Osc and channel parameter: status and how), roadmap.md (technology, preset format, milestones)
 ```
 
@@ -89,8 +92,9 @@ pnpm test:e2e:docker  # the same browser tests against the production Docker ima
 pnpm lint:actions # actionlint (pinned, in Docker) on .github/workflows
 pnpm verify     # everything: check, typecheck, unit and browser tests
 pnpm screenshots  # recapture src/assets/screenshots/ (WebP, 3 widths) from the running app (start it first)
-pnpm exec spotcraft dev start       # local Postgres (Docker) on 127.0.0.1:54340; `stop`, `status`, `reset --yes`
-pnpm exec spotcraft dev env --write # its DATABASE_URL and an AUTH_SECRET into .env (add PUBLIC_URL from .env.example)
+pnpm exec spotcraft dev  # Spotcraft's local stack (Docker): Postgres, the user pool; .env; migrations
+pnpm exec spotcraft dev status  # its addresses; also `stop`, `db reset --yes`
+pnpm db:migrate         # the migrations, on DATABASE_URL
 ```
 
 Docker (nothing but Docker needed on the host; `PORT=3010 pnpm docker` if 3000 is busy):
@@ -147,25 +151,26 @@ pnpm fix        # Biome: apply formatting and safe fixes
 
 ## Server data (guest accounts and presets)
 
-- **The only server-side data is presets**, in the `presets` table, owned by a guest in `auth.users`. Guests come from Spotcraft's backend kit: a visitor gets one on their first save, kept by an httpOnly cookie for a year. There are no sign-ups or auth routes.
-- **Server-only code lives in `src/server/`** (`*.server.ts`, which Start keeps out of the browser bundle). The browser reaches it only through server functions (`createServerFn` in `*.functions.ts`), whose handlers import the server modules; the build strips them from the client. The kit's browser export throws, so a leak fails loudly.
-- **Read with `currentGuestId()`, which never creates a guest; write with `guestId()`, which does.** Creating guests on reads would make one per first request, favicon and crawler. Both come from the kit's TanStack Start helpers (`@spotcraft/kit/tanstack-start`). `guestId()` answers 429 with `retry-after` past the kit's limit on new guests (30 per client address per 10 minutes), as a `PublicError`. The client address is the **last** `X-Forwarded-For` entry, the one Spotcraft's Caddy adds; it replaces whatever the client sent. An IPv6 address counts as its /64 (one household or phone gets a whole /64).
+- **The only server-side data is presets**, in the `presets` table of the app's schema (`app_vinskiano`), owned by a guest in Spotcraft's user pool (`auth.users`, which the app may only read and reference). Before a save, the browser makes the visitor a guest there (`ensureGuest` in `synth/user-pool.ts`: Better Auth's client at the app's own `/_spotcraft/auth`), kept by an httpOnly cookie for a year. There are no sign-ups and no auth routes of our own.
+- **Server-only code lives in `src/server/`** (`*.server.ts`, which Start keeps out of the browser bundle). The browser reaches it only through server functions (`createServerFn` in `*.functions.ts`), whose handlers import the server modules; the build strips them from the client.
+- **The server never creates guests.** `currentGuestId()` reads the pool's session with spotkit (which asks the pool once per session and keeps the answer until its token expires); `guestId()` is the same for a save, and answers 401 as a `PublicError` without one. A pool that doesn't answer is a 503. The pool limits new guests (30 per client address per 10 minutes, the address Spotcraft's Caddy resolved), and the page says so when it answers 429.
 - **The user id comes from the session, never from the request,** and every query filters by it. Check all input on the server (`parsePresetSettings`, `parsePresetName` in `synth/preset.ts`), and keep only known fields. Responses that depend on the visitor are `cache-control: private, no-store`.
 - **Preset settings must keep loading forever** (full rules in `docs/roadmap.md#preset-format`): physical units, never knob positions; a new field is optional with a default that sounds like before; `version` changes only on a breaking change, which needs a migration and a fixture that keeps loading; keep existing names.
-- **Errors a visitor sees are `PublicError`s** (`server/public-error.ts`: a message for them and an HTTP status): bad input 400 (wrap validators in `badRequest`), the preset limit 409, the guest limit 429. Server functions take the `publicErrors` middleware (`synth/presets.functions.ts`), which sets that status and turns any other error into a logged, plain 500 "Something went wrong; try again": a Postgres message can name an address or a constraint. (Start sends only an error's message, and answers an error thrown in a function with the response's status, not `error.status`.)
+- **Errors a visitor sees are `PublicError`s** (`server/public-error.ts`: a message for them and an HTTP status): bad input 400 (wrap validators in `badRequest`), no guest 401, the preset limit 409, an unreachable user pool 503. Server functions take the `publicErrors` middleware (`synth/presets.functions.ts`), which sets that status and turns any other error into a logged, plain 500 "Something went wrong; try again": a Postgres message can name an address or a constraint. (Start sends only an error's message, and answers an error thrown in a function with the response's status, not `error.status`.)
 - **Preset names are cleaned before they're checked** (`parsePresetName`): NFC, whitespace runs made one space, control and format characters (zero-width, bidi) removed, trimmed.
 - **Security headers, caching and the body limit are the server's own,** so they hold behind any proxy: Nitro `routeRules` in `vite.config.ts` (a CSP, no framing, `nosniff`, HSTS, referrer and permissions policies on every response; pages `no-cache`; files in `public/` a day), and request middleware in `src/start.ts` (bodies over 16 KB get 413, unknown length 411). Listing request middleware replaces Start's default CSRF check, so `start.ts` lists `createCsrfMiddleware` itself; keep it first. A new inline script, external host or embed needs the CSP changed. `e2e/security.spec.ts` covers all of it.
 - **Start's CSRF middleware** guards server functions (it checks `Sec-Fetch-Site`, which every browser at our floor sends), so no `X-Forwarded-Proto` handling is needed behind the proxy.
-- **Migrations:** numbered modules in `src/server/migrations/` (`0002_name.ts`, default-exporting the SQL), listed in order in `migrations/index.ts`, for tables in `public` only. Modules, not `.sql` files, because the startup plugin runs them and Nitro bundles it without Vite's `?raw`/`import.meta.glob`. They **only add** (never drop or rename). The kit's runner (`@spotcraft/kit/migrate`) applies them in one transaction under an advisory lock, with a 5 s `lock_timeout`, and records them in `app_migrations`: at start in production (`startup.ts`), on first use (`database()`) in dev. A migration numbered below one the database already has is refused (renumber it), and so is a database with a migration the image doesn't know. Keep `schema.ts` matching them. Never change `auth.*`: Spotcraft owns it.
-- **Bundling gotchas:** the kit reads its own migrations from files next to it at import, so a Nitro `compiled` hook in `vite.config.ts` copies them next to the bundled kit (unbundling it makes Nitro copy all of `node_modules`). Nitro plugins (`startup.ts`) are bundled by Nitro, not Vite: no `import.meta.glob` or other Vite features there. Code they share with the app is bundled twice, so `backend.server.ts` keeps its one backend on `globalThis`.
-- **Tests:** database unit tests run against the local stack (Vitest loads all of `.env`) and are skipped without `DATABASE_URL`. Browser tests need the local stack too; preset tests call `asNewVisitor(page)` (its own `X-Forwarded-For`), so a run stays under the limit on new guests.
+- **Migrations:** numbered modules in `src/server/migrations/` (`0002_name.ts`, default-exporting the SQL), listed in order in `migrations/index.ts` (with `.ts` in the import, for Node). Unqualified names land in the app's schema (the role's search path). Modules, not `.sql` files, because the startup plugin runs them and Nitro bundles it without Vite's `?raw`/`import.meta.glob`. They **only add** (never drop or rename). `migrate.server.ts` applies them in one transaction under an advisory lock and records them in `app_migrations`. Spotcraft runs them before a new version starts, through the image's `dev.spotcraft.migrate` label (`node .output/server/index.mjs migrate`, handled in `startup.ts`); `spotcraft dev` runs `pnpm db:migrate` (`spotcraft.json`). A database with a migration the image doesn't know is refused. Keep `schema.ts` matching them. Never change `auth.*`: Spotcraft owns it.
+- **Bundling gotchas:** Nitro plugins and routes (`startup.ts`, `pool-proxy.ts`) are bundled by Nitro, not Vite: no `import.meta.glob` or other Vite features there. Code they share with the app is bundled twice, so `database.server.ts` and `guest.server.ts` keep their one instance on `globalThis`.
+- **Locally, the app's server passes `/_spotcraft/auth/*` on to the pool** (`pool-proxy.ts`, a Nitro route) when `AUTH_URL` is plain http, which only the local stack's is. So the browser always uses its own origin, as on Spotcraft, where Caddy answers that path before the app sees it, and the CSP needs nothing more.
+- **Tests:** database unit tests run against the local stack (Vitest loads all of `.env`) and are skipped without `DATABASE_URL`; they make guests through the local pool, since the app may not write `auth.users`. Browser tests need the local stack too; preset tests call `asNewVisitor(page)` (its own `X-Spotcraft-Client-IP`, which the local pass-through forwards), so a run stays under the pool's limit on new guests.
 - `@types/pg` is needed: `pg` ships no types, and without them Drizzle's raw `execute()` rows are silently `any`.
 
 ## Deploy (`docs/deploy.md`)
 
-- **Target: [Spotcraft](https://spotcraft.dev)** 0.5 ([ADR 0015](docs/decisions/0015-deploy-on-spotcraft.md), [ADR 0024](docs/decisions/0024-deploy-from-ci-on-spotcraft-0-5.md)): the published image on Spotcraft's server, set up in its dashboard (image, tag, domain, container port 3000, Database ticked, `AUTH_SECRET`, `PUBLIC_URL`). Spotcraft runs Caddy (HTTPS, `www`, `X-Forwarded-*`), the health check and the deploy switch, without downtime: the new version starts next to the old one, and one that isn't healthy never gets traffic. So migrations only add. `@spotcraft/kit` has its own version; upgrade Spotcraft first only when a kit release says it needs a newer one.
-- **The server checks its settings, connects and migrates at start** (`src/server/startup.ts`, a Nitro plugin calling the kit's `startup`; Nitro holds requests until it's done) and exits naming what failed, so a bad deploy fails its health check instead of failing on the first save. It closes the database pool on Nitro's `close` hook. The image caps Node's heap (`--max-old-space-size=160`) below the container's memory limit.
-- **Rehearse deploy changes locally** (steps in `docs/deploy.md`): the production image read-only, without capabilities and memory-limited, behind Caddy over HTTPS on the local Spotcraft network, then `E2E_BASE_URL=https://localhost:8443 pnpm test:e2e` and the failure path (a missing `AUTH_SECRET`).
+- **Target: [Spotcraft](https://spotcraft.dev)** 0.6 ([ADR 0015](docs/decisions/0015-deploy-on-spotcraft.md), [ADR 0024](docs/decisions/0024-deploy-from-ci-on-spotcraft-0-5.md), [ADR 0026](docs/decisions/0026-spotcraft-user-pool.md)): the published image on Spotcraft's server, set up in its dashboard (image, tag, domain, container port 3000; no env, as Spotcraft sets `PUBLIC_URL`, `DATABASE_URL`, `DATABASE_SCHEMA` and `AUTH_*`). Spotcraft runs Caddy (HTTPS, `www`, `X-Forwarded-*`, `/_spotcraft/auth` to the user pool), the migrations from the image's label, the health check and the deploy switch, without downtime: the new version starts next to the old one, and one that isn't healthy never gets traffic. So migrations only add.
+- **The server doesn't migrate or check its settings at start**: Spotcraft runs the migrations first, and a failure there fails the deploy. `startup.ts` closes the database pool on Nitro's `close` hook. The image caps Node's heap (`--max-old-space-size=160`) below the container's memory limit.
+- **Rehearse deploy changes locally** (steps in `docs/deploy.md`): the production image read-only, without capabilities and memory-limited, its migrations run from the label, behind Caddy on the local Spotcraft network, then `E2E_BASE_URL=http://localhost:8080 pnpm test:e2e`.
 - **CI deploys `main`**: after `publish`, the `deploy` job sends the `sha-…` tag to Spotcraft's deploy hook and waits until it's live. It needs the `production` environment's variable `SPOTCRAFT_HOOK_URL` and secret `SPOTCRAFT_DEPLOY_TOKEN`, and skips without them. Rollbacks happen in the dashboard (pick the previous `sha-…` tag).
 - `E2E_BASE_URL=https://…` runs the browser tests against any running site (rehearsal or production) instead of starting a server. `deploy/check-site.sh <url>` checks a live site from outside.
 
@@ -173,7 +178,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 
 - `.github/workflows/ci.yml` runs on pushes to `dev`/`main` and on PRs, in three kinds of jobs:
   - lint (`biome ci`), typecheck and build (before Postgres starts), then unit tests. This is the run's only app build: `.output/` goes up as an artifact;
-  - every job that runs tests first starts the local Spotcraft Postgres (`spotcraft dev start`, `dev env --write`), like a laptop;
+  - every job that runs tests first starts Spotcraft's local stack (`spotcraft dev`: Postgres, the user pool, `.env`, migrations), like a laptop;
   - the browser tests, one job per engine (Chromium with the Pixel projects, Firefox, WebKit with the iPhone projects), on check's build (`E2E_PREBUILT=1`: `pnpm start` without `pnpm build`). Browsers are cached per Playwright version. Failed tests are retried once, so a flaky one is reported, not failing the run; on failure the HTML report and traces are uploaded;
   - the production Docker image (built amd64 with the layer cache publish shares, production stage always fresh): browser tests against it, then a Trivy scan that fails on fixable HIGH/CRITICAL vulnerabilities;
   - on `main` and `v*` tags only, after all of the above: publishing the image (see Releases). It pushes by digest, scans both platforms with Trivy, and only then tags (`latest` on `main`).
@@ -191,7 +196,7 @@ pnpm fix        # Biome: apply formatting and safe fixes
 - The build stages run on the build machine's platform (`--platform=$BUILDPLATFORM`): `.output/` is plain JavaScript with no native modules, so multi-platform images only emulate the production stage. Keep it that way; a native dependency in the server bundle would need the build stages per platform again.
 - The production image is Node plus `.output/` (Nitro's self-contained server), with no npm/pnpm or source code. It runs as the unprivileged `node` user, `.output/` is root-owned (the server can't change its own code), and a `HEALTHCHECK` fetches `/`. Keep it that way: the server must never need root or write to disk.
 - `pnpm test:e2e:docker` runs the whole browser suite against the production image (`docker compose up --build app` on port 4173). Run it after changing the Dockerfile or anything the server build depends on.
-- The compose services join the local Spotcraft stack's network (`spotcraft-dev_default`, external) and reach Postgres as `postgres:5432`, with the CLI's fixed local password; `AUTH_SECRET` comes from `.env`. Start the stack first.
+- The compose services join the local Spotcraft stack's network (`spotcraft-dev-vinskiano_default`, external, named after the repository's folder) and reach Postgres as `postgres:5432`, with the CLI's fixed local password, and the user pool as `auth:3000`. Start the stack first (`pnpm exec spotcraft dev`).
 - After changing dependencies, `pnpm docker:dev` re-syncs the `node_modules` volume on start; `docker compose down -v` resets it.
 
 ## Styling

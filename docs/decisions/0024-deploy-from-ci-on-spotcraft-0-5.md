@@ -5,7 +5,7 @@ status: accepted
 implementation: done
 date: 2026-11-18
 supersedes: [15]
-superseded_by: []
+superseded_by: [26]
 notes: "Partly supersedes 0015: its kit-version rule, deploys only from the dashboard, and keeping the single-server kit. Spotcraft 0.5.0, @spotcraft/kit 0.4.0."
 ---
 
