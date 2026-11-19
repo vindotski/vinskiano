@@ -18,14 +18,9 @@ Vinskiano runs on [Spotcraft](https://spotcraft.dev) 0.6: one Docker image (`vin
 
 **Migrations** (`src/server/migrations`) run before a new version starts: Spotcraft runs the image's `dev.spotcraft.migrate` label, `node .output/server/index.mjs migrate`, which applies them in one transaction under a lock and exits. If they fail, the new version never starts and the old one keeps serving.
 
-## Moving to the user pool (once)
+## The move to the user pool
 
-Until Spotcraft 0.6, Vinskiano had its own database, `app_vinskiano`, with its guests in its `auth` schema through `@spotcraft/kit`, their cookies signed with the app's `AUTH_SECRET`. Spotcraft's [guide](https://spotcraft.dev/docs/guides/move-into-the-pool) moves it, once:
-
-1. Merge this version to `main`. CI's `deploy` job fails, as the app still has its own database (the migrate label can't run there), and the old version keeps serving. Note the image's `sha-…` tag.
-2. In the dashboard, open `vinskiano`; under **Own database**, enter that tag and press **Move**. Spotcraft backs the app up, deploys the tag into its schema, and copies the guests, their sessions and the presets. Guests keep their cookies: the pool accepts the old `AUTH_SECRET`.
-3. With a browser that saved presets before the move, open the presets menu: they're still there.
-4. Edit the app and remove `AUTH_SECRET` and `PUBLIC_URL` from its env. Later, drop the old database (the guide says how).
+Until Spotcraft 0.6, Vinskiano had its own database, `app_vinskiano`, with its guests in its `auth` schema through `@spotcraft/kit`, their cookies signed with the app's `AUTH_SECRET`. It moved on 2026-11-19 with Spotcraft's **Move** ([guide](https://spotcraft.dev/docs/guides/move-into-the-pool)), which copied the guests, their sessions and the presets; the pool accepts the old `AUTH_SECRET`, so guests kept their cookies. The old database stays on the server, unused, until it is dropped as the guide says.
 
 ## First deploy
 
