@@ -63,7 +63,10 @@ test('tapping a knob turns it to that point of the dial', async ({ page }) => {
     return { width, height }
   })
   const point = await toScreen(dial, view.width * 0.9, view.height / 2)
-  await page.touchscreen.tap(point.x, point.y)
+  // Round to whole pixels: WebKit's emulated touch drops the fraction, and on a small knob a
+  // dropped 0.9 px is about 3° of the dial, past the next semitone. Rounding is off by 0.5 px
+  // at most.
+  await page.touchscreen.tap(Math.round(point.x), Math.round(point.y))
   await expect(slider).toHaveValue('16')
 })
 
