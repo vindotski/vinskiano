@@ -20,7 +20,7 @@ Decided in [ADR 0027](decisions/0027-product-loop.md); measured as in [ADR 0028]
 
 **Does it help someone start, play, shape, keep or send a sound?** If not, it waits.
 
-FL Studio's 3x Osc ([parity.md](parity.md)) stays the reference for *how* a feature behaves (its ranges, its curves), but no longer sets the *order* features arrive in: the loop does ([roadmap.md](roadmap.md#milestones)).
+FL Studio's 3x Osc ([parity.md](parity.md)) stays the reference for _how_ a feature behaves (its ranges, its curves), but no longer sets the _order_ features arrive in: the loop does ([roadmap.md](roadmap.md#milestones)).
 
 **Not part of the loop, for now:** accounts and sign-up, a public gallery or feed, recording or exporting audio, sequencing. Each could later grow out of "send", but the loop closes without them.
 

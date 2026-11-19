@@ -1,11 +1,13 @@
 import { memo, type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { PlayedBy } from '../lib/track'
 import { MIDDLE_C, type Note, TYPING_KEYS, typedNote } from '../music'
 import HeldNotes, { type Change } from '../synth/held-notes'
 import PianoKey from './PianoKey'
 
 interface PianoProps {
   notes: readonly Note[]
-  onTrigger: (note: Note) => void
+  /** A note starts, and how it was played (for counting, never for the sound). */
+  onTrigger: (note: Note, by: PlayedBy) => void
   onRelease: (note: Note) => void
   /** The held notes changed (their names), e.g. for the minimap. */
   onHeldChange?: (notes: readonly string[]) => void
@@ -67,17 +69,22 @@ const Piano = ({
   callbacks.current = { onTrigger, onRelease }
 
   const apply = useCallback(
-    ({ start, stop }: Change) => {
+    ({ start, stop }: Change, by: PlayedBy) => {
       if (stop) callbacks.current.onRelease(stop)
-      if (start) callbacks.current.onTrigger(start)
+      if (start) callbacks.current.onTrigger(start, by)
       if (start || stop) show(held.current.notes().map(String))
     },
     [show],
   )
 
   const release = useCallback(
-    (source: string) => apply({ start: null, stop: held.current.release(source) }),
-    [apply],
+    (source: string) => {
+      const stop = held.current.release(source)
+      if (!stop) return
+      callbacks.current.onRelease(stop)
+      show(held.current.notes().map(String))
+    },
+    [show],
   )
 
   const releaseAll = useCallback(() => {
@@ -117,7 +124,7 @@ const Piano = ({
       const note = typedNote(event.code, base.current)
       if (!note) return
       event.preventDefault()
-      if (!event.repeat) apply(held.current.press(`key:${event.code}`, note))
+      if (!event.repeat) apply(held.current.press(`key:${event.code}`, note), 'keyboard')
     }
     const up = (event: KeyboardEvent) => {
       if (event.code in TYPING_KEYS) release(`key:${event.code}`)
@@ -143,8 +150,9 @@ const Piano = ({
     const note = noteAt(event.clientX, event.clientY)
     if (!note) return release(source)
     const change = held.current.press(source, note)
-    if (change.start && event.pointerType === 'touch') tick()
-    apply(change)
+    const touch = event.pointerType === 'touch'
+    if (change.start && touch) tick()
+    apply(change, touch ? 'touch' : 'pointer')
   }
 
   const up = (event: PointerEvent) => {
@@ -155,7 +163,7 @@ const Piano = ({
   /** Space or Enter on the focused key (one callback for all keys, so they can skip renders). */
   const playKey = useCallback(
     (played: Note, down: boolean) =>
-      down ? apply(held.current.press('focus', played)) : release('focus'),
+      down ? apply(held.current.press('focus', played), 'keyboard') : release('focus'),
     [apply, release],
   )
 

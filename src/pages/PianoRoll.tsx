@@ -3,11 +3,12 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import KeyboardMinimap, { type KeyboardView } from '../components/KeyboardMinimap'
 import Piano from '../components/Piano'
 import { buttonVariants } from '../components/ui/button-variants'
+import type { PlayedBy } from '../lib/track'
 import { MIDDLE_C, type Note, typingHints, WHITE_NOTES } from '../music'
 
 interface PianoRollProps {
   notes: readonly Note[]
-  onTrigger: (note: Note) => void
+  onTrigger: (note: Note, by: PlayedBy) => void
   onRelease: (note: Note) => void
   /** Where the view started last time (in white keys), to come back to it; null the first time. */
   position?: number | null

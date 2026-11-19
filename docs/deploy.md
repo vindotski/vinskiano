@@ -4,6 +4,10 @@ Vinskiano runs on [Spotcraft](https://spotcraft.dev) 0.6: one Docker image (`vin
 
 `@kodentuzo/spotkit` reads the user pool as Spotcraft's contract describes it; a spotkit release that needs a newer Spotcraft says so in its changelog.
 
+## Analytics
+
+From Spotcraft 0.7, its proxy adds Umami's script (`/_spotcraft/s.js`) to every page and the app's dashboard shows its usage ([ADR 0028](decisions/0028-loop-analytics.md)). Keep **Analytics** on in vinskiano's settings: the app sends the product loop's events through that script ([product.md](product.md#measuring-it)), and the site footer links `/_spotcraft/privacy`. On 0.6 there is no script: nothing is counted and the Privacy link answers 404, but the app works the same.
+
 ## What the image needs
 
 | Setting              | Value                                                                              |

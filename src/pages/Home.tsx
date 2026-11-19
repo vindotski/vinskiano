@@ -113,6 +113,11 @@ const FAQ: Question[] = [
       'On our server, under your guest account, which a cookie in your browser remembers for a year. Clearing your cookies or switching browsers starts a new, empty list.',
   },
   {
+    question: 'Do you track me?',
+    answer:
+      'No. The server counts visits and how far people get (a note played, a sound changed, a preset saved), with no cookies and nothing that tells one visitor from another. Privacy, at the bottom of every page, lists what’s counted and lets you turn it off.',
+  },
+  {
     question: 'Does it work on my phone?',
     answer:
       'Yes, held either way. Play with several fingers at once. On an iPhone it plays even with the silent switch on.',
