@@ -5,7 +5,7 @@ status: accepted
 implementation: done
 date: 2026-11-06
 supersedes: []
-superseded_by: []
+superseded_by: [25]
 notes: "Written retroactively on 2026-11-12, from commits f22328b, 81d9f3a, the knob step and the build journal."
 ---
 

@@ -12,7 +12,7 @@ work since. All of them up to 0023 were written retroactively on 2026-11-12, fro
 | 0001 | [Modernize the 2020 app step by step: pnpm, Vite, Biome, strict TypeScript](0001-modernize-step-by-step.md)                       | accepted                            |
 | 0002 | [Apache-2.0 license](0002-apache-2-license.md)                                                                                    | accepted                            |
 | 0003 | [TanStack Start with server rendering on Nitro; the home page prerendered](0003-tanstack-start-ssr.md)                            | accepted                            |
-| 0004 | [UI from React Aria hooks, Tailwind v4 and a shadcn/ui theme](0004-react-aria-tailwind-shadcn.md)                                 | accepted                            |
+| 0004 | [UI from React Aria hooks, Tailwind v4 and a shadcn/ui theme](0004-react-aria-tailwind-shadcn.md)                                 | accepted, partly superseded by 0025 |
 | 0005 | [A browser floor (Chrome 111, Safari 16.4, Firefox 128) and no polyfills](0005-browser-floor.md)                                  | accepted                            |
 | 0006 | [Web Audio by hand, no Tone.js](0006-web-audio-by-hand.md)                                                                        | accepted                            |
 | 0007 | [A scrolling site and a one-screen app; upright phones get the app rotated](0007-site-and-app.md)                                 | superseded by 0018                  |
@@ -33,3 +33,4 @@ work since. All of them up to 0023 were written retroactively on 2026-11-12, fro
 | 0022 | [CI builds once, retries a flaky test once, and publishes `latest` from `main`](0022-ci-build-once.md)                            | accepted                            |
 | 0023 | [The keyboard renders only what changed](0023-render-only-what-changed.md)                                                        | accepted                            |
 | 0024 | [CI deploys `main` through Spotcraft's deploy hook; the kit runs the server's glue](0024-deploy-from-ci-on-spotcraft-0-5.md)      | accepted                            |
+| 0025 | [Theme tokens from Spotstrap](0025-theme-from-spotstrap.md)                                                                       | accepted                            |

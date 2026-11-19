@@ -2,6 +2,9 @@
 
 # Supply-chain safety
 minimumReleaseAge: 1440 # never install a release younger than one day
+# Our own package, published from CI with provenance (trustPolicy still checks it);
+# releases are needed the same day.
+minimumReleaseAgeExclude: ["@kodentuzo/spotstrap"]
 trustPolicy: no-downgrade # fail if a package's publishing trust level drops
 blockExoticSubdeps: true # transitive deps must come from the registry
 strictDepBuilds: true # fail on unreviewed install scripts
