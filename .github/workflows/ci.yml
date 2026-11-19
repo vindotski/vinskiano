@@ -145,6 +145,8 @@ jobs:
       # Presets need Spotcraft's local stack, as on a laptop (Docker): Postgres with the app's
       # schema and the user pool. It also applies the migrations and writes .env.
       - run: pnpm exec spotcraft dev
+      # compose.yaml joins the stack's network, whose name has a hash of the checkout's path.
+      - run: echo "SPOTCRAFT_DEV_NETWORK=$(jq -r .project .spotcraft/dev.json)_default" >> "$GITHUB_ENV"
       # Browsers are cached per Playwright version; their system packages (apt) are not.
       - id: playwright
         run: echo "version=$(jq -r .version node_modules/@playwright/test/package.json)" >> "$GITHUB_OUTPUT"
