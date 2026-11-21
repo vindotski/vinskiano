@@ -3,7 +3,7 @@
 # ---- base: Node + the pnpm version pinned in package.json -------------------
 # Build stages run on the build machine's own platform: the output (.output/) is plain
 # JavaScript, so a multi-platform release only emulates the small production stage.
-FROM --platform=$BUILDPLATFORM node:26.13.0-slim@sha256:5adad64f9a1fca2d51972caa65983634c8a774eb300d72b20f7f2a0f60368072 AS base
+FROM --platform=$BUILDPLATFORM node:26.13.1-slim@sha256:e6bedef217677b276c591795e169840edd9096dbf13f29df8ef8d1856b8820bc AS base
 ENV PNPM_HOME=/pnpm \
     PATH=/pnpm:$PATH \
     CI=true
@@ -29,7 +29,7 @@ FROM dev AS build
 RUN pnpm build
 
 # ---- production: Node running the Nitro server -------------------------------
-FROM node:26.13.0-slim@sha256:5adad64f9a1fca2d51972caa65983634c8a774eb300d72b20f7f2a0f60368072 AS production
+FROM node:26.13.1-slim@sha256:e6bedef217677b276c591795e169840edd9096dbf13f29df8ef8d1856b8820bc AS production
 # Debian's security fixes often land before the next Node image does: apply them here,
 # so the shipped image (the one Trivy scans) doesn't wait for one.
 # The server needs only node: drop the npm/npx the base image ships (less to patch or abuse).
